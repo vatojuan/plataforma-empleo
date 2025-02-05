@@ -1,4 +1,4 @@
-// pages/job-offer.js
+// pages/job-offer.js prueba
 import { useRouter } from "next/router";
 
 export default function JobOffer() {
