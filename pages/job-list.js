@@ -1,4 +1,4 @@
-// pages/job-list.js
+// Actualización forzada: timestamp 2025-02-05TXX:XX
 export default function JobList() {
   const jobs = [
     { id: 1, title: "Analista de Datos", description: "Experiencia en análisis estadístico y manejo de bases de datos." },
