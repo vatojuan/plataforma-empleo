@@ -9,9 +9,9 @@ export default function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Aquí puedes simular el registro o integrar con tu backend
-    // Por ahora, simplemente redirige a login
-    alert("Registro simulado. Por favor, inicia sesión.");
+    // Por ahora, simulamos el registro: puedes guardar datos en localStorage o simplemente redirigir.
+    // En un futuro integrarás un backend que guarde el usuario.
+    alert(`Registro simulado exitoso para ${username}. Ahora inicia sesión.`);
     router.push("/login");
   };
 
