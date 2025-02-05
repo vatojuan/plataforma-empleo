@@ -8,16 +8,23 @@ export default function Profile() {
   const router = useRouter();
   const [name, setName] = useState(session?.user?.name || "");
 
-  if (status === "loading") return <p>Cargando...</p>;
+  // Si la sesión está cargando, muestra "Cargando..."
+  if (status === "loading") {
+    return <p>Cargando...</p>;
+  }
+
+  // Si no hay sesión, redirige al login.
   if (!session) {
-    router.push("/login");
+    useEffect(() => {
+      router.push("/login");
+    }, [router]);
     return null;
   }
 
   const handleSubmit = (e) => {
     e.preventDefault();
     // Aquí se simula la actualización del perfil.
-    alert(`Perfil actualizado para ${name}`);
+    alert(`Perfil actualizado para: ${name}`);
   };
 
   return (
@@ -39,9 +46,9 @@ export default function Profile() {
         <a href="/dashboard">Volver al Dashboard</a>
       </p>
       <p>
-        <a href="/login" onClick={() => signOut({ callbackUrl: "/login" })}>
+        <button onClick={() => signOut({ callbackUrl: "/login" })}>
           Cerrar sesión
-        </a>
+        </button>
       </p>
     </div>
   );
