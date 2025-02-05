@@ -7,9 +7,16 @@ export default function Dashboard() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  if (status === "loading") return <p>Cargando...</p>;
+  // Si la sesión aún está cargando, muestra un mensaje de carga.
+  if (status === "loading") {
+    return <p>Cargando...</p>;
+  }
+
+  // Si no hay sesión (usuario no autenticado), redirige al login.
   if (!session) {
-    router.push("/login");
+    useEffect(() => {
+      router.push("/login");
+    }, [router]);
     return null;
   }
 
@@ -18,12 +25,12 @@ export default function Dashboard() {
       <h1>Dashboard</h1>
       <p>Bienvenido, {session.user.name}</p>
       <p>
-        <a href="/profile">Actualizar Perfil</a>
+        <a href="/profile">Ir al Perfil</a>
       </p>
       <p>
-        <a href="/login" onClick={() => signOut({ callbackUrl: "/login" })}>
+        <button onClick={() => signOut({ callbackUrl: "/login" })}>
           Cerrar sesión
-        </a>
+        </button>
       </p>
     </div>
   );
