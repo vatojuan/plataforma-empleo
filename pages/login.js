@@ -10,7 +10,12 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const result = await signIn("credentials", { redirect: false, username, password });
+    // La función signIn por defecto usa POST para enviar credenciales
+    const result = await signIn("credentials", {
+      redirect: false,
+      username,
+      password,
+    });
     if (result?.ok) {
       router.push("/dashboard");
     } else {
