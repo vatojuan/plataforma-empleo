@@ -10,7 +10,6 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // La función signIn por defecto usa POST para enviar credenciales
     const result = await signIn("credentials", {
       redirect: false,
       username,
@@ -21,6 +20,10 @@ export default function Login() {
     } else {
       alert("Error al iniciar sesión");
     }
+  };
+
+  const handleGoogleSignIn = async () => {
+    await signIn("google", { callbackUrl: "/dashboard" });
   };
 
   return (
@@ -47,6 +50,8 @@ export default function Login() {
         </div>
         <button type="submit">Iniciar Sesión</button>
       </form>
+      <hr />
+      <button onClick={handleGoogleSignIn}>Iniciar Sesión con Google</button>
       <p>
         ¿No tienes cuenta? <a href="/register">Regístrate</a>
       </p>

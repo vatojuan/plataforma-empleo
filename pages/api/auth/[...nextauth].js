@@ -1,11 +1,13 @@
 // pages/api/auth/[...nextauth].js
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
 
 export default NextAuth({
   secret: process.env.NEXTAUTH_SECRET,
-  debug: true, // para ver logs detallados
+  debug: true, // Opcional, para ver más detalles en la consola
   providers: [
+    // Proveedor de credenciales (sigue existiendo para pruebas)
     CredentialsProvider({
       name: "Credenciales",
       credentials: {
@@ -13,9 +15,18 @@ export default NextAuth({
         password: { label: "Contraseña", type: "password" }
       },
       async authorize(credentials) {
-        // Para pruebas: siempre devuelve un usuario, sin importar las credenciales
-        return { id: "1", name: credentials.username || "Usuario Demo", email: "demo@example.com" };
+        // Para pruebas: solo autoriza demo/demo o acepta cualquier credencial (temporal)
+        if (credentials.username === "demo" && credentials.password === "demo") {
+          return { id: "1", name: "Usuario Demo", email: "demo@example.com" };
+        }
+        // Para pruebas alternativas: aceptar cualquier usuario
+        return { id: "1", name: credentials.username, email: `${credentials.username}@example.com` };
       }
+    }),
+    // Agrega el proveedor de Google
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET
     })
   ],
   callbacks: {
@@ -34,6 +45,6 @@ export default NextAuth({
   },
   pages: {
     signIn: "/login",
-    error: "/auth/error" // Opcional: para personalizar errores
+    error: "/auth/error" // Opcional, crea una página de error en pages/auth/error.js si lo deseas
   }
 });
