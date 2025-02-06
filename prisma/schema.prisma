@@ -1,5 +1,5 @@
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -12,7 +12,7 @@ model User {
   email     String   @unique
   name      String
   password  String?  // Opcional para OAuth
-  role      String?  // "empleado" o "empleador"; null si aún no se seleccionó
-  confirmed Boolean  @default(false)  // Para el registro por email
+  role      String?  // "empleado" o "empleador"; puede ser null inicialmente
+  confirmed Boolean  @default(false)
   createdAt DateTime @default(now())
 }
