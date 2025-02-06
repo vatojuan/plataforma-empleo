@@ -1,4 +1,3 @@
-// pages/index.js
 import Link from 'next/link';
 
 export default function Home() {
@@ -6,9 +5,9 @@ export default function Home() {
     <div style={{ textAlign: "center", padding: "2rem" }}>
       <header>
         <nav>
-          <Link href="/historia"><a>Historia</a></Link> |{" "}
-          <Link href="/contacto"><a>Contacto</a></Link> |{" "}
-          <Link href="/nosotros"><a>Nosotros</a></Link>
+          <Link href="/historia">Historia</Link> |{" "}
+          <Link href="/contacto">Contacto</Link> |{" "}
+          <Link href="/nosotros">Nosotros</Link>
         </nav>
       </header>
       <main>
@@ -16,8 +15,8 @@ export default function Home() {
         <p>Encuentra al candidato ideal o publica tus requerimientos.</p>
       </main>
       <footer style={{ marginTop: "2rem" }}>
-        <Link href="/login"><a>Iniciar Sesión</a></Link> |{" "}
-        <Link href="/register"><a>Registrarse</a></Link>
+        <Link href="/login">Iniciar Sesión</Link> |{" "}
+        <Link href="/register">Registrarse</Link>
       </footer>
     </div>
   );

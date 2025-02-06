@@ -1,0 +1,18 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String
+  password  String?  // Opcional para OAuth
+  role      String?  // "empleado" o "empleador"; null si aún no se seleccionó
+  confirmed Boolean  @default(false)  // Para el registro por email
+  createdAt DateTime @default(now())
+}

@@ -1,22 +1,26 @@
-// pages/register.js
 import { useState } from "react";
 import { useRouter } from "next/router";
+import Link from "next/link";
 
 export default function Register() {
-  const [userType, setUserType] = useState("empleado"); // "empleado" o "empleador"
-  const [username, setUsername] = useState("");
+  const [userType, setUserType] = useState("empleado");
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Aquí simula el registro: en un futuro, enviarás la info a tu backend
-    alert(`Registrado como ${userType}: ${username}`);
-    // Redirige a la página de perfil correspondiente según el tipo de usuario
-    if (userType === "empleado") {
-      router.push("/profile-empleado");
+    const res = await fetch("/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, name, password, role: userType }),
+    });
+    if (res.ok) {
+      alert("Registro exitoso. Revisa tu correo para confirmar la cuenta.");
+      router.push("/login");
     } else {
-      router.push("/profile-empleador");
+      alert("Error en el registro.");
     }
   };
 
@@ -32,11 +36,20 @@ export default function Register() {
           </select>
         </div>
         <div>
-          <label>Usuario:</label>
+          <label>Email:</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </div>
+        <div>
+          <label>Nombre:</label>
           <input
             type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
             required
           />
         </div>
@@ -52,7 +65,7 @@ export default function Register() {
         <button type="submit">Registrarse</button>
       </form>
       <p>
-        ¿Ya tienes cuenta? <a href="/login">Inicia sesión</a>
+        ¿Ya tienes cuenta? <Link href="/login">Inicia sesión</Link>
       </p>
     </div>
   );
