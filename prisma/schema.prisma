@@ -11,8 +11,23 @@ model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
   name      String
-  password  String?  // Opcional para OAuth
+  password  String?  // Solo para registros por email
   role      String?  // "empleado" o "empleador"; puede ser null inicialmente
   confirmed Boolean  @default(false)
+  googleId  String?  // Almacena el ID de Google (opcional)
   createdAt DateTime @default(now())
+
+  // Relación con ofertas de empleo (si aplica)
+  jobs      Job[]
+}
+
+
+model Job {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  createdAt   DateTime @default(now())
+  // Relación: la oferta pertenece a un usuario (empleador)
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
 }

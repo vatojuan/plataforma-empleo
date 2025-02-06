@@ -1,4 +1,3 @@
-// pages/api/auth/[...nextauth].js
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
@@ -7,7 +6,7 @@ import bcrypt from "bcryptjs";
 
 export default NextAuth({
   secret: process.env.NEXTAUTH_SECRET,
-  debug: true,
+  debug: process.env.NODE_ENV !== "production",
   providers: [
     CredentialsProvider({
       name: "Credenciales",
@@ -16,20 +15,18 @@ export default NextAuth({
         password: { label: "Contraseña", type: "password" }
       },
       async authorize(credentials) {
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
-        });
-        if (!user) {
-          throw new Error("Usuario no encontrado");
+        try {
+          const user = await prisma.user.findUnique({
+            where: { email: credentials.email },
+          });
+          if (!user) throw new Error("Usuario no encontrado");
+          const isValid = await bcrypt.compare(credentials.password, user.password);
+          if (!isValid) throw new Error("Contraseña incorrecta");
+          if (!user.confirmed) throw new Error("Confirma tu correo antes de iniciar sesión");
+          return { id: user.id.toString(), name: user.name, email: user.email, role: user.role };
+        } catch (error) {
+          throw new Error("Error en la autenticación");
         }
-        const isValid = await bcrypt.compare(credentials.password, user.password);
-        if (!isValid) {
-          throw new Error("Contraseña incorrecta");
-        }
-        if (!user.confirmed) {
-          throw new Error("Por favor, confirma tu correo antes de iniciar sesión");
-        }
-        return { id: user.id.toString(), name: user.name, email: user.email, role: user.role };
       }
     }),
     GoogleProvider({
@@ -40,18 +37,25 @@ export default NextAuth({
   callbacks: {
     async signIn({ user, account, profile }) {
       if (account.provider === "google") {
-        let existingUser = await prisma.user.findUnique({
-          where: { email: user.email },
-        });
-        if (!existingUser) {
-          existingUser = await prisma.user.create({
-            data: {
-              email: user.email,
-              name: user.name,
-              role: null, // Se crea sin rol; el usuario deberá seleccionarlo
-              confirmed: true, // Consideramos confirmado el email para OAuth
-            },
+        try {
+          let existingUser = await prisma.user.findUnique({
+            where: { email: user.email },
           });
+          if (!existingUser) {
+            existingUser = await prisma.user.create({
+              data: {
+                email: user.email,
+                name: user.name,
+                role: null, // Queda sin rol para que se seleccione después
+                confirmed: true,
+                googleId: profile.sub,
+              },
+            });
+          }
+          user.id = existingUser.id.toString();
+        } catch (error) {
+          console.error("Error en signIn (Google):", error);
+          throw new Error("Error interno");
         }
       }
       return true;
@@ -66,20 +70,20 @@ export default NextAuth({
       return token;
     },
     async session({ session, token }) {
-      // Actualiza el rol leyendo el usuario actualizado desde la base de datos
       try {
         const dbUser = await prisma.user.findUnique({
           where: { email: token.email },
         });
-        session.user.role = dbUser?.role || token.role;
+        session.user.role = dbUser && dbUser.role ? dbUser.role : token.role || "";
       } catch (error) {
-        session.user.role = token.role;
+        session.user.role = token.role || "";
       }
-      session.user.id = token.id;
-      session.user.name = token.name;
-      session.user.email = token.email;
+      session.user.id = token.id || "";
+      session.user.name = token.name || "";
+      session.user.email = token.email || "";
       return session;
     }
+    // NOTA: No definimos el callback "redirect" aquí para usar el comportamiento por defecto.
   },
   pages: {
     signIn: "/login",

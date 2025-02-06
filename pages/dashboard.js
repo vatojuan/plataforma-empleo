@@ -36,7 +36,7 @@ export default function Dashboard() {
       ) : (
         <div>
           <p>
-            <a href="/job-offer">Publicar Oferta de Empleo</a>
+            <a href="/job-create">Publicar Oferta de Empleo</a>
           </p>
           <p>
             <a href="/profile-empleador">Actualizar Perfil</a>

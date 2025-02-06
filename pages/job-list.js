@@ -1,10 +1,20 @@
-// Actualización forzada: timestamp 2025-02-05TXX:XX
+// pages/job-list.js
+import { useEffect, useState } from "react";
+import Link from "next/link";
+
 export default function JobList() {
-  const jobs = [
-    { id: 1, title: "Analista de Datos", description: "Experiencia en análisis estadístico y manejo de bases de datos." },
-    { id: 2, title: "Desarrollador Full Stack", description: "Conocimiento en Next.js, Node.js y bases de datos SQL." },
-    { id: 3, title: "Especialista en Recursos Humanos", description: "Experiencia en procesos de selección y reclutamiento." },
-  ];
+  const [jobs, setJobs] = useState([]);
+
+  useEffect(() => {
+    async function fetchJobs() {
+      const res = await fetch("/api/job/list");
+      if (res.ok) {
+        const data = await res.json();
+        setJobs(data.jobs);
+      }
+    }
+    fetchJobs();
+  }, []);
 
   return (
     <div style={{ textAlign: "center", marginTop: "2rem" }}>
@@ -14,12 +24,15 @@ export default function JobList() {
           <li key={job.id} style={{ marginBottom: "1rem", borderBottom: "1px solid #ccc", paddingBottom: "1rem" }}>
             <h2>{job.title}</h2>
             <p>{job.description}</p>
-            <a href={`/job-offer?id=${job.id}`}>Ver Detalles</a>
+            <p>
+              Publicado por: {job.user.name} ({job.user.role})
+            </p>
+            <Link href={`/job-offer?id=${job.id}`}>Ver Detalles</Link>
           </li>
         ))}
       </ul>
       <p>
-        <a href="/dashboard">Volver al Dashboard</a>
+        <Link href="/dashboard">Volver al Dashboard</Link>
       </p>
     </div>
   );
