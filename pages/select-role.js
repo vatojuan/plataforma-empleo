@@ -1,4 +1,3 @@
-// pages/select-role.js
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { useSession, signOut, signIn } from "next-auth/react";
@@ -25,7 +24,7 @@ export default function SelectRole() {
       body: JSON.stringify({ email: session.user.email, role: selectedRole }),
     });
     if (res.ok) {
-      // Forzamos la actualización de la sesión; esto reinicia el proceso de signIn
+      // Actualizamos la sesión mediante signIn sin proveedor para forzar el refresco
       await signIn(undefined, { callbackUrl: "/dashboard" });
     } else {
       alert("Error al actualizar el rol");
@@ -44,7 +43,9 @@ export default function SelectRole() {
         <br /><br />
         <button type="submit">Confirmar Rol</button>
       </form>
-      <button onClick={() => signOut({ callbackUrl: "/login" })}>Cerrar sesión</button>
+      <button onClick={() => signOut({ redirect: true, callbackUrl: "/login" })}>
+        Cerrar sesión
+      </button>
     </div>
   );
 }

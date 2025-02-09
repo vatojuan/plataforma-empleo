@@ -1,58 +1,50 @@
 // pages/job-create.js
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
-import Link from "next/link";
 
 export default function JobCreate() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [loading, setLoading] = useState(false);
 
-  // Mientras se carga la sesión
-  if (status === "loading") return <p>Cargando...</p>;
-
-  // Si el usuario no está autenticado, redirige al login
-  if (!session) {
-    router.push("/login");
-    return null;
-  }
-
-  // Solo los usuarios con rol "empleador" pueden publicar ofertas
-  if (session.user.role !== "empleador") {
-    return (
-      <div style={{ textAlign: "center", marginTop: "2rem" }}>
-        <h1>Acceso Denegado</h1>
-        <p>Solo los empleadores pueden publicar ofertas de empleo.</p>
-        <p>
-          <Link href="/dashboard">Volver al Dashboard</Link>
-        </p>
-      </div>
-    );
-  }
+  useEffect(() => {
+    if (status !== "loading" && !session) {
+      router.push("/login");
+    } else if (session && !session.user.role) {
+      router.push("/select-role");
+    }
+  }, [session, status, router]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    // Envía una solicitud POST a tu endpoint API para crear la oferta.
+    // Se usa el id del usuario de la sesión
+    if (!session.user.id) {
+      alert("No se encontró el id del usuario. Inicia sesión de nuevo.");
+      return;
+    }
     const res = await fetch("/api/job/create", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         title,
         description,
-        userId: session.user.id, // Se asume que el id es una cadena o número que coincide con el campo en la base de datos.
+        userId: session.user.id
       }),
     });
-    setLoading(false);
     if (res.ok) {
-      router.push("/job-list"); // Redirige a la lista de ofertas tras publicar exitosamente.
+      alert("Oferta publicada");
+      router.push("/job-list");
     } else {
-      alert("Error al publicar la oferta");
+      const data = await res.json();
+      alert("Error al publicar oferta: " + data.message);
     }
   };
+
+  if (status === "loading" || !session) {
+    return <p>Cargando...</p>;
+  }
 
   return (
     <div style={{ textAlign: "center", marginTop: "2rem" }}>
@@ -67,25 +59,16 @@ export default function JobCreate() {
             required
           />
         </div>
-        <div style={{ marginTop: "1rem" }}>
+        <div>
           <label>Descripción:</label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             required
-            rows={4}
-            style={{ width: "300px" }}
           ></textarea>
         </div>
-        <div style={{ marginTop: "1rem" }}>
-          <button type="submit" disabled={loading}>
-            {loading ? "Publicando..." : "Publicar Oferta"}
-          </button>
-        </div>
+        <button type="submit">Publicar Oferta</button>
       </form>
-      <p style={{ marginTop: "1rem" }}>
-        <Link href="/dashboard">Volver al Dashboard</Link>
-      </p>
     </div>
   );
 }

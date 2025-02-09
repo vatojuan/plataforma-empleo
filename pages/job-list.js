@@ -19,18 +19,22 @@ export default function JobList() {
   return (
     <div style={{ textAlign: "center", marginTop: "2rem" }}>
       <h1>Ofertas de Empleo</h1>
-      <ul style={{ listStyle: "none", padding: 0 }}>
-        {jobs.map((job) => (
-          <li key={job.id} style={{ marginBottom: "1rem", borderBottom: "1px solid #ccc", paddingBottom: "1rem" }}>
-            <h2>{job.title}</h2>
-            <p>{job.description}</p>
-            <p>
-              Publicado por: {job.user.name} ({job.user.role})
-            </p>
-            <Link href={`/job-offer?id=${job.id}`}>Ver Detalles</Link>
-          </li>
-        ))}
-      </ul>
+      {jobs.length === 0 ? (
+        <p>No hay ofertas publicadas.</p>
+      ) : (
+        <ul style={{ listStyle: "none", padding: 0 }}>
+          {jobs.map((job) => (
+            <li key={job.id} style={{ marginBottom: "1rem", borderBottom: "1px solid #ccc", paddingBottom: "1rem" }}>
+              <h2>{job.title}</h2>
+              <p>{job.description}</p>
+              <p>
+                Publicado por: {job.user.name} ({job.user.role})
+              </p>
+              <Link href={`/job-offer?id=${job.id}`}>Ver Detalles</Link>
+            </li>
+          ))}
+        </ul>
+      )}
       <p>
         <Link href="/dashboard">Volver al Dashboard</Link>
       </p>

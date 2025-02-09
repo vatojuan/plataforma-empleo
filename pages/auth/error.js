@@ -1,4 +1,3 @@
-// pages/auth/error.js
 import Link from "next/link";
 
 export default function AuthError() {

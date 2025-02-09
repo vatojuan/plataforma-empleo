@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
-import Link from "next/link";
 
 export default function Register() {
-  const [userType, setUserType] = useState("empleado");
+  const [userType, setUserType] = useState("empleado"); // "empleado" o "empleador"
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
@@ -20,7 +19,8 @@ export default function Register() {
       alert("Registro exitoso. Revisa tu correo para confirmar la cuenta.");
       router.push("/login");
     } else {
-      alert("Error en el registro.");
+      const data = await res.json();
+      alert("Error en el registro: " + data.message);
     }
   };
 
@@ -37,35 +37,20 @@ export default function Register() {
         </div>
         <div>
           <label>Email:</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
         </div>
         <div>
           <label>Nombre:</label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
+          <input type="text" value={name} onChange={(e) => setName(e.target.value)} required />
         </div>
         <div>
           <label>Contraseña:</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
         </div>
         <button type="submit">Registrarse</button>
       </form>
       <p>
-        ¿Ya tienes cuenta? <Link href="/login">Inicia sesión</Link>
+        ¿Ya tienes cuenta? <a href="/login">Inicia sesión</a>
       </p>
     </div>
   );

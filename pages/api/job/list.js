@@ -16,7 +16,7 @@ export default async function handler(req, res) {
         },
       },
     });
-    return res.status(200).json({ jobs });
+    return res.status(200).json({ jobs: jobs || [] });
   } catch (error) {
     console.error("Error listando ofertas:", error);
     return res.status(500).json({ message: "Error interno del servidor" });

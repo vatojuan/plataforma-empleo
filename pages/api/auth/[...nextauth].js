@@ -1,4 +1,3 @@
-// pages/api/auth/[...nextauth].js
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
@@ -21,6 +20,7 @@ export default NextAuth({
             where: { email: credentials.email },
           });
           if (!user) throw new Error("Usuario no encontrado");
+          if (!user.password) throw new Error("Este usuario se registró con Google, usa Google");
           const isValid = await bcrypt.compare(credentials.password, user.password);
           if (!isValid) throw new Error("Contraseña incorrecta");
           if (!user.confirmed) throw new Error("Confirma tu correo antes de iniciar sesión");
@@ -53,7 +53,7 @@ export default NextAuth({
               },
             });
           }
-          // Usa el ID autoincremental de la base de datos para la sesión
+          // Usa el ID autogenerado de la BD para la sesión
           user.id = existingUser.id.toString();
         } catch (error) {
           console.error("Error en signIn (Google):", error);
@@ -85,7 +85,6 @@ export default NextAuth({
       session.user.email = token.email || "";
       return session;
     }
-    // No definimos un callback redirect personalizado para usar el comportamiento por defecto.
   },
   pages: {
     signIn: "/login",

@@ -1,4 +1,3 @@
-// pages/dashboard.js
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
@@ -19,6 +18,12 @@ export default function Dashboard() {
   if (status === "loading" || !session || !session.user.role) {
     return <p>Cargando...</p>;
   }
+
+  const handleSignOut = async () => {
+    // Usa signOut sin redirección automática y luego redirige manualmente
+    await signOut({ redirect: false });
+    window.location.href = "/login";
+  };
 
   return (
     <div style={{ textAlign: "center", marginTop: "2rem" }}>
@@ -44,7 +49,17 @@ export default function Dashboard() {
           </p>
         </div>
       )}
-      <button onClick={() => signOut({ callbackUrl: "/login" })}>Cerrar sesión</button>
+      <button
+        onClick={handleSignOut}
+        style={{
+          marginTop: "2rem",
+          padding: "0.5rem 1rem",
+          fontSize: "1rem",
+          cursor: "pointer",
+        }}
+      >
+        Cerrar sesión
+      </button>
     </div>
   );
 }

@@ -19,7 +19,7 @@ export default async function handler(req, res) {
       data: {
         title,
         description,
-        userId: Number(userId), // Se convierte a número
+        userId: Number(userId),
       },
     });
     return res.status(200).json({ message: "Oferta creada", job });
