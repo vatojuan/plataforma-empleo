@@ -2,6 +2,7 @@
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
+import Link from "next/link";
 
 export default function Dashboard() {
   const { data: session, status } = useSession();
@@ -27,27 +28,23 @@ export default function Dashboard() {
       {session.user.role === "empleado" ? (
         <div>
           <p>
-            <a href="/job-list">Ver ofertas de empleo</a>
+            <Link href="/job-list">Ver ofertas de empleo</Link>
           </p>
           <p>
-            <a href="/profile-empleado">Actualizar Perfil</a>
+            <Link href="/profile-empleado">Actualizar Perfil</Link>
           </p>
         </div>
       ) : (
         <div>
           <p>
-            <a href="/job-create">Publicar Oferta de Empleo</a>
+            <Link href="/job-create">Publicar Oferta de Empleo</Link>
           </p>
           <p>
-            <a href="/profile-empleador">Actualizar Perfil</a>
+            <Link href="/profile-empleador">Actualizar Perfil</Link>
           </p>
         </div>
       )}
-      <p>
-        <button onClick={() => signOut({ callbackUrl: "/login" })}>
-          Cerrar sesión
-        </button>
-      </p>
+      <button onClick={() => signOut({ callbackUrl: "/login" })}>Cerrar sesión</button>
     </div>
   );
 }

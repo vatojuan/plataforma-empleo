@@ -1,23 +1,21 @@
-import Link from 'next/link';
+// pages/index.js
+import { useEffect } from "react";
+import { useRouter } from "next/router";
+import { useSession } from "next-auth/react";
 
 export default function Home() {
-  return (
-    <div style={{ textAlign: "center", padding: "2rem" }}>
-      <header>
-        <nav>
-          <Link href="/historia">Historia</Link> |{" "}
-          <Link href="/contacto">Contacto</Link> |{" "}
-          <Link href="/nosotros">Nosotros</Link>
-        </nav>
-      </header>
-      <main>
-        <h1>Bienvenido a la Agencia de Recursos Humanos</h1>
-        <p>Encuentra al candidato ideal o publica tus requerimientos.</p>
-      </main>
-      <footer style={{ marginTop: "2rem" }}>
-        <Link href="/login">Iniciar Sesión</Link> |{" "}
-        <Link href="/register">Registrarse</Link>
-      </footer>
-    </div>
-  );
+  const router = useRouter();
+  const { data: session, status } = useSession();
+
+  useEffect(() => {
+    if (status !== "loading") {
+      if (session && session.user.role) {
+        router.replace("/dashboard");
+      } else {
+        router.replace("/login");
+      }
+    }
+  }, [session, status, router]);
+
+  return <p>Redirigiendo...</p>;
 }

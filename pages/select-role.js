@@ -2,28 +2,20 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { useSession, signOut, signIn } from "next-auth/react";
+import Link from "next/link";
 
 export default function SelectRole() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [selectedRole, setSelectedRole] = useState("empleado");
 
-  // Si la sesión aún está cargando, muestra un indicador
-  if (status === "loading") return <p>Cargando...</p>;
-
-  // Si no hay sesión, redirige a /login
   useEffect(() => {
-    if (!session) {
+    if (status !== "loading" && !session) {
       router.push("/login");
-    }
-  }, [session, router]);
-
-  // Si el usuario ya tiene un rol, redirige al Dashboard
-  useEffect(() => {
-    if (session && session.user.role) {
+    } else if (session && session.user.role) {
       router.push("/dashboard");
     }
-  }, [session, router]);
+  }, [session, status, router]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -33,10 +25,8 @@ export default function SelectRole() {
       body: JSON.stringify({ email: session.user.email, role: selectedRole }),
     });
     if (res.ok) {
-      // Para forzar la actualización de la sesión, primero cerramos la sesión
-      await signOut({ redirect: false });
-      // Luego, iniciamos sesión nuevamente con Google (esto crea una nueva sesión con los datos actualizados)
-      await signIn("google", { callbackUrl: "/dashboard" });
+      // Forzamos la actualización de la sesión; esto reinicia el proceso de signIn
+      await signIn(undefined, { callbackUrl: "/dashboard" });
     } else {
       alert("Error al actualizar el rol");
     }
@@ -45,7 +35,7 @@ export default function SelectRole() {
   return (
     <div style={{ textAlign: "center", marginTop: "2rem" }}>
       <h1>Selecciona tu Rol</h1>
-      <p>Por favor, elige si eres Empleado o Empleador:</p>
+      <p>Elige si eres Empleado o Empleador:</p>
       <form onSubmit={handleSubmit}>
         <select value={selectedRole} onChange={(e) => setSelectedRole(e.target.value)}>
           <option value="empleado">Empleado</option>
@@ -54,10 +44,7 @@ export default function SelectRole() {
         <br /><br />
         <button type="submit">Confirmar Rol</button>
       </form>
-      <p>
-        Si deseas cerrar sesión,{" "}
-        <button onClick={() => signOut({ callbackUrl: "/login" })}>Cerrar Sesión</button>
-      </p>
+      <button onClick={() => signOut({ callbackUrl: "/login" })}>Cerrar sesión</button>
     </div>
   );
 }

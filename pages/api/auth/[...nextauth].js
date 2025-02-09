@@ -1,3 +1,4 @@
+// pages/api/auth/[...nextauth].js
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
@@ -46,12 +47,13 @@ export default NextAuth({
               data: {
                 email: user.email,
                 name: user.name,
-                role: null, // Queda sin rol para que se seleccione después
+                role: null, // El usuario deberá seleccionar su rol posteriormente
                 confirmed: true,
                 googleId: profile.sub,
               },
             });
           }
+          // Usa el ID autoincremental de la base de datos para la sesión
           user.id = existingUser.id.toString();
         } catch (error) {
           console.error("Error en signIn (Google):", error);
@@ -83,7 +85,7 @@ export default NextAuth({
       session.user.email = token.email || "";
       return session;
     }
-    // NOTA: No definimos el callback "redirect" aquí para usar el comportamiento por defecto.
+    // No definimos un callback redirect personalizado para usar el comportamiento por defecto.
   },
   pages: {
     signIn: "/login",
