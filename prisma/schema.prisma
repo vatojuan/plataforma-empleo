@@ -7,22 +7,29 @@ generator client {
   provider = "prisma-client-js"
 }
 
-model User {
-  id          Int      @id @default(autoincrement())
-  email       String   @unique
-  name        String
-  password    String?  // Solo para registro con email
-  role        String?  // "empleado" o "empleador"; inicialmente null
-  confirmed   Boolean  @default(false)
-  googleId    String?  // Guarda el ID de Google para usuarios OAuth
-  createdAt   DateTime @default(now())
-  
-  // Campos adicionales para el perfil de empleador
-  companyName String?
-  description String?
-  phone       String?
+model LegalDocument {
+  id        Int      @id @default(autoincrement())
+  url       String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+}
 
-  jobs        Job[]
+model User {
+  id             Int             @id @default(autoincrement())
+  email          String          @unique
+  name           String
+  password       String?
+  role           String?
+  confirmed      Boolean         @default(false)
+  googleId       String?
+  createdAt      DateTime        @default(now())
+  companyName    String?
+  description    String?
+  phone          String?
+  jobs           Job[]
+  legalDocuments LegalDocument[] // Nueva relación para los documentos legales
+  profilePicture String?  // Agrega este campo para la imagen de perfil
 }
 
 model Job {

@@ -32,9 +32,10 @@ export const authOptions = {
             name: user.name,
             email: user.email,
             role: user.role,
+            image: user.profilePicture || "/images/default-user.png",
           };
         } catch (error) {
-          console.error("Error in Credentials authorize:", error);
+          console.error("Error en Credentials authorize:", error);
           throw new Error("Error en la autenticación");
         }
       },
@@ -52,6 +53,7 @@ export const authOptions = {
             where: { email: user.email },
           });
           if (!existingUser) {
+            // Si no existe, creamos el usuario usando la imagen de Google
             existingUser = await prisma.user.create({
               data: {
                 email: user.email,
@@ -59,11 +61,22 @@ export const authOptions = {
                 role: null, // El usuario deberá seleccionar su rol posteriormente
                 confirmed: true,
                 googleId: profile.sub,
+                profilePicture: profile.picture, // Imagen de Google
               },
             });
+          } else {
+            // Si ya existe, actualizamos la imagen de perfil solo si es diferente
+            if (existingUser.profilePicture !== profile.picture) {
+              existingUser = await prisma.user.update({
+                where: { email: user.email },
+                data: { profilePicture: profile.picture },
+              });
+            }
           }
-          // Usa el ID autogenerado de la BD para la sesión
+          // Actualizamos los valores del usuario para la sesión
           user.id = existingUser.id.toString();
+          user.role = existingUser.role || null;
+          user.image = existingUser.profilePicture || "/images/default-user.png";
         } catch (error) {
           console.error("Error en signIn (Google):", error);
           throw new Error("Error interno");
@@ -77,6 +90,7 @@ export const authOptions = {
         token.name = user.name;
         token.email = user.email;
         token.role = user.role;
+        token.picture = user.image || "/images/default-user.png";
       }
       return token;
     },
@@ -88,13 +102,15 @@ export const authOptions = {
             where: { email: token.email },
           });
           session.user.role = dbUser?.role ?? token.role ?? "";
+          session.user.image = dbUser?.profilePicture || token.picture || "/images/default-user.png";
         } catch (error) {
           console.error("Error en session callback:", error);
           session.user.role = token.role || "";
+          session.user.image = token.picture || "/images/default-user.png";
         }
       } else {
-        console.warn("Token does not have email, using token.role only.");
         session.user.role = token.role || "";
+        session.user.image = token.picture || "/images/default-user.png";
       }
       session.user.id = token.id || "";
       session.user.name = token.name || "";

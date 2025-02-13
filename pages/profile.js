@@ -1,4 +1,3 @@
-// pages/profile.js
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -8,12 +7,10 @@ export default function Profile() {
   const router = useRouter();
   const [name, setName] = useState(session?.user?.name || "");
 
-  // Si la sesión está cargando, muestra "Cargando..."
   if (status === "loading") {
     return <p>Cargando...</p>;
   }
 
-  // Si no hay sesión, redirige al login.
   if (!session) {
     useEffect(() => {
       router.push("/login");
@@ -23,13 +20,18 @@ export default function Profile() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Aquí se simula la actualización del perfil.
     alert(`Perfil actualizado para: ${name}`);
   };
 
   return (
     <div style={{ textAlign: "center", marginTop: "2rem" }}>
       <h1>Perfil de Usuario</h1>
+      {/* Mostrar imagen de perfil */}
+      <img
+        src={session.user.image || "/images/default-user.png"}
+        alt="Imagen de perfil"
+        style={{ width: "100px", height: "100px", borderRadius: "50%", objectFit: "cover" }}
+      />
       <form onSubmit={handleSubmit}>
         <div>
           <label>Nombre:</label>
