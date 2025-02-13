@@ -8,16 +8,21 @@ generator client {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  name      String
-  password  String?  // Solo para registro con email
-  role      String?  // "empleado" o "empleador"; inicialmente null
-  confirmed Boolean  @default(false)
-  googleId  String?  // Guarda el ID de Google para usuarios OAuth
-  createdAt DateTime @default(now())
+  id          Int      @id @default(autoincrement())
+  email       String   @unique
+  name        String
+  password    String?  // Solo para registro con email
+  role        String?  // "empleado" o "empleador"; inicialmente null
+  confirmed   Boolean  @default(false)
+  googleId    String?  // Guarda el ID de Google para usuarios OAuth
+  createdAt   DateTime @default(now())
   
-  jobs      Job[]
+  // Campos adicionales para el perfil de empleador
+  companyName String?
+  description String?
+  phone       String?
+
+  jobs        Job[]
 }
 
 model Job {
