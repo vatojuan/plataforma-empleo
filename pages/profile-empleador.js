@@ -5,7 +5,7 @@ import axios from 'axios';
 import { useSession, signOut } from 'next-auth/react';
 
 export default function ProfileEmpleador() {
-  const { data: session, status, update } = useSession(); // Intentamos obtener 'update'
+  const { data: session, status, update } = useSession();
   const router = useRouter();
   const [companyName, setCompanyName] = useState('');
   const [description, setDescription] = useState('');
@@ -15,7 +15,9 @@ export default function ProfileEmpleador() {
   const [uploadMessage, setUploadMessage] = useState('');
   const [selectedProfileImage, setSelectedProfileImage] = useState(null);
   const [profileImageMessage, setProfileImageMessage] = useState('');
+  const [documents, setDocuments] = useState([]);
 
+  // Cargar perfil
   useEffect(() => {
     if (session) {
       axios.get('/api/employer/profile')
@@ -26,6 +28,17 @@ export default function ProfileEmpleador() {
           setPhone(data.phone || '');
         })
         .catch((err) => console.error('Error al cargar el perfil:', err));
+    }
+  }, [session]);
+
+  // Cargar documentos legales
+  useEffect(() => {
+    if (session) {
+      axios.get('/api/employer/documents')
+        .then((res) => {
+          setDocuments(res.data.documents);
+        })
+        .catch((err) => console.error('Error al cargar documentos:', err));
     }
   }, [session]);
 
@@ -69,6 +82,9 @@ export default function ProfileEmpleador() {
       });
       setUploadMessage('Documento subido correctamente.');
       console.log('Documento:', res.data.document);
+      // Actualizar lista de documentos
+      const updatedDocs = await axios.get('/api/employer/documents');
+      setDocuments(updatedDocs.data.documents);
     } catch (error) {
       console.error('Error subiendo el documento:', error);
       setUploadMessage('Error al subir el documento.');
@@ -93,18 +109,31 @@ export default function ProfileEmpleador() {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       setProfileImageMessage('Imagen de perfil actualizada correctamente.');
-
-      // Actualizar la sesión automáticamente:
       if (update) {
         await update();
       } else {
         router.replace(router.asPath);
       }
-      
       console.log('Imagen actualizada:', res.data.user.profilePicture);
     } catch (error) {
       console.error('Error actualizando la imagen de perfil:', error);
       setProfileImageMessage('Error al actualizar la imagen de perfil.');
+    }
+  };
+
+  // Función para eliminar un documento
+  const handleDeleteDocument = async (documentId) => {
+    if (confirm("¿Estás seguro de que deseas eliminar este documento?")) {
+      try {
+        await axios.delete('/api/employer/delete-document', { data: { documentId } });
+        // Actualizar la lista de documentos después de eliminar
+        const updatedDocs = await axios.get('/api/employer/documents');
+        setDocuments(updatedDocs.data.documents);
+        alert("Documento eliminado correctamente.");
+      } catch (error) {
+        console.error("Error eliminando el documento:", error);
+        alert("Error al eliminar el documento.");
+      }
     }
   };
 
@@ -162,6 +191,26 @@ export default function ProfileEmpleador() {
         <button type="submit">Subir Documento</button>
       </form>
       {uploadMessage && <p>{uploadMessage}</p>}
+
+      <br />
+      {/* Listado de documentos legales */}
+      <h2>Documentos Legales</h2>
+      {documents.length === 0 ? (
+        <p>No hay documentos subidos.</p>
+      ) : (
+        <ul style={{ listStyle: "none", padding: 0 }}>
+          {documents.map((doc) => (
+            <li key={doc.id} style={{ marginBottom: "0.5rem" }}>
+              <a href={doc.url} target="_blank" rel="noopener noreferrer">
+                {doc.url}
+              </a>
+              {" "}
+              <button onClick={() => handleDeleteDocument(doc.id)}>Eliminar</button>
+            </li>
+          ))}
+        </ul>
+      )}
+
       <br />
       <Link href="/dashboard">Volver al Dashboard</Link>
       <br />
