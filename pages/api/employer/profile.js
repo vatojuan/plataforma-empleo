@@ -1,8 +1,17 @@
 // pages/api/employer/profile.js
 import prisma from '../../../lib/prisma';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '../auth/[...nextauth]';
 
 export default async function handler(req, res) {
-  const employerId = 1; // Para este ejemplo usamos un ID fijo.
+  // Obtener la sesión de forma segura en el servidor
+  const session = await getServerSession(req, res, authOptions);
+  if (!session) {
+    return res.status(401).json({ error: 'No autorizado' });
+  }
+
+  // Convertir el ID a número (ya que en el esquema User, id es Int)
+  const employerId = Number(session.user.id);
 
   if (req.method === 'GET') {
     try {
@@ -20,6 +29,11 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Error del servidor al obtener el perfil' });
     }
   } else if (req.method === 'PUT') {
+    // Validar que se reciba un payload válido
+    if (!req.body || typeof req.body !== 'object') {
+      return res.status(400).json({ error: 'No se proporcionó un payload válido' });
+    }
+
     const { companyName, description, phone } = req.body;
     try {
       const updatedProfile = await prisma.user.update({

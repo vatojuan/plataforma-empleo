@@ -1,10 +1,11 @@
+// pages/api/auth/[...nextauth].js
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import prisma from "../../../lib/prisma";
 import bcrypt from "bcryptjs";
 
-export default NextAuth({
+export const authOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   debug: process.env.NODE_ENV !== "production",
   providers: [
@@ -12,7 +13,7 @@ export default NextAuth({
       name: "Credenciales",
       credentials: {
         email: { label: "Email", type: "email", placeholder: "tu@correo.com" },
-        password: { label: "Contraseña", type: "password" }
+        password: { label: "Contraseña", type: "password" },
       },
       async authorize(credentials) {
         try {
@@ -20,20 +21,28 @@ export default NextAuth({
             where: { email: credentials.email },
           });
           if (!user) throw new Error("Usuario no encontrado");
-          if (!user.password) throw new Error("Este usuario se registró con Google, usa Google");
+          if (!user.password)
+            throw new Error("Este usuario se registró con Google, usa Google");
           const isValid = await bcrypt.compare(credentials.password, user.password);
           if (!isValid) throw new Error("Contraseña incorrecta");
-          if (!user.confirmed) throw new Error("Confirma tu correo antes de iniciar sesión");
-          return { id: user.id.toString(), name: user.name, email: user.email, role: user.role };
+          if (!user.confirmed)
+            throw new Error("Confirma tu correo antes de iniciar sesión");
+          return {
+            id: user.id.toString(),
+            name: user.name,
+            email: user.email,
+            role: user.role,
+          };
         } catch (error) {
+          console.error("Error in Credentials authorize:", error);
           throw new Error("Error en la autenticación");
         }
-      }
+      },
     }),
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET
-    })
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    }),
   ],
   callbacks: {
     async signIn({ user, account, profile }) {
@@ -72,22 +81,31 @@ export default NextAuth({
       return token;
     },
     async session({ session, token }) {
-      try {
-        const dbUser = await prisma.user.findUnique({
-          where: { email: token.email },
-        });
-        session.user.role = dbUser && dbUser.role ? dbUser.role : token.role || "";
-      } catch (error) {
+      console.log("SESSION CALLBACK - Token recibido:", token);
+      if (token?.email) {
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { email: token.email },
+          });
+          session.user.role = dbUser?.role ?? token.role ?? "";
+        } catch (error) {
+          console.error("Error en session callback:", error);
+          session.user.role = token.role || "";
+        }
+      } else {
+        console.warn("Token does not have email, using token.role only.");
         session.user.role = token.role || "";
       }
       session.user.id = token.id || "";
       session.user.name = token.name || "";
       session.user.email = token.email || "";
       return session;
-    }
+    },
   },
   pages: {
     signIn: "/login",
-    error: "/auth/error"
-  }
-});
+    error: "/auth/error",
+  },
+};
+
+export default NextAuth(authOptions);
