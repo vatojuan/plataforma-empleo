@@ -1,3 +1,4 @@
+// pages/dashboard.js
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
@@ -27,6 +28,10 @@ export default function Dashboard() {
   return (
     <div style={{ textAlign: "center", marginTop: "2rem" }}>
       <h1>Dashboard</h1>
+      {/* Botón de Inicio */}
+      <p>
+        <Link href="/">Inicio</Link>
+      </p>
       {/* Mostrar imagen de perfil */}
       <img
         src={session.user.image || "/images/default-user.png"}

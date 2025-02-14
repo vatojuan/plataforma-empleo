@@ -1,21 +1,26 @@
-// pages/index.js
-import { useEffect } from "react";
-import { useRouter } from "next/router";
+import Link from "next/link";
 import { useSession } from "next-auth/react";
 
 export default function Home() {
-  const router = useRouter();
   const { data: session, status } = useSession();
 
-  useEffect(() => {
-    if (status !== "loading") {
-      if (session && session.user.role) {
-        router.replace("/dashboard");
-      } else {
-        router.replace("/login");
-      }
-    }
-  }, [session, status, router]);
-
-  return <p>Redirigiendo...</p>;
+  return (
+    <div style={{ textAlign: "center", padding: "2rem" }}>
+      <h1>Bienvenido a Nuestra Plataforma</h1>
+      <nav style={{ marginBottom: "1rem" }}>
+        <Link href="/nosotros">Nosotros</Link> {" | "}
+        <Link href="/historia">Historia</Link> {" | "}
+        <Link href="/contacto">Contacto</Link> {" | "}
+        {status === "loading" ? null : session ? (
+          <Link href="/dashboard">Dashboard</Link>
+        ) : (
+          <Link href="/login">Clientes</Link>
+        )}
+      </nav>
+      <p>
+        Descubre más sobre nuestra agencia, conoce nuestra historia y contáctanos
+        para mayor información.
+      </p>
+    </div>
+  );
 }
