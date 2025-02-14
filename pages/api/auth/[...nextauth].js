@@ -53,7 +53,7 @@ export const authOptions = {
             where: { email: user.email },
           });
           if (!existingUser) {
-            // Si no existe, creamos el usuario usando la imagen de Google
+            // Crear usuario con la imagen de Google
             existingUser = await prisma.user.create({
               data: {
                 email: user.email,
@@ -61,19 +61,19 @@ export const authOptions = {
                 role: null, // El usuario deberá seleccionar su rol posteriormente
                 confirmed: true,
                 googleId: profile.sub,
-                profilePicture: profile.picture, // Imagen de Google
+                profilePicture: profile.picture,
               },
             });
           } else {
-            // Si ya existe, actualizamos la imagen de perfil solo si es diferente
-            if (existingUser.profilePicture !== profile.picture) {
+            // Solo actualizar la imagen si el usuario aún tiene el valor por defecto o no tiene imagen
+            if (!existingUser.profilePicture || existingUser.profilePicture === "/images/default-user.png") {
               existingUser = await prisma.user.update({
                 where: { email: user.email },
                 data: { profilePicture: profile.picture },
               });
             }
           }
-          // Actualizamos los valores del usuario para la sesión
+          // Actualizar datos para la sesión
           user.id = existingUser.id.toString();
           user.role = existingUser.role || null;
           user.image = existingUser.profilePicture || "/images/default-user.png";

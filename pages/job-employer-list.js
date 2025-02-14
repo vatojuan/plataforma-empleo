@@ -1,19 +1,13 @@
+// pages/job-employer-list.js
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
 
-export default function JobList() {
-  const { data: session, status } = useSession();
+export default function JobEmployerList() {
   const [jobs, setJobs] = useState([]);
 
   useEffect(() => {
-    async function fetchJobs() {
-      let url = "/api/job/list";
-      // Si el usuario es empleador, filtra sus propias ofertas
-      if (session && session.user.role === "empleador") {
-        url += `?userId=${session.user.id}`;
-      }
-      const res = await fetch(url);
+    async function fetchEmployerJobs() {
+      const res = await fetch("/api/job/employer");
       if (res.ok) {
         const data = await res.json();
         setJobs(data.jobs);
@@ -21,16 +15,14 @@ export default function JobList() {
         console.error("Error al obtener las ofertas");
       }
     }
-    if (status !== "loading") {
-      fetchJobs();
-    }
-  }, [session, status]);
+    fetchEmployerJobs();
+  }, []);
 
   return (
     <div style={{ textAlign: "center", marginTop: "2rem" }}>
-      <h1>Ofertas de Empleo</h1>
+      <h1>Mis Ofertas Publicadas</h1>
       {jobs.length === 0 ? (
-        <p>No hay ofertas publicadas.</p>
+        <p>No has publicado ninguna oferta de empleo.</p>
       ) : (
         <ul style={{ listStyle: "none", padding: 0 }}>
           {jobs.map((job) => (
@@ -44,12 +36,6 @@ export default function JobList() {
             >
               <h2>{job.title}</h2>
               <p>{job.description}</p>
-              {/* Mostrar quién publicó la oferta solo para empleados */}
-              {session.user.role !== "empleador" && (
-                <p>
-                  Publicado por: {job.user.name} ({job.user.role})
-                </p>
-              )}
               <Link href={`/job-offer?id=${job.id}`}>Ver Detalles</Link>
             </li>
           ))}

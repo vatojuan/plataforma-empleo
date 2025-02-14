@@ -1,24 +1,33 @@
-// pages/api/job/list.js
-import prisma from "../../../lib/prisma";
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '../auth/[...nextauth]';
+import prisma from '../../../lib/prisma';
 
 export default async function handler(req, res) {
-  if (req.method !== "GET") {
-    res.setHeader("Allow", ["GET"]);
-    return res.status(405).end(`Method ${req.method} Not Allowed`);
-  }
-
   try {
-    const jobs = await prisma.job.findMany({
-      orderBy: { createdAt: "desc" },
-      include: {
-        user: {
-          select: { name: true, email: true, role: true },
-        },
-      },
-    });
-    return res.status(200).json({ jobs: jobs || [] });
+    const session = await getServerSession(req, res, authOptions);
+    if (!session) {
+      return res.status(401).json({ error: 'No autorizado' });
+    }
+
+    let jobs;
+    // Si se pasa userId en la query (para empleadores) se filtra, 
+    // de lo contrario (para empleados) se muestran todas las ofertas.
+    if (req.query.userId) {
+      jobs = await prisma.job.findMany({
+        where: { userId: Number(req.query.userId) },
+        include: { user: true },
+        orderBy: { createdAt: 'desc' },
+      });
+    } else {
+      jobs = await prisma.job.findMany({
+        include: { user: true },
+        orderBy: { createdAt: 'desc' },
+      });
+    }
+
+    return res.status(200).json({ jobs });
   } catch (error) {
-    console.error("Error listando ofertas:", error);
-    return res.status(500).json({ message: "Error interno del servidor" });
+    console.error("Error fetching jobs:", error);
+    return res.status(500).json({ error: 'Error interno del servidor' });
   }
 }

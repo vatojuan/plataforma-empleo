@@ -20,7 +20,6 @@ export default function Dashboard() {
   }
 
   const handleSignOut = async () => {
-    // Usa signOut sin redirección automática y luego redirige manualmente
     await signOut({ redirect: false });
     window.location.href = "/login";
   };
@@ -43,6 +42,9 @@ export default function Dashboard() {
         <div>
           <p>
             <Link href="/job-create">Publicar Oferta de Empleo</Link>
+          </p>
+          <p>
+            <Link href="/job-list">Mis Ofertas Publicadas</Link>
           </p>
           <p>
             <Link href="/profile-empleador">Actualizar Perfil</Link>
