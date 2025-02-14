@@ -7,6 +7,7 @@ import { useSession, signOut } from 'next-auth/react';
 export default function ProfileEmpleador() {
   const { data: session, status, update } = useSession();
   const router = useRouter();
+  const [name, setName] = useState(session?.user?.name || '');
   const [companyName, setCompanyName] = useState('');
   const [description, setDescription] = useState('');
   const [phone, setPhone] = useState('');
@@ -23,6 +24,7 @@ export default function ProfileEmpleador() {
       axios.get('/api/employer/profile')
         .then((res) => {
           const data = res.data;
+          setName(data.name || '');
           setCompanyName(data.companyName || '');
           setDescription(data.description || '');
           setPhone(data.phone || '');
@@ -52,7 +54,13 @@ export default function ProfileEmpleador() {
     e.preventDefault();
     setLoading(true);
     try {
-      await axios.put('/api/employer/profile', { companyName, description, phone });
+      await axios.put('/api/employer/profile', { name, companyName, description, phone });
+      // Refrescar la sesión para actualizar los datos en el token
+      if (update) {
+        await update();
+      } else {
+        router.replace(router.asPath);
+      }
       alert('Perfil actualizado exitosamente');
       router.push('/dashboard');
     } catch (error) {
@@ -82,7 +90,6 @@ export default function ProfileEmpleador() {
       });
       setUploadMessage('Documento subido correctamente.');
       console.log('Documento:', res.data.document);
-      // Actualizar lista de documentos
       const updatedDocs = await axios.get('/api/employer/documents');
       setDocuments(updatedDocs.data.documents);
     } catch (error) {
@@ -126,7 +133,6 @@ export default function ProfileEmpleador() {
     if (confirm("¿Estás seguro de que deseas eliminar este documento?")) {
       try {
         await axios.delete('/api/employer/delete-document', { data: { documentId } });
-        // Actualizar la lista de documentos después de eliminar
         const updatedDocs = await axios.get('/api/employer/documents');
         setDocuments(updatedDocs.data.documents);
         alert("Documento eliminado correctamente.");
@@ -152,7 +158,17 @@ export default function ProfileEmpleador() {
           border: "2px solid #ccc",
         }}
       />
+      {/* Formulario para actualizar datos de perfil */}
       <form onSubmit={handleProfileUpdate}>
+        <div>
+          <label>Nombre:</label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
+        </div>
         <div>
           <label>Nombre de la Empresa:</label>
           <input type="text" value={companyName} onChange={(e) => setCompanyName(e.target.value)} required />

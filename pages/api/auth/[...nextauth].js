@@ -1,4 +1,3 @@
-// pages/api/auth/[...nextauth].js
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
@@ -53,7 +52,7 @@ export const authOptions = {
             where: { email: user.email },
           });
           if (!existingUser) {
-            // Crear usuario con la imagen de Google
+            // Si el usuario no existe, lo creamos con los datos de Google
             existingUser = await prisma.user.create({
               data: {
                 email: user.email,
@@ -65,7 +64,8 @@ export const authOptions = {
               },
             });
           } else {
-            // Solo actualizar la imagen si el usuario aún tiene el valor por defecto o no tiene imagen
+            // Si el usuario existe, NO actualizamos el nombre para conservar el valor actualizado manualmente.
+            // Opcional: Actualizar la imagen solo si el usuario tiene el valor por defecto
             if (!existingUser.profilePicture || existingUser.profilePicture === "/images/default-user.png") {
               existingUser = await prisma.user.update({
                 where: { email: user.email },
@@ -73,10 +73,12 @@ export const authOptions = {
               });
             }
           }
-          // Actualizar datos para la sesión
+          // Actualizar los datos para la sesión, tomando los valores que ya existen en la BD
           user.id = existingUser.id.toString();
           user.role = existingUser.role || null;
           user.image = existingUser.profilePicture || "/images/default-user.png";
+          // No sobrescribimos user.name si ya existe
+          // Así, si el usuario modificó su nombre, se conserva.
         } catch (error) {
           console.error("Error en signIn (Google):", error);
           throw new Error("Error interno");
@@ -103,17 +105,19 @@ export const authOptions = {
           });
           session.user.role = dbUser?.role ?? token.role ?? "";
           session.user.image = dbUser?.profilePicture || token.picture || "/images/default-user.png";
+          session.user.name = dbUser?.name || token.name || "";
         } catch (error) {
           console.error("Error en session callback:", error);
           session.user.role = token.role || "";
           session.user.image = token.picture || "/images/default-user.png";
+          session.user.name = token.name || "";
         }
       } else {
         session.user.role = token.role || "";
         session.user.image = token.picture || "/images/default-user.png";
+        session.user.name = token.name || "";
       }
       session.user.id = token.id || "";
-      session.user.name = token.name || "";
       session.user.email = token.email || "";
       return session;
     },
