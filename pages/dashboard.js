@@ -27,6 +27,19 @@ export default function Dashboard() {
   return (
     <div style={{ textAlign: "center", marginTop: "2rem" }}>
       <h1>Dashboard</h1>
+      {/* Mostrar imagen de perfil */}
+      <img
+        src={session.user.image || "/images/default-user.png"}
+        alt="Imagen de perfil"
+        style={{
+          width: "100px",
+          height: "100px",
+          borderRadius: "50%",
+          objectFit: "cover",
+          border: "2px solid #ccc",
+          marginBottom: "1rem",
+        }}
+      />
       <p>Bienvenido, {session.user.name}</p>
       <p>Tu rol: {session.user.role}</p>
       {session.user.role === "empleado" ? (
