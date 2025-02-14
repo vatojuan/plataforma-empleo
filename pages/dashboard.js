@@ -1,12 +1,12 @@
-// pages/dashboard.js
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
 export default function Dashboard() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const [applications, setApplications] = useState([]);
 
   useEffect(() => {
     if (status !== "loading" && !session) {
@@ -15,6 +15,22 @@ export default function Dashboard() {
       router.push("/select-role");
     }
   }, [status, session, router]);
+
+  // Cargar postulaciones si el usuario es empleado
+  useEffect(() => {
+    async function fetchApplications() {
+      if (session && session.user.role === "empleado") {
+        const res = await fetch("/api/job/my-applications");
+        if (res.ok) {
+          const data = await res.json();
+          setApplications(data.applications);
+        }
+      }
+    }
+    if (status !== "loading") {
+      fetchApplications();
+    }
+  }, [session, status]);
 
   if (status === "loading" || !session || !session.user.role) {
     return <p>Cargando...</p>;
@@ -25,14 +41,38 @@ export default function Dashboard() {
     window.location.href = "/login";
   };
 
+  // Función para cancelar postulaciones desde el dashboard (empleados)
+  const handleCancelApplication = async (jobId) => {
+    if (confirm("¿Deseas cancelar tu postulación a este empleo?")) {
+      try {
+        const res = await fetch("/api/job/cancel-application", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ jobId }),
+        });
+        if (res.ok) {
+          alert("Postulación cancelada");
+          const updatedRes = await fetch("/api/job/my-applications");
+          if (updatedRes.ok) {
+            const data = await updatedRes.json();
+            setApplications(data.applications);
+          }
+        } else {
+          alert("Error al cancelar la postulación");
+        }
+      } catch (error) {
+        console.error("Error al cancelar la postulación:", error);
+        alert("Error al cancelar la postulación");
+      }
+    }
+  };
+
   return (
     <div style={{ textAlign: "center", marginTop: "2rem" }}>
       <h1>Dashboard</h1>
-      {/* Botón de Inicio */}
       <p>
         <Link href="/">Inicio</Link>
       </p>
-      {/* Mostrar imagen de perfil */}
       <img
         src={session.user.image || "/images/default-user.png"}
         alt="Imagen de perfil"
@@ -55,6 +95,23 @@ export default function Dashboard() {
           <p>
             <Link href="/profile-empleado">Actualizar Perfil</Link>
           </p>
+          <h2>Mis Postulaciones</h2>
+          {applications.length === 0 ? (
+            <p>No has postulado a ningún empleo.</p>
+          ) : (
+            <ul style={{ listStyle: "none", padding: 0 }}>
+              {applications.map((app) => (
+                <li key={app.id} style={{ marginBottom: "0.5rem" }}>
+                  <Link href={`/job-offer?id=${app.job.id}`}>
+                    {app.job.title}
+                  </Link>{" "}
+                  <button onClick={() => handleCancelApplication(app.job.id)}>
+                    Cancelar Postulación
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       ) : (
         <div>

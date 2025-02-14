@@ -12,18 +12,18 @@ export default function ProfileEmpleado() {
   const [name, setName] = useState(session?.user?.name || '');
   const [phone, setPhone] = useState('');
   const [description, setDescription] = useState('');
-  const [cvUrl, setCvUrl] = useState('');
   const [loading, setLoading] = useState(false);
   
   // Para la imagen de perfil
   const [selectedProfileImage, setSelectedProfileImage] = useState(null);
   const [profileImageMessage, setProfileImageMessage] = useState('');
   
-  // Para el CV
-  const [selectedCV, setSelectedCV] = useState(null);
-  const [cvUploadMessage, setCvUploadMessage] = useState('');
+  // Para los documentos (CV)
+  const [selectedDocument, setSelectedDocument] = useState(null);
+  const [documentUploadMessage, setDocumentUploadMessage] = useState('');
+  const [documents, setDocuments] = useState([]);
 
-  // Cargar perfil (incluye cvUrl)
+  // Cargar perfil (incluye datos del empleado)
   useEffect(() => {
     if (session) {
       axios.get('/api/employee/profile')
@@ -32,9 +32,19 @@ export default function ProfileEmpleado() {
           setName(data.name || '');
           setPhone(data.phone || '');
           setDescription(data.description || '');
-          setCvUrl(data.cvUrl || '');
         })
         .catch((err) => console.error('Error al cargar el perfil:', err));
+    }
+  }, [session]);
+
+  // Cargar documentos del empleado
+  useEffect(() => {
+    if (session) {
+      axios.get('/api/employee/documents')
+        .then((res) => {
+          setDocuments(res.data.documents);
+        })
+        .catch((err) => console.error('Error al cargar documentos:', err));
     }
   }, [session]);
 
@@ -94,48 +104,45 @@ export default function ProfileEmpleado() {
     }
   };
 
-  const handleCVFileChange = (e) => {
-    setSelectedCV(e.target.files[0]);
+  const handleDocumentFileChange = (e) => {
+    setSelectedDocument(e.target.files[0]);
   };
 
-  const handleCVUpload = async (e) => {
+  const handleDocumentUpload = async (e) => {
     e.preventDefault();
-    if (!selectedCV) {
-      setCvUploadMessage('Por favor, selecciona tu CV.');
+    if (!selectedDocument) {
+      setDocumentUploadMessage('Por favor, selecciona un archivo primero.');
       return;
     }
     const formData = new FormData();
-    formData.append('cv', selectedCV);
+    formData.append('document', selectedDocument);
 
     try {
-      const res = await axios.post('/api/employee/upload-cv', formData, {
+      const res = await axios.post('/api/employee/upload-document', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
-      setCvUploadMessage('CV subido correctamente.');
-      console.log('CV:', res.data.cv);
-      // Actualizamos el estado con el nuevo URL del CV
-      setCvUrl(res.data.cv);
+      setDocumentUploadMessage('Documento subido correctamente.');
+      console.log('Documento:', res.data.document);
+      // Actualizar la lista de documentos
+      const updatedDocs = await axios.get('/api/employee/documents');
+      setDocuments(updatedDocs.data.documents);
     } catch (error) {
-      console.error('Error subiendo el CV:', error);
-      setCvUploadMessage('Error al subir el CV.');
+      console.error('Error subiendo el documento:', error);
+      setDocumentUploadMessage('Error al subir el documento.');
     }
   };
 
-  // Función para eliminar el CV
-  const handleDeleteCV = async () => {
-    if (confirm("¿Estás seguro de que deseas eliminar tu CV?")) {
+  // Función para eliminar un documento
+  const handleDeleteDocument = async (documentId) => {
+    if (confirm("¿Estás seguro de que deseas eliminar este documento?")) {
       try {
-        await axios.delete('/api/employee/delete-cv', { data: {} });
-        alert("CV eliminado correctamente.");
-        setCvUrl('');
-        if (update) {
-          await update();
-        } else {
-          router.replace(router.asPath);
-        }
+        await axios.delete('/api/employee/delete-document', { data: { documentId } });
+        const updatedDocs = await axios.get('/api/employee/documents');
+        setDocuments(updatedDocs.data.documents);
+        alert("Documento eliminado correctamente.");
       } catch (error) {
-        console.error("Error eliminando el CV:", error);
-        alert("Error al eliminar el CV.");
+        console.error("Error eliminando el documento:", error);
+        alert("Error al eliminar el documento.");
       }
     }
   };
@@ -200,27 +207,32 @@ export default function ProfileEmpleado() {
       {profileImageMessage && <p>{profileImageMessage}</p>}
 
       <br />
-      {/* Formulario para subir CV */}
-      <form onSubmit={handleCVUpload}>
+      {/* Formulario para subir documentos (CV, certificados, etc.) */}
+      <form onSubmit={handleDocumentUpload}>
         <div>
-          <label>Subir CV:</label>
-          <input type="file" onChange={handleCVFileChange} accept=".pdf,.doc,.docx" />
+          <label>Subir Documento:</label>
+          <input type="file" onChange={handleDocumentFileChange} accept=".pdf,.doc,.docx,.jpg,.png" />
         </div>
-        <button type="submit">Subir CV</button>
+        <button type="submit">Subir Documento</button>
       </form>
-      {cvUploadMessage && <p>{cvUploadMessage}</p>}
+      {documentUploadMessage && <p>{documentUploadMessage}</p>}
       
-      {/* Mostrar CV actual si existe */}
-      {cvUrl && (
-        <div>
-          <p>
-            CV actual:{" "}
-            <a href={cvUrl} target="_blank" rel="noopener noreferrer">
-              {cvUrl}
-            </a>
-          </p>
-          <button onClick={handleDeleteCV}>Eliminar CV</button>
-        </div>
+      <br />
+      {/* Listado de documentos subidos */}
+      <h2>Mis Documentos</h2>
+      {documents.length === 0 ? (
+        <p>No hay documentos subidos.</p>
+      ) : (
+        <ul style={{ listStyle: "none", padding: 0 }}>
+          {documents.map((doc) => (
+            <li key={doc.id} style={{ marginBottom: "0.5rem" }}>
+              <a href={doc.url} target="_blank" rel="noopener noreferrer">
+                {doc.url}
+              </a>{" "}
+              <button onClick={() => handleDeleteDocument(doc.id)}>Eliminar</button>
+            </li>
+          ))}
+        </ul>
       )}
 
       <br />

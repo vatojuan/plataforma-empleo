@@ -37,9 +37,6 @@ export default function JobOffer() {
       <h1>{job.title}</h1>
       <p>{job.description}</p>
       <p>
-        Publicado por: {job.user.name} ({job.user.role})
-      </p>
-      <p>
         <Link href="/job-list">Volver a la lista de ofertas</Link>
       </p>
     </div>

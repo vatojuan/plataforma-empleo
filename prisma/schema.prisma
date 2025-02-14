@@ -15,29 +15,49 @@ model LegalDocument {
   userId    Int
 }
 
-model User {
-  id             Int             @id @default(autoincrement())
-  email          String          @unique
-  name           String
-  password       String?
-  role           String?
-  confirmed      Boolean         @default(false)
-  googleId       String?
-  createdAt      DateTime        @default(now())
-  companyName    String?
-  description    String?
-  phone          String?
-  cvUrl          String?         // Campo para almacenar el URL del CV
-  jobs           Job[]
-  legalDocuments LegalDocument[]
-  profilePicture String?         // Campo para la imagen de perfil
+model EmployeeDocument {
+  id        Int      @id @default(autoincrement())
+  url       String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+}
+
+model Application {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  job       Job      @relation(fields: [jobId], references: [id])
+  jobId     Int
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
 }
 
 model Job {
-  id          Int      @id @default(autoincrement())
+  id          Int           @id @default(autoincrement())
   title       String
   description String
-  createdAt   DateTime @default(now())
+  createdAt   DateTime      @default(now())
   userId      Int
-  user        User     @relation(fields: [userId], references: [id])
+  user        User          @relation(fields: [userId], references: [id])
+  applications Application[]
+}
+
+model User {
+  id                Int                @id @default(autoincrement())
+  email             String             @unique
+  name              String
+  password          String?
+  role              String?
+  confirmed         Boolean            @default(false)
+  googleId          String?
+  createdAt         DateTime           @default(now())
+  companyName       String?
+  description       String?
+  phone             String?
+  cvUrl             String?            // Campo para almacenar el URL del CV
+  jobs              Job[]
+  legalDocuments    LegalDocument[]
+  employeeDocuments EmployeeDocument[]
+  applications      Application[]
+  profilePicture    String?
 }
