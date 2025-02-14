@@ -27,9 +27,10 @@ model User {
   companyName    String?
   description    String?
   phone          String?
+  cvUrl          String?         // Campo para almacenar el URL del CV
   jobs           Job[]
-  legalDocuments LegalDocument[] // Nueva relación para los documentos legales
-  profilePicture String?  // Agrega este campo para la imagen de perfil
+  legalDocuments LegalDocument[]
+  profilePicture String?         // Campo para la imagen de perfil
 }
 
 model Job {
