@@ -9,7 +9,7 @@ export default function JobList() {
   useEffect(() => {
     async function fetchJobs() {
       let url = "/api/job/list";
-      // Si el usuario es empleador, filtra sus propias ofertas
+      // Si el usuario es empleador, filtra solo sus ofertas
       if (session && session.user.role === "empleador") {
         url += `?userId=${session.user.id}`;
       }
@@ -25,6 +25,29 @@ export default function JobList() {
       fetchJobs();
     }
   }, [session, status]);
+
+  // Función para eliminar una oferta
+  const handleDeleteJob = async (jobId) => {
+    if (confirm("¿Estás seguro de que deseas eliminar esta oferta?")) {
+      try {
+        const res = await fetch("/api/job/delete", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ jobId }),
+        });
+        if (res.ok) {
+          // Actualizar la lista de ofertas
+          setJobs(jobs.filter((job) => job.id !== jobId));
+          alert("Oferta eliminada correctamente.");
+        } else {
+          alert("Error al eliminar la oferta.");
+        }
+      } catch (error) {
+        console.error("Error al eliminar la oferta:", error);
+        alert("Error al eliminar la oferta.");
+      }
+    }
+  };
 
   return (
     <div style={{ textAlign: "center", marginTop: "2rem" }}>
@@ -51,6 +74,14 @@ export default function JobList() {
                 </p>
               )}
               <Link href={`/job-offer?id=${job.id}`}>Ver Detalles</Link>
+              {session.user.role === "empleador" && (
+                <>
+                  {" "}
+                  <button onClick={() => handleDeleteJob(job.id)}>
+                    Eliminar
+                  </button>
+                </>
+              )}
             </li>
           ))}
         </ul>

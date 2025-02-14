@@ -10,8 +10,7 @@ export default async function handler(req, res) {
     }
 
     let jobs;
-    // Si se pasa userId en la query (para empleadores) se filtra, 
-    // de lo contrario (para empleados) se muestran todas las ofertas.
+    // Si se pasa userId en la query, se filtran las ofertas del usuario
     if (req.query.userId) {
       jobs = await prisma.job.findMany({
         where: { userId: Number(req.query.userId) },
@@ -19,6 +18,7 @@ export default async function handler(req, res) {
         orderBy: { createdAt: 'desc' },
       });
     } else {
+      // Para empleados se muestran todas
       jobs = await prisma.job.findMany({
         include: { user: true },
         orderBy: { createdAt: 'desc' },
