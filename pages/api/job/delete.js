@@ -1,6 +1,7 @@
+// pages/api/job/delete.js
+import prisma from '../../../lib/prisma';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '../auth/[...nextauth]';
-import prisma from '../../../lib/prisma';
 
 export default async function handler(req, res) {
   if (req.method !== 'DELETE') {
@@ -8,36 +9,32 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: `Método ${req.method} no permitido` });
   }
 
+  // Obtener la sesión del usuario
+  const session = await getServerSession(req, res, authOptions);
+  if (!session) {
+    return res.status(401).json({ error: 'No autorizado' });
+  }
+
+  // Asegurarse de que se envíe el jobId en el body
+  const { jobId } = req.body || {};
+  if (!jobId) {
+    return res.status(400).json({ error: 'No se proporcionó el jobId' });
+  }
+
   try {
-    const session = await getServerSession(req, res, authOptions);
-    if (!session) {
-      return res.status(401).json({ error: 'No autorizado' });
-    }
-    const userId = Number(session.user.id);
-    const { jobId } = req.body;
-    if (!jobId) {
-      return res.status(400).json({ error: 'Falta el ID de la oferta' });
-    }
-
-    // Buscar la oferta y verificar que pertenezca al usuario
-    const job = await prisma.job.findUnique({
+    // Eliminar la oferta de empleo correspondiente
+    const deletedJob = await prisma.job.delete({
       where: { id: Number(jobId) },
     });
-    if (!job || job.userId !== userId) {
-      return res.status(404).json({ error: 'Oferta no encontrada' });
-    }
-
-    await prisma.job.delete({
-      where: { id: Number(jobId) },
-    });
-
-    return res.status(200).json({ message: 'Oferta eliminada correctamente' });
+    return res.status(200).json({ message: 'Oferta eliminada correctamente', deletedJob });
   } catch (error) {
-    console.error('Error al eliminar oferta:', error);
-    return res.status(500).json({ error: 'Error interno del servidor' });
+    console.error('Error eliminando la oferta:', error);
+    return res.status(500).json({ error: 'Error al eliminar la oferta' });
   }
 }
 
 export const config = {
-  api: { bodyParser: true },
+  api: {
+    bodyParser: true, // Para que Next.js procese el JSON del body en DELETE
+  },
 };

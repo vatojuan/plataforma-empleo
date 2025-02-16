@@ -1,13 +1,12 @@
+// pages/api/employee/documents.js
+import prisma from '../../../lib/prisma';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '../auth/[...nextauth]';
-import prisma from '../../../lib/prisma';
 
 export default async function handler(req, res) {
   try {
     const session = await getServerSession(req, res, authOptions);
-    if (!session) {
-      return res.status(401).json({ error: 'No autorizado' });
-    }
+    if (!session) return res.status(401).json({ error: 'No autorizado' });
     const employeeId = Number(session.user.id);
     const documents = await prisma.employeeDocument.findMany({
       where: { userId: employeeId },

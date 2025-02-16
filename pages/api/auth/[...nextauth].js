@@ -34,7 +34,7 @@ export const authOptions = {
             image: user.profilePicture || "/images/default-user.png",
           };
         } catch (error) {
-          console.error("Error en Credentials authorize:", error);
+          console.error("Error in Credentials authorize:", error);
           throw new Error("Error en la autenticación");
         }
       },
@@ -52,7 +52,6 @@ export const authOptions = {
             where: { email: user.email },
           });
           if (!existingUser) {
-            // Si el usuario no existe, lo creamos con los datos de Google
             existingUser = await prisma.user.create({
               data: {
                 email: user.email,
@@ -60,25 +59,14 @@ export const authOptions = {
                 role: null, // El usuario deberá seleccionar su rol posteriormente
                 confirmed: true,
                 googleId: profile.sub,
-                profilePicture: profile.picture,
+                profilePicture: user.image || profile.picture,
               },
             });
-          } else {
-            // Si el usuario existe, NO actualizamos el nombre para conservar el valor actualizado manualmente.
-            // Opcional: Actualizar la imagen solo si el usuario tiene el valor por defecto
-            if (!existingUser.profilePicture || existingUser.profilePicture === "/images/default-user.png") {
-              existingUser = await prisma.user.update({
-                where: { email: user.email },
-                data: { profilePicture: profile.picture },
-              });
-            }
           }
-          // Actualizar los datos para la sesión, tomando los valores que ya existen en la BD
           user.id = existingUser.id.toString();
-          user.role = existingUser.role || null;
-          user.image = existingUser.profilePicture || "/images/default-user.png";
-          // No sobrescribimos user.name si ya existe
-          // Así, si el usuario modificó su nombre, se conserva.
+          // Si ya existe, no forzamos el cambio de nombre para preservar la edición manual
+          user.image = existingUser.profilePicture || user.image;
+          user.role = existingUser.role;
         } catch (error) {
           console.error("Error en signIn (Google):", error);
           throw new Error("Error interno");
@@ -92,33 +80,28 @@ export const authOptions = {
         token.name = user.name;
         token.email = user.email;
         token.role = user.role;
-        token.picture = user.image || "/images/default-user.png";
+        token.image = user.image;
       }
       return token;
     },
+    // Actualizamos la sesión consultando la BD para reflejar los cambios
     async session({ session, token }) {
-      console.log("SESSION CALLBACK - Token recibido:", token);
-      if (token?.email) {
-        try {
-          const dbUser = await prisma.user.findUnique({
-            where: { email: token.email },
-          });
-          session.user.role = dbUser?.role ?? token.role ?? "";
-          session.user.image = dbUser?.profilePicture || token.picture || "/images/default-user.png";
-          session.user.name = dbUser?.name || token.name || "";
-        } catch (error) {
-          console.error("Error en session callback:", error);
-          session.user.role = token.role || "";
-          session.user.image = token.picture || "/images/default-user.png";
-          session.user.name = token.name || "";
+      try {
+        const dbUser = await prisma.user.findUnique({
+          where: { email: token.email },
+        });
+        if (dbUser) {
+          session.user = {
+            id: dbUser.id.toString(),
+            name: dbUser.name,
+            email: dbUser.email,
+            role: dbUser.role || "",
+            image: dbUser.profilePicture || "/images/default-user.png",
+          };
         }
-      } else {
-        session.user.role = token.role || "";
-        session.user.image = token.picture || "/images/default-user.png";
-        session.user.name = token.name || "";
+      } catch (error) {
+        console.error("Error en session callback:", error);
       }
-      session.user.id = token.id || "";
-      session.user.email = token.email || "";
       return session;
     },
   },

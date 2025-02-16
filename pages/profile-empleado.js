@@ -7,23 +7,23 @@ import { useSession, signOut } from 'next-auth/react';
 export default function ProfileEmpleado() {
   const { data: session, status, update } = useSession();
   const router = useRouter();
-  
+
   // Estados para el perfil
   const [name, setName] = useState(session?.user?.name || '');
   const [phone, setPhone] = useState('');
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
-  
+
   // Para la imagen de perfil
   const [selectedProfileImage, setSelectedProfileImage] = useState(null);
   const [profileImageMessage, setProfileImageMessage] = useState('');
-  
-  // Para los documentos (CV)
+
+  // Para los documentos (CV, certificados, etc.)
   const [selectedDocument, setSelectedDocument] = useState(null);
   const [documentUploadMessage, setDocumentUploadMessage] = useState('');
   const [documents, setDocuments] = useState([]);
 
-  // Cargar perfil (incluye datos del empleado)
+  // Cargar datos del perfil
   useEffect(() => {
     if (session) {
       axios.get('/api/employee/profile')
@@ -37,7 +37,7 @@ export default function ProfileEmpleado() {
     }
   }, [session]);
 
-  // Cargar documentos del empleado
+  // Cargar documentos subidos
   useEffect(() => {
     if (session) {
       axios.get('/api/employee/documents')
@@ -48,10 +48,8 @@ export default function ProfileEmpleado() {
     }
   }, [session]);
 
-  if (status === 'loading') return <p>Cargando...</p>;
-  if (!session) {
-    useEffect(() => { router.push('/login'); }, [router]);
-    return null;
+  if (status === 'loading' || !session) {
+    return <p>Cargando...</p>;
   }
 
   const handleProfileUpdate = async (e) => {
@@ -59,13 +57,9 @@ export default function ProfileEmpleado() {
     setLoading(true);
     try {
       await axios.put('/api/employee/profile', { name, phone, description });
-      if (update) {
-        await update();
-      } else {
-        router.replace(router.asPath);
-      }
       alert('Perfil actualizado exitosamente');
-      router.push('/dashboard');
+      // Forzamos reload para que la sesión se recargue con los datos actualizados
+      window.location.reload();
     } catch (error) {
       console.error('Error actualizando el perfil:', error);
       alert('Error actualizando el perfil');
@@ -86,17 +80,12 @@ export default function ProfileEmpleado() {
     }
     const formData = new FormData();
     formData.append('profilePicture', selectedProfileImage);
-
     try {
       const res = await axios.post('/api/employee/upload-profile-picture', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       setProfileImageMessage('Imagen de perfil actualizada correctamente.');
-      if (update) {
-        await update();
-      } else {
-        router.replace(router.asPath);
-      }
+      window.location.reload();
       console.log('Imagen actualizada:', res.data.user.profilePicture);
     } catch (error) {
       console.error('Error actualizando la imagen de perfil:', error);
@@ -116,14 +105,12 @@ export default function ProfileEmpleado() {
     }
     const formData = new FormData();
     formData.append('document', selectedDocument);
-
     try {
       const res = await axios.post('/api/employee/upload-document', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       setDocumentUploadMessage('Documento subido correctamente.');
       console.log('Documento:', res.data.document);
-      // Actualizar la lista de documentos
       const updatedDocs = await axios.get('/api/employee/documents');
       setDocuments(updatedDocs.data.documents);
     } catch (error) {
@@ -132,7 +119,6 @@ export default function ProfileEmpleado() {
     }
   };
 
-  // Función para eliminar un documento
   const handleDeleteDocument = async (documentId) => {
     if (confirm("¿Estás seguro de que deseas eliminar este documento?")) {
       try {
@@ -143,6 +129,22 @@ export default function ProfileEmpleado() {
       } catch (error) {
         console.error("Error eliminando el documento:", error);
         alert("Error al eliminar el documento.");
+      }
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (confirm("¿Estás seguro de que deseas eliminar tu cuenta? Esta acción no se puede deshacer.")) {
+      try {
+        const res = await axios.delete('/api/user/delete');
+        if (res.status === 200) {
+          alert("Cuenta eliminada correctamente");
+          await signOut({ redirect: false });
+          router.push('/login');
+        }
+      } catch (error) {
+        console.error("Error eliminando la cuenta:", error);
+        alert("Error al eliminar la cuenta.");
       }
     }
   };
@@ -160,6 +162,7 @@ export default function ProfileEmpleado() {
           borderRadius: "50%",
           objectFit: "cover",
           border: "2px solid #ccc",
+          marginBottom: "1rem",
         }}
       />
       {/* Formulario para actualizar datos de perfil */}
@@ -196,7 +199,7 @@ export default function ProfileEmpleado() {
       </form>
 
       <br />
-      {/* Formulario para actualizar imagen de perfil */}
+      {/* Formulario para actualizar la imagen de perfil */}
       <form onSubmit={handleProfileImageUpload}>
         <div>
           <label>Actualizar Imagen de Perfil:</label>
@@ -207,7 +210,7 @@ export default function ProfileEmpleado() {
       {profileImageMessage && <p>{profileImageMessage}</p>}
 
       <br />
-      {/* Formulario para subir documentos (CV, certificados, etc.) */}
+      {/* Formulario para subir documento */}
       <form onSubmit={handleDocumentUpload}>
         <div>
           <label>Subir Documento:</label>
@@ -216,9 +219,9 @@ export default function ProfileEmpleado() {
         <button type="submit">Subir Documento</button>
       </form>
       {documentUploadMessage && <p>{documentUploadMessage}</p>}
-      
+
       <br />
-      {/* Listado de documentos subidos */}
+      {/* Listado de documentos */}
       <h2>Mis Documentos</h2>
       {documents.length === 0 ? (
         <p>No hay documentos subidos.</p>
@@ -227,7 +230,7 @@ export default function ProfileEmpleado() {
           {documents.map((doc) => (
             <li key={doc.id} style={{ marginBottom: "0.5rem" }}>
               <a href={doc.url} target="_blank" rel="noopener noreferrer">
-                {doc.url}
+                {doc.originalName || doc.url}
               </a>{" "}
               <button onClick={() => handleDeleteDocument(doc.id)}>Eliminar</button>
             </li>
@@ -239,6 +242,14 @@ export default function ProfileEmpleado() {
       <Link href="/dashboard">Volver al Dashboard</Link>
       <br />
       <button onClick={() => signOut({ callbackUrl: '/login' })}>Cerrar sesión</button>
+
+      <br />
+      {/* Sección para eliminar la cuenta */}
+      <div style={{ marginTop: '2rem', borderTop: '1px solid red', paddingTop: '1rem' }}>
+        <button onClick={handleDeleteAccount} style={{ backgroundColor: 'red', color: 'white', padding: '0.5rem 1rem' }}>
+          Eliminar Cuenta
+        </button>
+      </div>
     </div>
   );
 }

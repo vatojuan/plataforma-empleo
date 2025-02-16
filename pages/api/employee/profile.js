@@ -1,4 +1,3 @@
-// pages/api/employee/profile.js
 import prisma from '../../../lib/prisma';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '../auth/[...nextauth]';
@@ -24,9 +23,6 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Error del servidor al obtener el perfil' });
     }
   } else if (req.method === 'PUT') {
-    if (!req.body || typeof req.body !== 'object') {
-      return res.status(400).json({ error: 'No se proporcionó un payload válido' });
-    }
     const { name, phone, description } = req.body;
     try {
       const updatedProfile = await prisma.user.update({

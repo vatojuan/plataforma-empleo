@@ -8,37 +8,39 @@ generator client {
 }
 
 model LegalDocument {
-  id        Int      @id @default(autoincrement())
-  url       String
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id])
-  userId    Int
+  id           Int      @id @default(autoincrement())
+  url          String
+  originalName String?  // Nombre original del archivo
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       Int
 }
 
 model EmployeeDocument {
-  id        Int      @id @default(autoincrement())
-  url       String
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id])
-  userId    Int
+  id           Int      @id @default(autoincrement())
+  url          String
+  originalName String?  // Nombre original del archivo
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       Int
 }
 
 model Application {
   id        Int      @id @default(autoincrement())
   createdAt DateTime @default(now())
-  job       Job      @relation(fields: [jobId], references: [id])
+  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
   jobId     Int
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    Int
 }
 
 model Job {
-  id          Int           @id @default(autoincrement())
-  title       String
-  description String
-  createdAt   DateTime      @default(now())
-  userId      Int
-  user        User          @relation(fields: [userId], references: [id])
+  id           Int           @id @default(autoincrement())
+  title        String
+  description  String
+  createdAt    DateTime      @default(now())
+  userId       Int
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   applications Application[]
 }
 

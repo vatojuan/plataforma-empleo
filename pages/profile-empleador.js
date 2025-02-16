@@ -1,100 +1,79 @@
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
-import Link from 'next/link';
-import axios from 'axios';
-import { useSession, signOut } from 'next-auth/react';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/router";
+import Link from "next/link";
+import axios from "axios";
+import { useSession, signOut } from "next-auth/react";
 
 export default function ProfileEmpleador() {
-  const { data: session, status, update } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
-  const [name, setName] = useState(session?.user?.name || '');
-  const [companyName, setCompanyName] = useState('');
-  const [description, setDescription] = useState('');
-  const [phone, setPhone] = useState('');
+
+  // Estados para el perfil
+  const [name, setName] = useState(session?.user?.name || "");
+  const [companyName, setCompanyName] = useState("");
+  const [description, setDescription] = useState("");
+  const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
-  const [selectedDocument, setSelectedDocument] = useState(null);
-  const [uploadMessage, setUploadMessage] = useState('');
+
+  // Para la imagen de perfil
   const [selectedProfileImage, setSelectedProfileImage] = useState(null);
-  const [profileImageMessage, setProfileImageMessage] = useState('');
+  const [profileImageMessage, setProfileImageMessage] = useState("");
+
+  // Para los documentos legales
+  const [selectedDocument, setSelectedDocument] = useState(null);
+  const [uploadMessage, setUploadMessage] = useState("");
   const [documents, setDocuments] = useState([]);
 
-  // Cargar perfil
+  // Cargar perfil desde la API
   useEffect(() => {
     if (session) {
-      axios.get('/api/employer/profile')
+      axios
+        .get("/api/employer/profile")
         .then((res) => {
           const data = res.data;
-          setName(data.name || '');
-          setCompanyName(data.companyName || '');
-          setDescription(data.description || '');
-          setPhone(data.phone || '');
+          setName(data.name || "");
+          setCompanyName(data.companyName || "");
+          setDescription(data.description || "");
+          setPhone(data.phone || "");
         })
-        .catch((err) => console.error('Error al cargar el perfil:', err));
+        .catch((err) => console.error("Error al cargar el perfil:", err));
     }
   }, [session]);
 
   // Cargar documentos legales
   useEffect(() => {
     if (session) {
-      axios.get('/api/employer/documents')
+      axios
+        .get("/api/employer/documents")
         .then((res) => {
           setDocuments(res.data.documents);
         })
-        .catch((err) => console.error('Error al cargar documentos:', err));
+        .catch((err) => console.error("Error al cargar documentos:", err));
     }
   }, [session]);
 
-  if (status === 'loading') return <p>Cargando...</p>;
-  if (!session) {
-    useEffect(() => { router.push('/login'); }, [router]);
-    return null;
+  if (status === "loading" || !session) {
+    return <p>Cargando...</p>;
   }
 
   const handleProfileUpdate = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await axios.put('/api/employer/profile', { name, companyName, description, phone });
-      // Refrescar la sesión para actualizar los datos en el token
-      if (update) {
-        await update();
-      } else {
-        router.replace(router.asPath);
-      }
-      alert('Perfil actualizado exitosamente');
-      router.push('/dashboard');
+      await axios.put("/api/employer/profile", {
+        name,
+        companyName,
+        description,
+        phone,
+      });
+      alert("Perfil actualizado exitosamente");
+      // Forzamos un reload completo de la página para refrescar la sesión y mostrar los datos actualizados
+      window.location.reload();
     } catch (error) {
-      console.error('Error actualizando el perfil:', error);
-      alert('Error actualizando el perfil');
+      console.error("Error actualizando el perfil:", error);
+      alert("Error actualizando el perfil");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleDocumentFileChange = (e) => {
-    setSelectedDocument(e.target.files[0]);
-  };
-
-  const handleDocumentUpload = async (e) => {
-    e.preventDefault();
-    if (!selectedDocument) {
-      setUploadMessage('Por favor, selecciona un archivo primero.');
-      return;
-    }
-    const formData = new FormData();
-    formData.append('document', selectedDocument);
-
-    try {
-      const res = await axios.post('/api/employer/upload-document', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      setUploadMessage('Documento subido correctamente.');
-      console.log('Documento:', res.data.document);
-      const updatedDocs = await axios.get('/api/employer/documents');
-      setDocuments(updatedDocs.data.documents);
-    } catch (error) {
-      console.error('Error subiendo el documento:', error);
-      setUploadMessage('Error al subir el documento.');
     }
   };
 
@@ -105,35 +84,57 @@ export default function ProfileEmpleador() {
   const handleProfileImageUpload = async (e) => {
     e.preventDefault();
     if (!selectedProfileImage) {
-      setProfileImageMessage('Por favor, selecciona una imagen primero.');
+      setProfileImageMessage("Por favor, selecciona una imagen.");
       return;
     }
     const formData = new FormData();
-    formData.append('profilePicture', selectedProfileImage);
+    formData.append("profilePicture", selectedProfileImage);
 
     try {
-      const res = await axios.post('/api/employer/upload-profile-picture', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+      const res = await axios.post("/api/employer/upload-profile-picture", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
-      setProfileImageMessage('Imagen de perfil actualizada correctamente.');
-      if (update) {
-        await update();
-      } else {
-        router.replace(router.asPath);
-      }
-      console.log('Imagen actualizada:', res.data.user.profilePicture);
+      setProfileImageMessage("Imagen de perfil actualizada correctamente.");
+      window.location.reload();
+      console.log("Imagen actualizada:", res.data.user.profilePicture);
     } catch (error) {
-      console.error('Error actualizando la imagen de perfil:', error);
-      setProfileImageMessage('Error al actualizar la imagen de perfil.');
+      console.error("Error actualizando la imagen de perfil:", error);
+      setProfileImageMessage("Error al actualizar la imagen de perfil.");
     }
   };
 
-  // Función para eliminar un documento
+  const handleDocumentFileChange = (e) => {
+    setSelectedDocument(e.target.files[0]);
+  };
+
+  const handleDocumentUpload = async (e) => {
+    e.preventDefault();
+    if (!selectedDocument) {
+      setUploadMessage("Por favor, selecciona un archivo primero.");
+      return;
+    }
+    const formData = new FormData();
+    formData.append("document", selectedDocument);
+
+    try {
+      const res = await axios.post("/api/employer/upload-document", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      setUploadMessage("Documento subido correctamente.");
+      console.log("Documento:", res.data.document);
+      const updatedDocs = await axios.get("/api/employer/documents");
+      setDocuments(updatedDocs.data.documents);
+    } catch (error) {
+      console.error("Error subiendo el documento:", error);
+      setUploadMessage("Error al subir el documento.");
+    }
+  };
+
   const handleDeleteDocument = async (documentId) => {
     if (confirm("¿Estás seguro de que deseas eliminar este documento?")) {
       try {
-        await axios.delete('/api/employer/delete-document', { data: { documentId } });
-        const updatedDocs = await axios.get('/api/employer/documents');
+        await axios.delete("/api/employer/delete-document", { data: { documentId } });
+        const updatedDocs = await axios.get("/api/employer/documents");
         setDocuments(updatedDocs.data.documents);
         alert("Documento eliminado correctamente.");
       } catch (error) {
@@ -143,8 +144,27 @@ export default function ProfileEmpleador() {
     }
   };
 
+  // Función para eliminar la cuenta completa
+  const handleDeleteAccount = async () => {
+    if (
+      confirm("¿Estás seguro de que deseas eliminar tu cuenta? Esta acción no se puede deshacer.")
+    ) {
+      try {
+        const res = await axios.delete("/api/user/delete");
+        if (res.status === 200) {
+          alert("Cuenta eliminada correctamente");
+          await signOut({ redirect: false });
+          router.push("/login");
+        }
+      } catch (error) {
+        console.error("Error eliminando la cuenta:", error);
+        alert("Error al eliminar la cuenta.");
+      }
+    }
+  };
+
   return (
-    <div style={{ textAlign: 'center', marginTop: '2rem' }}>
+    <div style={{ textAlign: "center", marginTop: "2rem" }}>
       <h1>Perfil de Empleador</h1>
       {/* Mostrar imagen de perfil */}
       <img
@@ -156,6 +176,7 @@ export default function ProfileEmpleador() {
           borderRadius: "50%",
           objectFit: "cover",
           border: "2px solid #ccc",
+          marginBottom: "1rem",
         }}
       />
       {/* Formulario para actualizar datos de perfil */}
@@ -171,18 +192,32 @@ export default function ProfileEmpleador() {
         </div>
         <div>
           <label>Nombre de la Empresa:</label>
-          <input type="text" value={companyName} onChange={(e) => setCompanyName(e.target.value)} required />
+          <input
+            type="text"
+            value={companyName}
+            onChange={(e) => setCompanyName(e.target.value)}
+            required
+          />
         </div>
         <div>
           <label>Descripción:</label>
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} required />
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            required
+          />
         </div>
         <div>
           <label>Teléfono:</label>
-          <input type="text" value={phone} onChange={(e) => setPhone(e.target.value)} required />
+          <input
+            type="text"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            required
+          />
         </div>
         <button type="submit" disabled={loading}>
-          {loading ? 'Actualizando...' : 'Actualizar Perfil'}
+          {loading ? "Actualizando..." : "Actualizar Perfil"}
         </button>
       </form>
 
@@ -218,9 +253,8 @@ export default function ProfileEmpleador() {
           {documents.map((doc) => (
             <li key={doc.id} style={{ marginBottom: "0.5rem" }}>
               <a href={doc.url} target="_blank" rel="noopener noreferrer">
-                {doc.url}
-              </a>
-              {" "}
+                {doc.originalName || doc.url}
+              </a>{" "}
               <button onClick={() => handleDeleteDocument(doc.id)}>Eliminar</button>
             </li>
           ))}
@@ -230,7 +264,18 @@ export default function ProfileEmpleador() {
       <br />
       <Link href="/dashboard">Volver al Dashboard</Link>
       <br />
-      <button onClick={() => signOut({ callbackUrl: '/login' })}>Cerrar sesión</button>
+      <button onClick={() => signOut({ callbackUrl: "/login" })}>Cerrar sesión</button>
+
+      <br />
+      {/* Sección para eliminar la cuenta */}
+      <div style={{ marginTop: "2rem", borderTop: "1px solid red", paddingTop: "1rem" }}>
+        <button
+          onClick={handleDeleteAccount}
+          style={{ backgroundColor: "red", color: "white", padding: "0.5rem 1rem" }}
+        >
+          Eliminar Cuenta
+        </button>
+      </div>
     </div>
   );
 }
