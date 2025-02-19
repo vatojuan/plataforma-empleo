@@ -1,37 +1,37 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
-}
-
 model LegalDocument {
   id           Int      @id @default(autoincrement())
   url          String
-  originalName String?  // Nombre original del archivo
   createdAt    DateTime @default(now())
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId       Int
+  originalName String?
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model EmployeeDocument {
   id           Int      @id @default(autoincrement())
   url          String
-  originalName String?  // Nombre original del archivo
   createdAt    DateTime @default(now())
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId       Int
+  originalName String?
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Application {
   id        Int      @id @default(autoincrement())
   createdAt DateTime @default(now())
-  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
   jobId     Int
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    Int
+  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Job {
@@ -40,8 +40,8 @@ model Job {
   description  String
   createdAt    DateTime      @default(now())
   userId       Int
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   applications Application[]
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model User {
@@ -51,15 +51,15 @@ model User {
   password          String?
   role              String?
   confirmed         Boolean            @default(false)
-  googleId          String?
   createdAt         DateTime           @default(now())
+  googleId          String?
   companyName       String?
   description       String?
   phone             String?
-  cvUrl             String?            // Campo para almacenar el URL del CV
+  profilePicture    String?
+  cvUrl             String?
+  applications      Application[]
+  employeeDocuments EmployeeDocument[]
   jobs              Job[]
   legalDocuments    LegalDocument[]
-  employeeDocuments EmployeeDocument[]
-  applications      Application[]
-  profilePicture    String?
 }

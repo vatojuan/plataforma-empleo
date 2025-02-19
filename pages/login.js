@@ -1,9 +1,22 @@
 import { signIn } from "next-auth/react";
 import { useState } from "react";
+import { 
+  Box, 
+  Container, 
+  Typography, 
+  TextField, 
+  Button, 
+  Divider, 
+  Snackbar, 
+  Alert 
+} from "@mui/material";
+import GoogleIcon from "@mui/icons-material/Google";
+import Link from "next/link";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
   // Iniciar sesión con email y contraseña
   const handleEmailLogin = async (e) => {
@@ -14,47 +27,62 @@ export default function Login() {
       password,
       callbackUrl: "/dashboard",
     });
+
     if (result?.ok) {
       window.location.href = "/dashboard";
     } else {
-      alert("Error al iniciar sesión con email.");
+      setSnackbar({ open: true, message: "Error al iniciar sesión. Verifica tus credenciales.", severity: "error" });
     }
   };
 
-  // Iniciar sesión con Google forzando la selección de cuenta
+  // Iniciar sesión con Google
   const handleGoogleLogin = () => {
     signIn("google", { callbackUrl: "/dashboard", prompt: "select_account" });
   };
 
   return (
-    <div style={{ textAlign: "center", marginTop: "2rem" }}>
-      <h1>Iniciar Sesión</h1>
-      <button onClick={handleGoogleLogin}>Iniciar sesión con Google</button>
-      <hr style={{ margin: "1rem 0" }} />
-      <form onSubmit={handleEmailLogin}>
-        <div>
-          <label>Email:</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label>Contraseña:</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <button type="submit">Iniciar Sesión con Email</button>
-      </form>
-      <p>
-        ¿No tienes cuenta? <a href="/register">Regístrate</a>
-      </p>
-    </div>
+    <Box sx={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", bgcolor: "background.default" }}>
+      <Container maxWidth="sm" sx={{ textAlign: "center", p: 4, boxShadow: 3, borderRadius: 2, bgcolor: "background.paper" }}>
+        <Typography variant="h4" gutterBottom>
+          Iniciar Sesión
+        </Typography>
+
+        {/* Botón de Google */}
+        <Button 
+          onClick={handleGoogleLogin} 
+          variant="contained" 
+          startIcon={<GoogleIcon />} 
+          fullWidth 
+          sx={{ mb: 3, bgcolor: "#DB4437", color: "#fff", "&:hover": { bgcolor: "#b73c2f" } }}
+        >
+          Iniciar sesión con Google
+        </Button>
+
+        <Divider sx={{ my: 3 }}>O usa tu email</Divider>
+
+        {/* Formulario de inicio de sesión */}
+        <Box component="form" onSubmit={handleEmailLogin} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <TextField label="Correo Electrónico" type="email" value={email} onChange={(e) => setEmail(e.target.value)} fullWidth required />
+          <TextField label="Contraseña" type="password" value={password} onChange={(e) => setPassword(e.target.value)} fullWidth required />
+          <Button type="submit" variant="contained" color="primary" fullWidth>
+            Iniciar Sesión
+          </Button>
+        </Box>
+
+        <Typography variant="body2" sx={{ mt: 2 }}>
+          ¿No tienes cuenta?{" "}
+          <Link href="/register" style={{ color: "#1976d2", textDecoration: "none" }}>
+            Regístrate aquí
+          </Link>
+        </Typography>
+      </Container>
+
+      {/* Notificación Snackbar */}
+      <Snackbar open={snackbar.open} autoHideDuration={4000} onClose={() => setSnackbar({ ...snackbar, open: false })} anchorOrigin={{ vertical: "bottom", horizontal: "center" }}>
+        <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity} sx={{ width: "100%" }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+    </Box>
   );
 }

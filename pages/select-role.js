@@ -1,12 +1,24 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { useSession, signOut, signIn } from "next-auth/react";
-import Link from "next/link";
+import {
+  Box,
+  Container,
+  Typography,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Button,
+  Snackbar,
+  Alert,
+} from "@mui/material";
 
 export default function SelectRole() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [selectedRole, setSelectedRole] = useState("empleado");
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
   useEffect(() => {
     if (status !== "loading" && !session) {
@@ -23,29 +35,63 @@ export default function SelectRole() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email: session.user.email, role: selectedRole }),
     });
+
     if (res.ok) {
-      // Actualizamos la sesión mediante signIn sin proveedor para forzar el refresco
-      await signIn(undefined, { callbackUrl: "/dashboard" });
+      setSnackbar({ open: true, message: "Rol seleccionado con éxito", severity: "success" });
+      setTimeout(async () => {
+        await signIn(undefined, { callbackUrl: "/dashboard" });
+      }, 2000);
     } else {
-      alert("Error al actualizar el rol");
+      setSnackbar({ open: true, message: "Error al actualizar el rol", severity: "error" });
     }
   };
 
   return (
-    <div style={{ textAlign: "center", marginTop: "2rem" }}>
-      <h1>Selecciona tu Rol</h1>
-      <p>Elige si eres Empleado o Empleador:</p>
-      <form onSubmit={handleSubmit}>
-        <select value={selectedRole} onChange={(e) => setSelectedRole(e.target.value)}>
-          <option value="empleado">Empleado</option>
-          <option value="empleador">Empleador</option>
-        </select>
-        <br /><br />
-        <button type="submit">Confirmar Rol</button>
-      </form>
-      <button onClick={() => signOut({ redirect: true, callbackUrl: "/login" })}>
-        Cerrar sesión
-      </button>
-    </div>
+    <Box sx={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", bgcolor: "background.default" }}>
+      <Container maxWidth="sm" sx={{ textAlign: "center", p: 4, boxShadow: 3, borderRadius: 2, bgcolor: "background.paper" }}>
+        <Typography variant="h4" gutterBottom>
+          Selecciona tu Rol
+        </Typography>
+        <Typography variant="body1" sx={{ mb: 3 }}>
+          Elige si eres Empleado o Empleador:
+        </Typography>
+
+        <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <FormControl fullWidth>
+            <InputLabel>Tipo de Usuario</InputLabel>
+            <Select value={selectedRole} onChange={(e) => setSelectedRole(e.target.value)}>
+              <MenuItem value="empleado">Empleado</MenuItem>
+              <MenuItem value="empleador">Empleador</MenuItem>
+            </Select>
+          </FormControl>
+
+          <Button type="submit" variant="contained" color="primary" fullWidth>
+            Confirmar Rol
+          </Button>
+        </Box>
+
+        <Button
+          onClick={() => signOut({ redirect: true, callbackUrl: "/login" })}
+          variant="outlined"
+          color="error"
+          fullWidth
+          sx={{ mt: 2 }}
+        >
+          Cerrar sesión
+        </Button>
+      </Container>
+
+      {/* Snackbar de notificación */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity} sx={{ width: "100%" }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+    </Box>
   );
 }

@@ -8,7 +8,11 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
     "@google-cloud/storage": "^7.15.1",
+    "@mui/icons-material": "^6.4.4",
+    "@mui/material": "^6.4.4",
     "@prisma/client": "^6.3.1",
     "axios": "^1.7.9",
     "dotenv": "^16.4.7",
@@ -21,7 +25,10 @@
     "react-dom": "18.x.x"
   },
   "devDependencies": {
+    "autoprefixer": "^10.4.20",
     "bcryptjs": "^2.x.x",
-    "prisma": "^6.3.1"
+    "postcss": "^8.5.2",
+    "prisma": "^6.3.1",
+    "tailwindcss": "^4.0.6"
   }
 }
