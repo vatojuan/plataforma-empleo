@@ -62,8 +62,22 @@ export default function Login() {
 
         {/* Formulario de inicio de sesión */}
         <Box component="form" onSubmit={handleEmailLogin} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          <TextField label="Correo Electrónico" type="email" value={email} onChange={(e) => setEmail(e.target.value)} fullWidth required />
-          <TextField label="Contraseña" type="password" value={password} onChange={(e) => setPassword(e.target.value)} fullWidth required />
+          <TextField 
+            label="Correo Electrónico" 
+            type="email" 
+            value={email} 
+            onChange={(e) => setEmail(e.target.value)} 
+            fullWidth 
+            required 
+          />
+          <TextField 
+            label="Contraseña" 
+            type="password" 
+            value={password} 
+            onChange={(e) => setPassword(e.target.value)} 
+            fullWidth 
+            required 
+          />
           <Button type="submit" variant="contained" color="primary" fullWidth>
             Iniciar Sesión
           </Button>
@@ -75,11 +89,32 @@ export default function Login() {
             Regístrate aquí
           </Link>
         </Typography>
+
+        {/* Botón para volver a la página de inicio */}
+        <Button 
+          component={Link} 
+          href="/" 
+          variant="outlined" 
+          color="primary" 
+          fullWidth 
+          sx={{ mt: 2 }}
+        >
+          Volver a Inicio
+        </Button>
       </Container>
 
       {/* Notificación Snackbar */}
-      <Snackbar open={snackbar.open} autoHideDuration={4000} onClose={() => setSnackbar({ ...snackbar, open: false })} anchorOrigin={{ vertical: "bottom", horizontal: "center" }}>
-        <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity} sx={{ width: "100%" }}>
+      <Snackbar 
+        open={snackbar.open} 
+        autoHideDuration={4000} 
+        onClose={() => setSnackbar({ ...snackbar, open: false })} 
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert 
+          onClose={() => setSnackbar({ ...snackbar, open: false })} 
+          severity={snackbar.severity} 
+          sx={{ width: "100%" }}
+        >
           {snackbar.message}
         </Alert>
       </Snackbar>

@@ -128,6 +128,10 @@ export default function ProfileEmpleado() {
     setUploading(true);
     const formData = new FormData();
     formData.append("document", file);
+    // Aquí agregamos el userId obtenido de la sesión
+    if (session && session.user && session.user.id) {
+      formData.append("userId", session.user.id);
+    }
     try {
       const res = await axios.post("/api/employee/upload-document", formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -246,7 +250,7 @@ export default function ProfileEmpleado() {
         <Divider sx={{ my: 3 }} />
         <Paper sx={{ maxWidth: 500, mx: "auto", p: 3 }}>
           <Typography variant="h6" gutterBottom>
-            Subir Documento Legal
+            Subir CV o Archivo De Interes
           </Typography>
           <Button variant="contained" component="label" sx={{ mt: 1 }}>
             Seleccionar Archivo
@@ -260,7 +264,7 @@ export default function ProfileEmpleado() {
           )}
         </Paper>
         <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
-          Documentos Legales
+          Archivos
         </Typography>
         {documents.length === 0 ? (
           <Typography variant="body2" color="text.secondary">
@@ -271,7 +275,27 @@ export default function ProfileEmpleado() {
             {documents.map((doc) => (
               <Box component="li" key={doc.id} sx={{ mb: 1, display: "flex", alignItems: "center" }}>
                 <Typography variant="body2" sx={{ flexGrow: 1 }}>
-                  {doc.originalName || doc.url}
+                  <a
+                    href="#"
+                    onClick={async (e) => {
+                      e.preventDefault();
+                      try {
+                        const res = await fetch(
+                          `/api/employee/get-signed-url?fileName=${encodeURIComponent(doc.fileKey)}`
+                        );
+                        if (!res.ok) {
+                          throw new Error("Error al obtener la URL firmada");
+                        }
+                        const data = await res.json();
+                        window.open(data.url, "_blank");
+                      } catch (error) {
+                        console.error("Error al descargar el documento:", error);
+                      }
+                    }}
+                    style={{ textDecoration: "none", color: "#1976d2", cursor: "pointer" }}
+                  >
+                    {doc.originalName || "Documento"}
+                  </a>
                 </Typography>
                 <IconButton color="error" onClick={() => { setSelectedDocId(doc.id); setOpenDocDeleteDialog(true); }}>
                   <DeleteIcon />

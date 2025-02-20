@@ -47,9 +47,29 @@ export default function SelectRole() {
   };
 
   return (
-    <Box sx={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", bgcolor: "background.default" }}>
-      <Container maxWidth="sm" sx={{ textAlign: "center", p: 4, boxShadow: 3, borderRadius: 2, bgcolor: "background.paper" }}>
-        <Typography variant="h4" gutterBottom>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        bgcolor: "background.default",
+      }}
+    >
+      <Container
+        maxWidth="sm"
+        sx={{
+          textAlign: "center",
+          p: 4,
+          pt: 6, // Aumentamos el padding top para dar más espacio al título
+          boxShadow: 3,
+          borderRadius: 2,
+          bgcolor: "background.paper",
+          position: "relative",
+          zIndex: 1,
+        }}
+      >
+        <Typography variant="h4" gutterBottom sx={{ position: "relative", zIndex: 2 }}>
           Selecciona tu Rol
         </Typography>
         <Typography variant="body1" sx={{ mb: 3 }}>
@@ -58,8 +78,16 @@ export default function SelectRole() {
 
         <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           <FormControl fullWidth>
-            <InputLabel>Tipo de Usuario</InputLabel>
-            <Select value={selectedRole} onChange={(e) => setSelectedRole(e.target.value)}>
+            <InputLabel id="role-label" shrink>
+              Tipo de Usuario
+            </InputLabel>
+            <Select
+              labelId="role-label"
+              id="role-select"
+              value={selectedRole}
+              label="Tipo de Usuario"
+              onChange={(e) => setSelectedRole(e.target.value)}
+            >
               <MenuItem value="empleado">Empleado</MenuItem>
               <MenuItem value="empleador">Empleador</MenuItem>
             </Select>
@@ -81,7 +109,6 @@ export default function SelectRole() {
         </Button>
       </Container>
 
-      {/* Snackbar de notificación */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={4000}

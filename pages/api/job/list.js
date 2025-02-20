@@ -1,33 +1,32 @@
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '../auth/[...nextauth]';
-import prisma from '../../../lib/prisma';
+import prisma from "../../../lib/prisma";
 
 export default async function handler(req, res) {
   try {
-    const session = await getServerSession(req, res, authOptions);
-    if (!session) {
-      return res.status(401).json({ error: 'No autorizado' });
-    }
-
-    let jobs;
+    const userId = req.query.userId ? Number(req.query.userId) : null;
     // Si se pasa userId en la query, se filtran las ofertas del usuario
-    if (req.query.userId) {
-      jobs = await prisma.job.findMany({
-        where: { userId: Number(req.query.userId) },
-        include: { user: true },
-        orderBy: { createdAt: 'desc' },
-      });
-    } else {
-      // Para empleados se muestran todas
-      jobs = await prisma.job.findMany({
-        include: { user: true },
-        orderBy: { createdAt: 'desc' },
-      });
-    }
+    const jobs = await prisma.job.findMany({
+      where: userId ? { userId } : {},
+      orderBy: { createdAt: "desc" },
+      include: { applications: true },
+    });
 
-    return res.status(200).json({ jobs });
+    // Formateamos cada oferta para enviar datos serializables
+    const formattedJobs = jobs.map((job) => ({
+      id: job.id,
+      title: job.title,
+      description: job.description,
+      requirements: job.requirements || null,
+      // Usamos createdAt como postedAt y lo convertimos a string ISO
+      postedAt: job.createdAt ? new Date(job.createdAt).toISOString() : "",
+      candidatesCount: job.applications ? job.applications.length : 0,
+    }));
+
+    return res.status(200).json({ jobs: formattedJobs });
   } catch (error) {
     console.error("Error fetching jobs:", error);
-    return res.status(500).json({ error: 'Error interno del servidor' });
+    return res.status(500).json({
+      error: "Error interno del servidor",
+      details: error.message || "Sin detalles",
+    });
   }
 }

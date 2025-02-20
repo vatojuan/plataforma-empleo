@@ -46,14 +46,14 @@ export default function ProfileEmpleador() {
   // Snackbar para notificaciones
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
-  // Diálogo para eliminar cuenta
-  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
-
-  // Diálogo para confirmar eliminación de documento
+  // Diálogo para eliminar documento
   const [openDocDeleteDialog, setOpenDocDeleteDialog] = useState(false);
   const [selectedDocId, setSelectedDocId] = useState(null);
 
-  // Cargar perfil desde la API
+  // Diálogo para eliminar cuenta
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+
+  // Cargar perfil desde la API de empleador
   useEffect(() => {
     if (session) {
       axios
@@ -81,9 +81,11 @@ export default function ProfileEmpleador() {
     }
   }, [session]);
 
-  if (status === "loading" || !session) {
-    return <Typography align="center" sx={{ mt: 4 }}>Cargando...</Typography>;
-  }
+  useEffect(() => {
+    if (status !== "loading" && !session) {
+      router.push("/login");
+    }
+  }, [session, status, router]);
 
   const handleProfileUpdate = async (e) => {
     e.preventDefault();
@@ -100,11 +102,6 @@ export default function ProfileEmpleador() {
     }
   };
 
-  const handleProfileImageChange = (e) => {
-    setSelectedProfileImage(e.target.files[0]);
-  };
-
-  // Actualiza la imagen automáticamente al seleccionar el archivo
   const handleProfileImageUpload = async (file) => {
     const imageFile = file || selectedProfileImage;
     if (!imageFile) {
@@ -128,7 +125,7 @@ export default function ProfileEmpleador() {
     }
   };
 
-  // Subida automática del documento al seleccionar el archivo, con barra de progreso
+  // Subida automática del documento al seleccionar el archivo (documentos legales)
   const handleDocumentFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -136,6 +133,10 @@ export default function ProfileEmpleador() {
     setUploading(true);
     const formData = new FormData();
     formData.append("document", file);
+    // Enviar el userId obtenido de la sesión
+    if (session && session.user && session.user.id) {
+      formData.append("userId", session.user.id);
+    }
     try {
       const res = await axios.post("/api/employer/upload-document", formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -153,7 +154,6 @@ export default function ProfileEmpleador() {
     }
   };
 
-  // Diálogo para eliminar documento
   const handleRequestDeleteDocument = (documentId) => {
     setSelectedDocId(documentId);
     setOpenDocDeleteDialog(true);
@@ -196,14 +196,14 @@ export default function ProfileEmpleador() {
   };
 
   return (
-    <DashboardLayout userRole={session?.user?.role || "empleado"}>
+    <DashboardLayout userRole={session?.user?.role || "empleador"}>
       <Box sx={{ textAlign: "center", mt: 4 }}>
         <Typography variant="h4" gutterBottom>
-          Perfil de Empleado
+          Perfil de Empleador
         </Typography>
         <Box sx={{ mb: 2 }}>
           <ProfileImage
-            currentImage={session?.user?.image || "/images/default-user.png"}
+            currentImage={session?.user?.profilePicture || "/images/default-user.png"}
             onImageSelected={(file) => handleProfileImageUpload(file)}
           />
         </Box>
@@ -218,11 +218,11 @@ export default function ProfileEmpleador() {
               required
             />
             <TextField
-              label="Teléfono"
+              label="Nombre de la Empresa"
               fullWidth
               margin="normal"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              value={companyName}
+              onChange={(e) => setCompanyName(e.target.value)}
               required
             />
             <TextField
@@ -235,6 +235,14 @@ export default function ProfileEmpleador() {
               onChange={(e) => setDescription(e.target.value)}
               required
             />
+            <TextField
+              label="Teléfono"
+              fullWidth
+              margin="normal"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              required
+            />
             <Button type="submit" variant="contained" color="primary" disabled={loading} sx={{ mt: 2 }}>
               {loading ? "Actualizando..." : "Actualizar Perfil"}
             </Button>
@@ -243,7 +251,7 @@ export default function ProfileEmpleador() {
         <Divider sx={{ my: 3 }} />
         <Paper sx={{ maxWidth: 500, mx: "auto", p: 3 }}>
           <Typography variant="h6" gutterBottom>
-            Subir Documento Legal
+            Subir Archivo De Interes(Opcional)
           </Typography>
           <Button variant="contained" component="label" sx={{ mt: 1 }}>
             Seleccionar Archivo
@@ -257,7 +265,7 @@ export default function ProfileEmpleador() {
           )}
         </Paper>
         <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
-          Documentos Legales
+          Archivos
         </Typography>
         {documents.length === 0 ? (
           <Typography variant="body2" color="text.secondary">
@@ -268,9 +276,28 @@ export default function ProfileEmpleador() {
             {documents.map((doc) => (
               <Box component="li" key={doc.id} sx={{ mb: 1, display: "flex", alignItems: "center" }}>
                 <Typography variant="body2" sx={{ flexGrow: 1 }}>
-                  {doc.originalName || doc.url}
+                  <a
+                    href="#"
+                    onClick={async (e) => {
+                      e.preventDefault();
+                      try {
+                        const res = await axios.get(
+                          `/api/employer/get-signed-url?fileName=${encodeURIComponent(doc.fileKey)}`
+                        );
+                        if (!res.data || !res.data.url) {
+                          throw new Error("Error al obtener la URL firmada");
+                        }
+                        window.open(res.data.url, "_blank");
+                      } catch (error) {
+                        console.error("Error al descargar el documento:", error);
+                      }
+                    }}
+                    style={{ textDecoration: "none", color: "#1976d2", cursor: "pointer" }}
+                  >
+                    {doc.originalName || "Documento"}
+                  </a>
                 </Typography>
-                <IconButton color="error" onClick={() => handleRequestDeleteDocument(doc.id)}>
+                <IconButton color="error" onClick={() => { setSelectedDocId(doc.id); setOpenDocDeleteDialog(true); }}>
                   <DeleteIcon />
                 </IconButton>
               </Box>

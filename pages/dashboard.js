@@ -22,6 +22,7 @@ import {
   Snackbar,
   Alert
 } from "@mui/material";
+import PersonIcon from "@mui/icons-material/Person";
 
 export default function Dashboard({ toggleDarkMode, currentMode }) {
   const { data: session, status } = useSession();
@@ -46,10 +47,15 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
   useEffect(() => {
     async function fetchApplications() {
       if (session && session.user.role === "empleado") {
-        const res = await fetch("/api/job/my-applications");
-        if (res.ok) {
-          const data = await res.json();
-          setApplications(data.applications);
+        try {
+          const res = await fetch("/api/job/my-applications");
+          if (res.ok) {
+            const data = await res.json();
+            console.log("Aplicaciones recibidas:", data);
+            setApplications(data.applications);
+          }
+        } catch (error) {
+          console.error("Error fetching applications:", error);
         }
       }
     }
@@ -62,13 +68,11 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
     return <p>Cargando...</p>;
   }
 
-  // Función para abrir el diálogo de confirmación de cancelación
   const handleRequestCancelApplication = (jobId) => {
     setSelectedCancelJobId(jobId);
     setOpenCancelDialog(true);
   };
 
-  // Confirma la cancelación de la postulación
   const confirmCancelApplication = async () => {
     try {
       const res = await fetch("/api/job/cancel-application", {
@@ -78,7 +82,9 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
       });
       if (res.ok) {
         setSnackbar({ open: true, message: "Postulación cancelada", severity: "success" });
-        setApplications((prevApps) => prevApps.filter((app) => app.job.id !== selectedCancelJobId));
+        setApplications((prevApps) =>
+          prevApps.filter((app) => app.job.id !== selectedCancelJobId)
+        );
       } else {
         setSnackbar({ open: true, message: "Error al cancelar la postulación", severity: "error" });
       }
@@ -100,6 +106,11 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
     await signOut({ redirect: false });
     setSnackbar({ open: true, message: "Sesión cerrada correctamente", severity: "success" });
     setTimeout(() => router.push("/login"), 1500);
+  };
+
+  // Función para determinar si el empleado ya ha postulado a una oferta
+  const isApplied = (jobId) => {
+    return applications.some((app) => app.job.id === jobId);
   };
 
   return (
@@ -140,24 +151,44 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
                   No has postulado a ningún empleo.
                 </Typography>
               ) : (
-                <Grid container spacing={3}>
+                <Grid container spacing={3} sx={{ maxWidth: 900, mx: "auto" }}>
                   {applications.map((app) => (
                     <Grid item xs={12} sm={6} md={4} key={app.id}>
-                      <Card
-                        sx={{
-                          display: "flex",
-                          flexDirection: "column",
-                          height: "100%",
-                          bgcolor: "rgba(201,124,95, 0.15)"
-                        }}
-                      >
+                      <Card sx={{ display: "flex", flexDirection: "column", height: "100%", bgcolor: "rgba(201,124,95, 0.15)" }}>
                         <CardContent sx={{ flexGrow: 1 }}>
-                          <Typography variant="h6">{app.job.title}</Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            Empresa: {app.job.company || "No especificado"}
+                          <Typography variant="h6" gutterBottom>
+                            {app.job.title}
                           </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            Fecha: {new Date(app.appliedAt).toLocaleDateString()}
+                          {app.job.requirements && (
+                            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                              Requisitos: {app.job.requirements}
+                            </Typography>
+                          )}
+                          <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                              mt: 1,
+                            }}
+                          >
+                            <span>
+                              Publicado el:{" "}
+                              {app.job.createdAt ? new Date(app.job.createdAt).toLocaleDateString() : "Sin fecha"}
+                            </span>
+                            <span style={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                              {/* Puedes agregar íconos adicionales aquí */}
+                            </span>
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{ display: "flex", alignItems: "center", gap: 0.5, mt: 1 }}
+                          >
+                            Candidatos postulados: {app.job._count?.applications ?? 0}
+                            <PersonIcon fontSize="small" />
                           </Typography>
                         </CardContent>
                         <CardActions sx={{ justifyContent: "space-between" }}>
@@ -221,7 +252,6 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
         </Box>
       </Box>
 
-      {/* Diálogo para confirmar cancelación de postulación */}
       <Dialog open={openCancelDialog} onClose={cancelCancelApplication}>
         <DialogTitle>Confirmar Cancelación</DialogTitle>
         <DialogContent>
@@ -239,7 +269,6 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
         </DialogActions>
       </Dialog>
 
-      {/* Snackbar de notificaciones */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={4000}

@@ -25,7 +25,7 @@ export default function Home() {
             </Button>
           ) : (
             <Button component={Link} href="/login" color="inherit">
-              Clientes
+              Ingresar Al Portal
             </Button>
           )}
         </Toolbar>

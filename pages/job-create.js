@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
-import { 
-  Box, 
-  Container, 
-  Typography, 
-  TextField, 
-  Button, 
-  Snackbar, 
-  Alert 
+import { useSession, signOut, signIn } from "next-auth/react";
+import {
+  Box,
+  Container,
+  Typography,
+  TextField,
+  Button,
+  Snackbar,
+  Alert
 } from "@mui/material";
 import Link from "next/link";
 
@@ -17,6 +17,7 @@ export default function JobCreate() {
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [requirements, setRequirements] = useState("");
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
   useEffect(() => {
@@ -40,6 +41,7 @@ export default function JobCreate() {
         body: JSON.stringify({
           title,
           description,
+          requirements,
           userId: session.user.id,
         }),
       });
@@ -68,7 +70,11 @@ export default function JobCreate() {
       <Typography variant="h4" gutterBottom>
         Publicar Oferta de Empleo
       </Typography>
-      <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+      <Box
+        component="form"
+        onSubmit={handleSubmit}
+        sx={{ display: "flex", flexDirection: "column", gap: 2 }}
+      >
         <TextField
           label="Título"
           value={title}
@@ -85,6 +91,15 @@ export default function JobCreate() {
           rows={4}
           fullWidth
         />
+        <TextField
+          label="Requisitos"
+          value={requirements}
+          onChange={(e) => setRequirements(e.target.value)}
+          required
+          multiline
+          rows={3}
+          fullWidth
+        />
         <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
           <Button type="submit" variant="contained" color="primary">
             Publicar Oferta
@@ -92,10 +107,7 @@ export default function JobCreate() {
           <Button
             variant="outlined"
             onClick={handleCancel}
-            sx={{
-              color: "text.primary",
-              borderColor: "text.primary"
-            }}
+            sx={{ color: "text.primary", borderColor: "text.primary" }}
           >
             Cancelar
           </Button>
@@ -107,9 +119,9 @@ export default function JobCreate() {
         onClose={() => setSnackbar({ ...snackbar, open: false })}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
-        <Alert 
-          onClose={() => setSnackbar({ ...snackbar, open: false })} 
-          severity={snackbar.severity} 
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
           variant="filled"
           sx={{ width: "100%" }}
         >
