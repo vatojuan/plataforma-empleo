@@ -27,6 +27,7 @@ export default function ProfileEmpleado() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
+<<<<<<< HEAD
   const [name, setName] = useState(session?.user?.name || "");
   const [phone, setPhone] = useState("");
   const [description, setDescription] = useState("");
@@ -35,11 +36,25 @@ export default function ProfileEmpleado() {
   const [selectedProfileImage, setSelectedProfileImage] = useState(null);
   const [profileImageMessage, setProfileImageMessage] = useState("");
 
+=======
+  // Estados para el perfil
+  const [name, setName] = useState(session?.user?.name || '');
+  const [phone, setPhone] = useState('');
+  const [description, setDescription] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  // Para la imagen de perfil
+  const [selectedProfileImage, setSelectedProfileImage] = useState(null);
+  const [profileImageMessage, setProfileImageMessage] = useState('');
+
+  // Para los documentos (CV, certificados, etc.)
+>>>>>>> 23938c6 (Commit sibida de archivos a google y bugs del perfil)
   const [selectedDocument, setSelectedDocument] = useState(null);
   const [documentUploadMessage, setDocumentUploadMessage] = useState("");
   const [uploading, setUploading] = useState(false);
   const [documents, setDocuments] = useState([]);
 
+<<<<<<< HEAD
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
   // Diálogo para eliminar documento
@@ -50,6 +65,9 @@ export default function ProfileEmpleado() {
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
 
   // Cargar perfil del empleado
+=======
+  // Cargar datos del perfil
+>>>>>>> 23938c6 (Commit sibida de archivos a google y bugs del perfil)
   useEffect(() => {
     if (session) {
       axios
@@ -76,19 +94,32 @@ export default function ProfileEmpleado() {
     }
   }, [session]);
 
+<<<<<<< HEAD
   useEffect(() => {
     if (status !== "loading" && !session) {
       router.push("/login");
     }
   }, [session, status, router]);
+=======
+  if (status === 'loading' || !session) {
+    return <p>Cargando...</p>;
+  }
+>>>>>>> 23938c6 (Commit sibida de archivos a google y bugs del perfil)
 
   const handleProfileUpdate = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
+<<<<<<< HEAD
       await axios.put("/api/employee/profile", { name, phone, description });
       setSnackbar({ open: true, message: "Perfil actualizado exitosamente", severity: "success" });
       setTimeout(() => window.location.reload(), 1500);
+=======
+      await axios.put('/api/employee/profile', { name, phone, description });
+      alert('Perfil actualizado exitosamente');
+      // Forzamos reload para que la sesión se recargue con los datos actualizados
+      window.location.reload();
+>>>>>>> 23938c6 (Commit sibida de archivos a google y bugs del perfil)
     } catch (error) {
       console.error("Error actualizando el perfil:", error);
       setSnackbar({ open: true, message: "Error actualizando el perfil", severity: "error" });
@@ -104,15 +135,25 @@ export default function ProfileEmpleado() {
       return;
     }
     const formData = new FormData();
+<<<<<<< HEAD
     formData.append("profilePicture", imageFile);
+=======
+    formData.append('profilePicture', selectedProfileImage);
+>>>>>>> 23938c6 (Commit sibida de archivos a google y bugs del perfil)
     try {
       const res = await axios.post("/api/employee/upload-profile-picture", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+<<<<<<< HEAD
       setProfileImageMessage("Imagen de perfil actualizada correctamente.");
       setSnackbar({ open: true, message: "Imagen actualizada", severity: "success" });
       setTimeout(() => window.location.reload(), 1500);
       console.log("Imagen actualizada:", res.data.user.profilePicture);
+=======
+      setProfileImageMessage('Imagen de perfil actualizada correctamente.');
+      window.location.reload();
+      console.log('Imagen actualizada:', res.data.user.profilePicture);
+>>>>>>> 23938c6 (Commit sibida de archivos a google y bugs del perfil)
     } catch (error) {
       console.error("Error actualizando la imagen de perfil:", error);
       setProfileImageMessage("Error al actualizar la imagen de perfil.");
@@ -127,18 +168,28 @@ export default function ProfileEmpleado() {
     setSelectedDocument(file);
     setUploading(true);
     const formData = new FormData();
+<<<<<<< HEAD
     formData.append("document", file);
     // Aquí agregamos el userId obtenido de la sesión
     if (session && session.user && session.user.id) {
       formData.append("userId", session.user.id);
     }
+=======
+    formData.append('document', selectedDocument);
+>>>>>>> 23938c6 (Commit sibida de archivos a google y bugs del perfil)
     try {
       const res = await axios.post("/api/employee/upload-document", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+<<<<<<< HEAD
       setDocumentUploadMessage("Documento subido correctamente.");
       setSnackbar({ open: true, message: "Documento subido", severity: "success" });
       const updatedDocs = await axios.get("/api/employee/documents");
+=======
+      setDocumentUploadMessage('Documento subido correctamente.');
+      console.log('Documento:', res.data.document);
+      const updatedDocs = await axios.get('/api/employee/documents');
+>>>>>>> 23938c6 (Commit sibida de archivos a google y bugs del perfil)
       setDocuments(updatedDocs.data.documents);
     } catch (error) {
       console.error("Error al subir el documento:", error);
@@ -149,6 +200,7 @@ export default function ProfileEmpleado() {
     }
   };
 
+<<<<<<< HEAD
   const handleRequestDeleteDocument = (documentId) => {
     setSelectedDocId(documentId);
     setOpenDocDeleteDialog(true);
@@ -212,6 +264,63 @@ export default function ProfileEmpleado() {
           <ProfileImage
             currentImage={session?.user?.image || "/images/default-user.png"}
             onImageSelected={(file) => handleProfileImageUpload(file)}
+=======
+  const handleDeleteDocument = async (documentId) => {
+    if (confirm("¿Estás seguro de que deseas eliminar este documento?")) {
+      try {
+        await axios.delete('/api/employee/delete-document', { data: { documentId } });
+        const updatedDocs = await axios.get('/api/employee/documents');
+        setDocuments(updatedDocs.data.documents);
+        alert("Documento eliminado correctamente.");
+      } catch (error) {
+        console.error("Error eliminando el documento:", error);
+        alert("Error al eliminar el documento.");
+      }
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (confirm("¿Estás seguro de que deseas eliminar tu cuenta? Esta acción no se puede deshacer.")) {
+      try {
+        const res = await axios.delete('/api/user/delete');
+        if (res.status === 200) {
+          alert("Cuenta eliminada correctamente");
+          await signOut({ redirect: false });
+          router.push('/login');
+        }
+      } catch (error) {
+        console.error("Error eliminando la cuenta:", error);
+        alert("Error al eliminar la cuenta.");
+      }
+    }
+  };
+
+  return (
+    <div style={{ textAlign: 'center', marginTop: '2rem' }}>
+      <h1>Perfil de Empleado</h1>
+      {/* Mostrar imagen de perfil */}
+      <img
+        src={session.user.image || "/images/default-user.png"}
+        alt="Imagen de perfil"
+        style={{
+          width: "100px",
+          height: "100px",
+          borderRadius: "50%",
+          objectFit: "cover",
+          border: "2px solid #ccc",
+          marginBottom: "1rem",
+        }}
+      />
+      {/* Formulario para actualizar datos de perfil */}
+      <form onSubmit={handleProfileUpdate}>
+        <div>
+          <label>Nombre:</label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+>>>>>>> 23938c6 (Commit sibida de archivos a google y bugs del perfil)
           />
         </Box>
         <Paper sx={{ maxWidth: 500, mx: "auto", p: 3 }}>
@@ -319,6 +428,7 @@ export default function ProfileEmpleado() {
         </Box>
       </Box>
 
+<<<<<<< HEAD
       {/* Diálogo para confirmar eliminación de documento */}
       <Dialog open={openDocDeleteDialog} onClose={cancelDeleteDocument}>
         <DialogTitle>Confirmar Eliminación de Documento</DialogTitle>
@@ -381,5 +491,60 @@ export default function ProfileEmpleado() {
         </Alert>
       </Snackbar>
     </DashboardLayout>
+=======
+      <br />
+      {/* Formulario para actualizar la imagen de perfil */}
+      <form onSubmit={handleProfileImageUpload}>
+        <div>
+          <label>Actualizar Imagen de Perfil:</label>
+          <input type="file" onChange={handleProfileImageChange} accept="image/*" />
+        </div>
+        <button type="submit">Actualizar Imagen</button>
+      </form>
+      {profileImageMessage && <p>{profileImageMessage}</p>}
+
+      <br />
+      {/* Formulario para subir documento */}
+      <form onSubmit={handleDocumentUpload}>
+        <div>
+          <label>Subir Documento:</label>
+          <input type="file" onChange={handleDocumentFileChange} accept=".pdf,.doc,.docx,.jpg,.png" />
+        </div>
+        <button type="submit">Subir Documento</button>
+      </form>
+      {documentUploadMessage && <p>{documentUploadMessage}</p>}
+
+      <br />
+      {/* Listado de documentos */}
+      <h2>Mis Documentos</h2>
+      {documents.length === 0 ? (
+        <p>No hay documentos subidos.</p>
+      ) : (
+        <ul style={{ listStyle: "none", padding: 0 }}>
+          {documents.map((doc) => (
+            <li key={doc.id} style={{ marginBottom: "0.5rem" }}>
+              <a href={doc.url} target="_blank" rel="noopener noreferrer">
+                {doc.originalName || doc.url}
+              </a>{" "}
+              <button onClick={() => handleDeleteDocument(doc.id)}>Eliminar</button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <br />
+      <Link href="/dashboard">Volver al Dashboard</Link>
+      <br />
+      <button onClick={() => signOut({ callbackUrl: '/login' })}>Cerrar sesión</button>
+
+      <br />
+      {/* Sección para eliminar la cuenta */}
+      <div style={{ marginTop: '2rem', borderTop: '1px solid red', paddingTop: '1rem' }}>
+        <button onClick={handleDeleteAccount} style={{ backgroundColor: 'red', color: 'white', padding: '0.5rem 1rem' }}>
+          Eliminar Cuenta
+        </button>
+      </div>
+    </div>
+>>>>>>> 23938c6 (Commit sibida de archivos a google y bugs del perfil)
   );
 }

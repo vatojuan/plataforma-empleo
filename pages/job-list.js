@@ -1,3 +1,4 @@
+// pages/job-list.js
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
@@ -37,6 +38,7 @@ export default function JobList() {
   useEffect(() => {
     async function fetchJobs() {
       let url = "/api/job/list";
+      // Si el usuario es empleador, filtra solo sus ofertas
       if (session && session.user.role === "empleador") {
         url += `?userId=${session.user.id}`;
       }
@@ -52,7 +54,10 @@ export default function JobList() {
         console.error("Error fetching jobs:", error);
       }
     }
+<<<<<<< HEAD
 
+=======
+>>>>>>> 23938c6 (Commit sibida de archivos a google y bugs del perfil)
     async function fetchApplications() {
       if (session && session.user.role === "empleado") {
         try {
@@ -100,10 +105,15 @@ export default function JobList() {
         body: JSON.stringify({ jobId }),
       });
       if (res.ok) {
+<<<<<<< HEAD
         setSnackbar({ open: true, message: "Has postulado exitosamente", severity: "success" });
         // Actualizamos el conteo local
         updateJobCandidatesCount(jobId, 1);
         // También actualizamos el listado de postulaciones
+=======
+        alert("Has postulado exitosamente");
+        // Recargar postulaciones
+>>>>>>> 23938c6 (Commit sibida de archivos a google y bugs del perfil)
         const appRes = await fetch("/api/job/my-applications");
         if (appRes.ok) {
           const data = await appRes.json();
@@ -154,6 +164,7 @@ export default function JobList() {
     }
   };
 
+<<<<<<< HEAD
   const cancelCancelApplication = () => {
     setOpenCancelDialog(false);
     setSelectedCancelJobId(null);
@@ -341,5 +352,77 @@ export default function JobList() {
         </Alert>
       </Snackbar>
     </DashboardLayout>
+=======
+  const handleDeleteJob = async (jobId) => {
+    if (confirm("¿Estás seguro de que deseas eliminar esta oferta de empleo?")) {
+      try {
+        const res = await fetch("/api/job/delete", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ jobId }),
+        });
+        if (res.ok) {
+          alert("Oferta eliminada correctamente.");
+          setJobs(jobs.filter((job) => job.id !== jobId));
+        } else {
+          alert("Error al eliminar la oferta.");
+        }
+      } catch (error) {
+        console.error("Error eliminando la oferta:", error);
+        alert("Error al eliminar la oferta.");
+      }
+    }
+  };
+
+  return (
+    <div style={{ textAlign: "center", marginTop: "2rem" }}>
+      <h1>Ofertas de Empleo</h1>
+      {jobs.length === 0 ? (
+        <p>No hay ofertas publicadas.</p>
+      ) : (
+        <ul style={{ listStyle: "none", padding: 0 }}>
+          {jobs.map((job) => (
+            <li
+              key={job.id}
+              style={{
+                marginBottom: "1rem",
+                borderBottom: "1px solid #ccc",
+                paddingBottom: "1rem",
+              }}
+            >
+              <h2>{job.title}</h2>
+              <p>{job.description}</p>
+              {session.user.role === "empleado" && (
+                <div>
+                  {isApplied(job.id) ? (
+                    <button onClick={() => handleCancelApplication(job.id)}>
+                      Cancelar Postulación
+                    </button>
+                  ) : (
+                    <button onClick={() => handleApply(job.id)}>
+                      Postularme
+                    </button>
+                  )}
+                  <br />
+                  <Link href={`/job-offer?id=${job.id}`}>Ver Detalles</Link>
+                </div>
+              )}
+              {session.user.role === "empleador" && (
+                <div>
+                  <Link href={`/job-offer?id=${job.id}`}>Ver Detalles</Link>
+                  <button onClick={() => handleDeleteJob(job.id)}>
+                    Eliminar
+                  </button>
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+      <p>
+        <Link href="/dashboard">Volver al Dashboard</Link>
+      </p>
+    </div>
+>>>>>>> 23938c6 (Commit sibida de archivos a google y bugs del perfil)
   );
 }

@@ -10,27 +10,47 @@ datasource db {
 model LegalDocument {
   id           Int      @id @default(autoincrement())
   url          String
+<<<<<<< HEAD
   fileKey      String   // <-- Nuevo campo para almacenar la clave del archivo
   createdAt    DateTime @default(now())
   userId       Int
   originalName String?
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+=======
+  originalName String?  // Nombre original del archivo
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       Int
+>>>>>>> 23938c6 (Commit sibida de archivos a google y bugs del perfil)
 }
 
 model EmployeeDocument {
   id           Int      @id @default(autoincrement())
   url          String
+<<<<<<< HEAD
   fileKey      String?  // Ahora es opcional
   createdAt    DateTime @default(now())
   userId       Int
   originalName String?
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+=======
+  originalName String?  // Nombre original del archivo
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       Int
+>>>>>>> 23938c6 (Commit sibida de archivos a google y bugs del perfil)
 }
 
 model Application {
   id        Int      @id @default(autoincrement())
   createdAt DateTime @default(now())
+<<<<<<< HEAD
   jobId     Int
+=======
+  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  jobId     Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+>>>>>>> 23938c6 (Commit sibida de archivos a google y bugs del perfil)
   userId    Int
   job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -40,9 +60,15 @@ model Job {
   id           Int           @id @default(autoincrement())
   title        String
   description  String
+<<<<<<< HEAD
   requirements String?       // Nuevo campo opcional para requisitos
   createdAt    DateTime      @default(now())
   userId       Int
+=======
+  createdAt    DateTime      @default(now())
+  userId       Int
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+>>>>>>> 23938c6 (Commit sibida de archivos a google y bugs del perfil)
   applications Application[]
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
