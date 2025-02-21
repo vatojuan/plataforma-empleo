@@ -294,7 +294,7 @@ export default function ProfileEmpleado() {
                     }}
                     style={{
                       display: "block",
-                      padding: "10px",
+                      padding: "30px",
                       textDecoration: "none",
                       color: "#1976d2",
                       cursor: "pointer"
