@@ -49,6 +49,26 @@ export default function ProfileEmpleado() {
   // Diálogo para eliminar cuenta
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
 
+  // Función para descargar archivos usando un enlace dinámico (compatible con móviles)
+  const downloadFile = async (fileKey) => {
+    try {
+      const res = await fetch(`/api/employee/get-signed-url?fileName=${encodeURIComponent(fileKey)}`);
+      if (!res.ok) {
+        throw new Error("Error al obtener la URL firmada");
+      }
+      const data = await res.json();
+      // Crear un enlace <a> dinámicamente con atributo download
+      const link = document.createElement("a");
+      link.href = data.url;
+      link.setAttribute("download", fileKey);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error("Error al descargar el documento:", error);
+    }
+  };
+
   // Cargar perfil del empleado
   useEffect(() => {
     if (session) {
@@ -128,7 +148,7 @@ export default function ProfileEmpleado() {
     setUploading(true);
     const formData = new FormData();
     formData.append("document", file);
-    // Aquí agregamos el userId obtenido de la sesión
+    // Agregar el userId de la sesión
     if (session && session.user && session.user.id) {
       formData.append("userId", session.user.id);
     }
@@ -204,7 +224,7 @@ export default function ProfileEmpleado() {
 
   return (
     <DashboardLayout userRole={session?.user?.role || "empleado"}>
-      <Box sx={{ textAlign: "center", mt: 4 }}>
+      <Box sx={{ textAlign: "center", mt: 4, px: { xs: 2, sm: 0 } }}>
         <Typography variant="h4" gutterBottom>
           Perfil de Empleado
         </Typography>
@@ -214,7 +234,7 @@ export default function ProfileEmpleado() {
             onImageSelected={(file) => handleProfileImageUpload(file)}
           />
         </Box>
-        <Paper sx={{ maxWidth: 500, mx: "auto", p: 3 }}>
+        <Paper sx={{ maxWidth: 500, mx: "auto", p: 3, width: { xs: "90%", sm: "500px" } }}>
           <Box component="form" onSubmit={handleProfileUpdate} noValidate>
             <TextField
               label="Nombre"
@@ -248,9 +268,9 @@ export default function ProfileEmpleado() {
           </Box>
         </Paper>
         <Divider sx={{ my: 3 }} />
-        <Paper sx={{ maxWidth: 500, mx: "auto", p: 3 }}>
+        <Paper sx={{ maxWidth: 500, mx: "auto", p: 3, width: { xs: "90%", sm: "500px" } }}>
           <Typography variant="h6" gutterBottom>
-            Subir CV o Archivo De Interes
+            Subir CV o Archivo De Interés
           </Typography>
           <Button variant="contained" component="label" sx={{ mt: 1 }}>
             Seleccionar Archivo
@@ -271,26 +291,15 @@ export default function ProfileEmpleado() {
             No hay documentos subidos.
           </Typography>
         ) : (
-          <Box component="ul" sx={{ listStyle: "none", p: 0, maxWidth: 500, mx: "auto" }}>
+          <Box component="ul" sx={{ listStyle: "none", p: 0, maxWidth: 500, mx: "auto", width: { xs: "90%", sm: "500px" } }}>
             {documents.map((doc) => (
               <Box component="li" key={doc.id} sx={{ mb: 1, display: "flex", alignItems: "center" }}>
                 <Typography variant="body2" sx={{ flexGrow: 1 }}>
                   <a
                     href="#"
-                    onClick={async (e) => {
+                    onClick={(e) => {
                       e.preventDefault();
-                      try {
-                        const res = await fetch(
-                          `/api/employee/get-signed-url?fileName=${encodeURIComponent(doc.fileKey)}`
-                        );
-                        if (!res.ok) {
-                          throw new Error("Error al obtener la URL firmada");
-                        }
-                        const data = await res.json();
-                        window.open(data.url, "_blank");
-                      } catch (error) {
-                        console.error("Error al descargar el documento:", error);
-                      }
+                      downloadFile(doc.fileKey);
                     }}
                     style={{ textDecoration: "none", color: "#1976d2", cursor: "pointer" }}
                   >
