@@ -10,7 +10,6 @@ export const config = {
   },
 };
 
-const credentials = JSON.parse(process.env.GOOGLE_CLOUD_KEY);
 const storage = new Storage({
   projectId: process.env.GCLOUD_PROJECT_ID,
   keyFilename: process.env.GCLOUD_KEYFILE,
