@@ -12,8 +12,14 @@ export const config = {
 
 const storage = new Storage({
   projectId: process.env.GCLOUD_PROJECT_ID,
-  keyFilename: process.env.GCLOUD_KEYFILE,
+  credentials: JSON.parse(process.env.GCLOUD_CREDENTIALS),
 });
+
+
+//const storage = new Storage({
+  //projectId: process.env.GCLOUD_PROJECT_ID,
+  //keyFilename: process.env.GCLOUD_KEYFILE,
+//});
 
 const bucketName = process.env.GCLOUD_BUCKET;
 console.log("Bucket Name:", bucketName);
