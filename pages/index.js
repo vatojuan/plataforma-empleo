@@ -9,7 +9,7 @@ export default function Home() {
     <Box sx={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", bgcolor: "background.default" }}>
       {/* Barra de navegación */}
       <AppBar position="static" sx={{ mb: 4 }}>
-        <Toolbar sx={{ justifyContent: "center" }}>
+        <Toolbar sx={{ justifyContent: "center", flexDirection: { xs: "column", sm: "row" } }}>
           <Button component={Link} href="/nosotros" color="inherit">
             Nosotros
           </Button>
@@ -32,7 +32,7 @@ export default function Home() {
       </AppBar>
 
       {/* Contenido Principal */}
-      <Container maxWidth="md" sx={{ textAlign: "center", p: 3 }}>
+      <Container maxWidth="md" sx={{ textAlign: "center", p: 3, width: { xs: "90%", sm: "100%" } }}>
         <Typography variant="h3" gutterBottom>
           Bienvenido a Nuestra Plataforma
         </Typography>
