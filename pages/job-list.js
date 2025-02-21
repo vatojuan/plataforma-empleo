@@ -183,7 +183,7 @@ export default function JobList() {
 
   return (
     <DashboardLayout>
-      <Box sx={{ textAlign: "center", mt: 4, px: 1 }}>
+      <Box sx={{ textAlign: "center", mt: 4, px: 2 }}>
         <Typography variant="h4" gutterBottom>
           Mis Ofertas
         </Typography>
@@ -193,7 +193,7 @@ export default function JobList() {
           <Grid 
             container 
             spacing={3} 
-            sx={{ width: { xs: "95%", sm: "90%", md: "900px" }, mx: "auto" }}
+            sx={{ width: { xs: "100%", sm: "95%", md: "900px" }, mx: "auto" }}
           >
             {jobs.map((job) => (
               <Grid item xs={12} sm={6} md={4} key={job.id}>
@@ -217,7 +217,7 @@ export default function JobList() {
                         Publicado el: {job.postedAt ? new Date(job.postedAt).toLocaleDateString() : "Sin fecha"}
                       </span>
                       <span style={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                        {/* Aquí se pueden agregar otros elementos si se requieren */}
+                        {/* Otros elementos si se requieren */}
                       </span>
                     </Typography>
                     <Typography
