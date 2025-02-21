@@ -124,7 +124,7 @@ export default function ProfileEmpleador() {
       setProfileImageMessage("Error al actualizar la imagen de perfil.");
       setSnackbar({ open: true, message: "Error actualizando imagen", severity: "error" });
     }
-  };  
+  };
 
   // Subida automática del documento al seleccionar el archivo (documentos legales)
   const handleDocumentFileChange = async (e) => {
@@ -204,7 +204,8 @@ export default function ProfileEmpleador() {
         </Typography>
         <Box sx={{ mb: 2 }}>
           <ProfileImage
-            currentImage={session?.user?.profilePicture || "/images/default-user.png"}
+            // Se cambió la propiedad de session?.user?.profilePicture a session?.user?.image
+            currentImage={session?.user?.image || "/images/default-user.png"}
             onImageSelected={(file) => handleProfileImageUpload(file)}
           />
         </Box>
