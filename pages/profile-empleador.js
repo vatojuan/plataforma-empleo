@@ -116,16 +116,15 @@ export default function ProfileEmpleador() {
       });
       setProfileImageMessage("Imagen de perfil actualizada correctamente.");
       setSnackbar({ open: true, message: "Imagen actualizada", severity: "success" });
-      setTimeout(() => window.location.reload(), 1500);
+      // Forzamos la recarga para obtener la sesión actualizada con la nueva imagen:
+      window.location.reload();
       console.log("Imagen actualizada:", res.data.user.profilePicture);
-      await signIn("credentials", { redirect: false });
-      setTimeout(() => window.location.reload(), 1000);
     } catch (error) {
       console.error("Error actualizando la imagen de perfil:", error);
       setProfileImageMessage("Error al actualizar la imagen de perfil.");
       setSnackbar({ open: true, message: "Error actualizando imagen", severity: "error" });
     }
-  };
+  };  
 
   // Subida automática del documento al seleccionar el archivo (documentos legales)
   const handleDocumentFileChange = async (e) => {
