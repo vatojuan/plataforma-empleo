@@ -198,11 +198,7 @@ export default function JobList() {
                     <Typography variant="h6" gutterBottom>
                       {job.title}
                     </Typography>
-                    {job.requirements && (
-                      <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                        Requisitos: {job.requirements}
-                      </Typography>
-                    )}
+                    {/* Se ha eliminado la sección de requisitos */}
                     <Typography
                       variant="body2"
                       color="text.secondary"
