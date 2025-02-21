@@ -183,7 +183,7 @@ export default function JobList() {
 
   return (
     <DashboardLayout>
-      <Box sx={{ textAlign: "center", mt: 4, px: 2 }}>
+      <Box sx={{ textAlign: "center", mt: 4, px: 1 }}>
         <Typography variant="h4" gutterBottom>
           Mis Ofertas
         </Typography>
