@@ -7,8 +7,8 @@ export default async function handler(req, res) {
     return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 
-  const { title, description, userId } = req.body;
-  console.log("Datos recibidos en /api/job/create:", { title, description, userId });
+  const { title, description, requirements, userId } = req.body;
+  console.log("Datos recibidos en /api/job/create:", { title, description, requirements, userId });
 
   if (!title || !description || !userId) {
     return res.status(400).json({ message: "Faltan campos obligatorios" });
@@ -19,6 +19,7 @@ export default async function handler(req, res) {
       data: {
         title,
         description,
+        requirements, // Se agrega el campo "requirements"
         userId: Number(userId),
       },
     });
