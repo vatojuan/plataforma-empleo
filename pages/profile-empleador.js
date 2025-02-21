@@ -5,13 +5,12 @@ import axios from "axios";
 import { useSession, signOut } from "next-auth/react";
 import DashboardLayout from "../components/DashboardLayout";
 import ProfileImage from "../components/ProfileImage";
-import { IconButton, LinearProgress } from "@mui/material";
+import { IconButton, LinearProgress, Button } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import {
   Box,
   Paper,
   TextField,
-  Button,
   Typography,
   Divider,
   Snackbar,
@@ -252,7 +251,7 @@ export default function ProfileEmpleador() {
         <Divider sx={{ my: 3 }} />
         <Paper sx={{ maxWidth: 500, mx: "auto", p: 3 }}>
           <Typography variant="h6" gutterBottom>
-            Subir Archivo De Interes(Opcional)
+            Subir Archivo De Interes (Opcional)
           </Typography>
           <Button variant="contained" component="label" sx={{ mt: 1 }}>
             Seleccionar Archivo
@@ -276,9 +275,10 @@ export default function ProfileEmpleador() {
           <Box component="ul" sx={{ listStyle: "none", p: 0, maxWidth: 500, mx: "auto" }}>
             {documents.map((doc) => (
               <Box component="li" key={doc.id} sx={{ mb: 1, display: "flex", alignItems: "center" }}>
-                <Typography variant="body2" sx={{ flexGrow: 1 }}>
-                  <a
-                    href="#"
+                <Box sx={{ flexGrow: 1 }}>
+                  <Button
+                    fullWidth
+                    variant="text"
                     onClick={async (e) => {
                       e.preventDefault();
                       try {
@@ -293,17 +293,18 @@ export default function ProfileEmpleador() {
                         console.error("Error al descargar el documento:", error);
                       }
                     }}
-                    style={{
-                      display: "block",
-                      padding: "30px",
-                      textDecoration: "none",
+                    sx={{
+                      textTransform: "none",
+                      justifyContent: "flex-start",
+                      padding: "20px",
                       color: "#1976d2",
-                      cursor: "pointer"
+                      backgroundColor: "transparent",
+                      "&:hover": { backgroundColor: "rgba(25, 118, 210, 0.04)" },
                     }}
                   >
                     {doc.originalName || "Documento"}
-                  </a>
-                </Typography>
+                  </Button>
+                </Box>
                 <IconButton color="error" onClick={() => { setSelectedDocId(doc.id); setOpenDocDeleteDialog(true); }}>
                   <DeleteIcon />
                 </IconButton>
