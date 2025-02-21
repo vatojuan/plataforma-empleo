@@ -151,7 +151,15 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
                   No has postulado a ningún empleo.
                 </Typography>
               ) : (
-                <Grid container spacing={3} sx={{ maxWidth: 900, mx: "auto" }}>
+                <Grid
+                  container
+                  spacing={3}
+                  sx={{
+                    maxWidth: { xs: "100%", sm: 900 },
+                    mx: "auto",
+                    justifyContent: "center"
+                  }}
+                >
                   {applications.map((app) => (
                     <Grid item xs={12} sm={6} md={4} key={app.id}>
                       <Card sx={{ display: "flex", flexDirection: "column", height: "100%", bgcolor: "rgba(201,124,95, 0.15)" }}>
