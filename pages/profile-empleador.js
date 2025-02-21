@@ -118,6 +118,8 @@ export default function ProfileEmpleador() {
       setSnackbar({ open: true, message: "Imagen actualizada", severity: "success" });
       setTimeout(() => window.location.reload(), 1500);
       console.log("Imagen actualizada:", res.data.user.profilePicture);
+      await signIn("credentials", { redirect: false });
+      setTimeout(() => window.location.reload(), 1000);
     } catch (error) {
       console.error("Error actualizando la imagen de perfil:", error);
       setProfileImageMessage("Error al actualizar la imagen de perfil.");
