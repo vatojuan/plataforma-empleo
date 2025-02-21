@@ -53,26 +53,6 @@ export default function ProfileEmpleador() {
   // Diálogo para eliminar cuenta
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
 
-  // Función para descargar archivos usando un enlace dinámico
-  const downloadFile = async (fileKey) => {
-    try {
-      const res = await axios.get(
-        `/api/employer/get-signed-url?fileName=${encodeURIComponent(fileKey)}`
-      );
-      if (!res.data || !res.data.url) {
-        throw new Error("Error al obtener la URL firmada");
-      }
-      const link = document.createElement("a");
-      link.href = res.data.url;
-      link.setAttribute("download", fileKey);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch (error) {
-      console.error("Error al descargar el documento:", error);
-    }
-  };
-
   // Cargar perfil desde la API de empleador
   useEffect(() => {
     if (session) {
@@ -218,17 +198,18 @@ export default function ProfileEmpleador() {
 
   return (
     <DashboardLayout userRole={session?.user?.role || "empleador"}>
-      <Box sx={{ textAlign: "center", mt: 4, px: { xs: 2, sm: 0 } }}>
+      <Box sx={{ textAlign: "center", mt: 4 }}>
         <Typography variant="h4" gutterBottom>
           Perfil de Empleador
         </Typography>
         <Box sx={{ mb: 2 }}>
           <ProfileImage
+            // Se cambió la propiedad de session?.user?.profilePicture a session?.user?.image
             currentImage={session?.user?.image || "/images/default-user.png"}
             onImageSelected={(file) => handleProfileImageUpload(file)}
           />
         </Box>
-        <Paper sx={{ maxWidth: 500, mx: "auto", p: 3, width: { xs: "90%", sm: "500px" } }}>
+        <Paper sx={{ maxWidth: 500, mx: "auto", p: 3 }}>
           <Box component="form" onSubmit={handleProfileUpdate} noValidate>
             <TextField
               label="Nombre"
@@ -270,9 +251,9 @@ export default function ProfileEmpleador() {
           </Box>
         </Paper>
         <Divider sx={{ my: 3 }} />
-        <Paper sx={{ maxWidth: 500, mx: "auto", p: 3, width: { xs: "90%", sm: "500px" } }}>
+        <Paper sx={{ maxWidth: 500, mx: "auto", p: 3 }}>
           <Typography variant="h6" gutterBottom>
-            Subir Archivo De Interés (Opcional)
+            Subir Archivo De Interes(Opcional)
           </Typography>
           <Button variant="contained" component="label" sx={{ mt: 1 }}>
             Seleccionar Archivo
@@ -293,15 +274,25 @@ export default function ProfileEmpleador() {
             No hay documentos subidos.
           </Typography>
         ) : (
-          <Box component="ul" sx={{ listStyle: "none", p: 0, maxWidth: 500, mx: "auto", width: { xs: "90%", sm: "500px" } }}>
+          <Box component="ul" sx={{ listStyle: "none", p: 0, maxWidth: 500, mx: "auto" }}>
             {documents.map((doc) => (
               <Box component="li" key={doc.id} sx={{ mb: 1, display: "flex", alignItems: "center" }}>
                 <Typography variant="body2" sx={{ flexGrow: 1 }}>
                   <a
                     href="#"
-                    onClick={(e) => {
+                    onClick={async (e) => {
                       e.preventDefault();
-                      downloadFile(doc.fileKey);
+                      try {
+                        const res = await axios.get(
+                          `/api/employer/get-signed-url?fileName=${encodeURIComponent(doc.fileKey)}`
+                        );
+                        if (!res.data || !res.data.url) {
+                          throw new Error("Error al obtener la URL firmada");
+                        }
+                        window.open(res.data.url, "_blank");
+                      } catch (error) {
+                        console.error("Error al descargar el documento:", error);
+                      }
                     }}
                     style={{ textDecoration: "none", color: "#1976d2", cursor: "pointer" }}
                   >
