@@ -204,7 +204,6 @@ export default function ProfileEmpleador() {
         </Typography>
         <Box sx={{ mb: 2 }}>
           <ProfileImage
-            // Se cambió la propiedad de session?.user?.profilePicture a session?.user?.image
             currentImage={session?.user?.image || "/images/default-user.png"}
             onImageSelected={(file) => handleProfileImageUpload(file)}
           />
@@ -294,7 +293,13 @@ export default function ProfileEmpleador() {
                         console.error("Error al descargar el documento:", error);
                       }
                     }}
-                    style={{ textDecoration: "none", color: "#1976d2", cursor: "pointer" }}
+                    style={{
+                      display: "block",
+                      padding: "10px",
+                      textDecoration: "none",
+                      color: "#1976d2",
+                      cursor: "pointer"
+                    }}
                   >
                     {doc.originalName || "Documento"}
                   </a>

@@ -292,7 +292,13 @@ export default function ProfileEmpleado() {
                         console.error("Error al descargar el documento:", error);
                       }
                     }}
-                    style={{ textDecoration: "none", color: "#1976d2", cursor: "pointer" }}
+                    style={{
+                      display: "block",
+                      padding: "10px",
+                      textDecoration: "none",
+                      color: "#1976d2",
+                      cursor: "pointer"
+                    }}
                   >
                     {doc.originalName || "Documento"}
                   </a>
