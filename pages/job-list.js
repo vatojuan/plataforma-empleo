@@ -190,7 +190,11 @@ export default function JobList() {
         {jobs.length === 0 ? (
           <Typography variant="body1">No hay ofertas publicadas.</Typography>
         ) : (
-          <Grid container spacing={3} sx={{ maxWidth: 900, mx: "auto" }}>
+          <Grid 
+            container 
+            spacing={3} 
+            sx={{ width: { xs: "90%", sm: "80%", md: "900px" }, mx: "auto" }}
+          >
             {jobs.map((job) => (
               <Grid item xs={12} sm={6} md={4} key={job.id}>
                 <Card sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
