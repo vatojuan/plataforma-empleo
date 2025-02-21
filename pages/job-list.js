@@ -183,7 +183,7 @@ export default function JobList() {
 
   return (
     <DashboardLayout>
-      <Box sx={{ textAlign: "center", mt: 4 }}>
+      <Box sx={{ textAlign: "center", mt: 4, px: 2 }}>
         <Typography variant="h4" gutterBottom>
           Mis Ofertas
         </Typography>
@@ -193,12 +193,12 @@ export default function JobList() {
           <Grid 
             container 
             spacing={3} 
-            sx={{ width: { xs: "90%", sm: "80%", md: "900px" }, mx: "auto" }}
+            sx={{ width: { xs: "95%", sm: "90%", md: "900px" }, mx: "auto" }}
           >
             {jobs.map((job) => (
               <Grid item xs={12} sm={6} md={4} key={job.id}>
                 <Card sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
-                  <CardContent sx={{ flexGrow: 1 }}>
+                  <CardContent sx={{ flexGrow: 1, p: 2 }}>
                     <Typography variant="h6" gutterBottom>
                       {job.title}
                     </Typography>
@@ -229,7 +229,7 @@ export default function JobList() {
                       <PersonIcon fontSize="small" />
                     </Typography>
                   </CardContent>
-                  <CardActions sx={{ justifyContent: "space-between" }}>
+                  <CardActions sx={{ justifyContent: "space-between", p: 2 }}>
                     <Button
                       component={Link}
                       href={`/job-offer?id=${job.id}`}
