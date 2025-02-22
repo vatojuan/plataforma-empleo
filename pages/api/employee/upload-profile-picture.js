@@ -1,4 +1,4 @@
-// pages/api/employee/upload-profile-picture.js
+// pages/api/employer/upload-profile-picture.js
 import { createRouter } from 'next-connect';
 import multer from 'multer';
 import prisma from '../../../lib/prisma';
@@ -20,8 +20,8 @@ apiRoute.post(async (req, res) => {
     const session = await getServerSession(req, res, authOptions);
     if (!session) return res.status(401).json({ error: 'No autorizado' });
     
-    // Convertir el ID del empleado a número
-    const employeeId = Number(session.user.id);
+    // Convertir el ID del empleador a número
+    const employerId = Number(session.user.id);
     const file = req.file;
     if (!file) return res.status(400).json({ error: 'No se ha subido ningún archivo.' });
     
@@ -29,13 +29,17 @@ apiRoute.post(async (req, res) => {
     const ext = path.extname(file.originalname);
     const destination = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
     
-    // Subir el archivo a Google Cloud Storage y obtener una URL firmada
+    // Subir el archivo a Google Cloud Storage y obtener la URL firmada inicial
     const fileUrl = await uploadFile(file.buffer, destination, file.mimetype);
     
-    // Actualizar la imagen de perfil en la BD para el empleado
+    // Actualizar la imagen de perfil en la BD, guardando tanto la URL para uso inmediato 
+    // como la referencia del archivo para poder renovar la URL más adelante
     const updatedUser = await prisma.user.update({
-      where: { id: employeeId },
-      data: { profilePicture: fileUrl },
+      where: { id: employerId },
+      data: { 
+        profilePicture: fileUrl,           // URL firmada inicial
+        profilePictureFileName: destination, // Referencia del archivo
+      },
     });
     console.log('Imagen de perfil actualizada:', updatedUser);
     return res.status(200).json({ message: 'Imagen de perfil actualizada', user: updatedUser });
