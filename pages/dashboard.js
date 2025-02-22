@@ -27,6 +27,37 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [applications, setApplications] = useState([]);
+  
+  // Estado para la URL de la imagen de perfil
+  const [profileImageUrl, setProfileImageUrl] = useState(
+    session?.user?.image || "/images/default-user.png"
+  );
+
+  // Actualiza la URL de la imagen si la sesión cambia
+  useEffect(() => {
+    if (session?.user?.image) {
+      setProfileImageUrl(session.user.image);
+    }
+  }, [session]);
+
+  // Handler para renovar la URL si la imagen falla al cargar
+  const handleImageError = async () => {
+    try {
+      let endpoint = "";
+      if (session.user.role === "empleado") {
+        endpoint = "/api/employee/renew-profile-picture";
+      } else {
+        endpoint = "/api/employer/renew-profile-picture";
+      }
+      const res = await fetch(endpoint);
+      const data = await res.json();
+      if (data.url) {
+        setProfileImageUrl(data.url);
+      }
+    } catch (error) {
+      console.error("Error renovando la URL de la imagen:", error);
+    }
+  };
 
   // Estado para el diálogo de confirmación de cancelación de postulación
   const [openCancelDialog, setOpenCancelDialog] = useState(false);
@@ -116,7 +147,8 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
     <DashboardLayout userRole={session.user.role} toggleDarkMode={toggleDarkMode} currentMode={currentMode}>
       <Box sx={{ textAlign: "center", mt: 4 }}>
         <Avatar
-          src={session.user.image || "/images/default-user.png"}
+          src={profileImageUrl}
+          onError={handleImageError}
           sx={{ width: 100, height: 100, border: "2px solid #ccc", mx: "auto", mb: 2 }}
         />
         <Typography variant="h6">Bienvenido, {session.user.name}</Typography>
@@ -166,7 +198,6 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
                           <Typography variant="h6" gutterBottom>
                             {app.job.title}
                           </Typography>
-                          {/* Se eliminó la sección de requisitos */}
                           <Typography
                             variant="body2"
                             color="text.secondary"

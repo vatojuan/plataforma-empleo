@@ -1,6 +1,6 @@
 // pages/api/employee/renew-profile-picture.js
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from './auth/[...nextauth]';
+import { authOptions } from '../auth/[...nextauth]';
 import prisma from '../../../lib/prisma';
 import { getNewSignedUrl } from '../../../lib/gcs';
 
