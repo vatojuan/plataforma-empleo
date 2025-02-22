@@ -27,18 +27,17 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [applications, setApplications] = useState([]);
-  
-  // Estado para la URL de la imagen de perfil
-  const [profileImageUrl, setProfileImageUrl] = useState(
-    session?.user?.image || "/images/default-user.png"
-  );
 
-  // Actualiza la URL de la imagen si la sesión cambia
-  useEffect(() => {
-    if (session?.user?.image) {
-      setProfileImageUrl(session.user.image);
-    }
-  }, [session]);
+  // Inicializa la URL de la imagen una sola vez
+  const initialImageUrl = session?.user?.image || "/images/default-user.png";
+  const [profileImageUrl, setProfileImageUrl] = useState(initialImageUrl);
+
+  // Eliminamos este useEffect para no reinicializar profileImageUrl al cambiar la sesión
+  // useEffect(() => {
+  //   if (session?.user?.image) {
+  //     setProfileImageUrl(session.user.image);
+  //   }
+  // }, [session]);
 
   // Handler para renovar la URL si la imagen falla al cargar
   const handleImageError = async () => {
