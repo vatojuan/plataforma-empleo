@@ -1,4 +1,3 @@
-// pages/dashboard.js
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -167,11 +166,7 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
                           <Typography variant="h6" gutterBottom>
                             {app.job.title}
                           </Typography>
-                          {app.job.requirements && (
-                            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                              Requisitos: {app.job.requirements}
-                            </Typography>
-                          )}
+                          {/* Se eliminó la sección de requisitos */}
                           <Typography
                             variant="body2"
                             color="text.secondary"
