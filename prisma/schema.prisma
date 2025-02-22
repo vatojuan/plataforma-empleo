@@ -60,6 +60,7 @@ model User {
   description       String?
   phone             String?
   profilePicture    String?
+  profilePictureFileName  String?   // La referencia (nombre único del archivo)
   cvUrl             String?
   applications      Application[]
   employeeDocuments EmployeeDocument[]
