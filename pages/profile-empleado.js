@@ -32,10 +32,7 @@ export default function ProfileEmpleado() {
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Estado para la URL de la imagen (si necesitas renovación similar, puedes agregarlo)
-  // Para este ejemplo, usamos la imagen directamente de la sesión
-  // (Si implementas renovación, sigue el patrón similar al de ProfileEmpleador)
-  
+  // Para la imagen de perfil (usamos la URL directamente de la sesión)
   const [selectedProfileImage, setSelectedProfileImage] = useState(null);
   const [profileImageMessage, setProfileImageMessage] = useState("");
 
@@ -53,9 +50,26 @@ export default function ProfileEmpleado() {
   // Diálogo para eliminar cuenta
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
 
-  // Agregamos la definición de handleCloseDeleteDialog
+  // Función para cerrar el diálogo de eliminación de cuenta
   const handleCloseDeleteDialog = () => {
     setOpenDeleteDialog(false);
+  };
+
+  // Función para confirmar eliminación de cuenta
+  const confirmDeleteAccount = async () => {
+    try {
+      const res = await axios.delete("/api/user/delete");
+      if (res.status === 200) {
+        setSnackbar({ open: true, message: "Cuenta eliminada correctamente", severity: "success" });
+        await signOut({ redirect: false });
+        router.push("/login");
+      }
+    } catch (error) {
+      console.error("Error al eliminar la cuenta:", error);
+      setSnackbar({ open: true, message: "Error al eliminar la cuenta", severity: "error" });
+    } finally {
+      setOpenDeleteDialog(false);
+    }
   };
 
   // Cargar perfil del empleado
@@ -137,7 +151,6 @@ export default function ProfileEmpleado() {
     setUploading(true);
     const formData = new FormData();
     formData.append("document", file);
-    // Aquí agregamos el userId obtenido de la sesión
     if (session && session.user && session.user.id) {
       formData.append("userId", session.user.id);
     }
@@ -183,20 +196,8 @@ export default function ProfileEmpleado() {
     setSelectedDocId(null);
   };
 
-  const handleDeleteAccount = async () => {
-    if (confirm("¿Estás seguro de que deseas eliminar tu cuenta? Esta acción no se puede deshacer.")) {
-      try {
-        const res = await axios.delete("/api/user/delete");
-        if (res.status === 200) {
-          setSnackbar({ open: true, message: "Cuenta eliminada correctamente", severity: "success" });
-          await signOut({ redirect: false });
-          router.push("/login");
-        }
-      } catch (error) {
-        console.error("Error al eliminar la cuenta:", error);
-        setSnackbar({ open: true, message: "Error al eliminar la cuenta", severity: "error" });
-      }
-    }
+  const handleDeleteAccount = () => {
+    setOpenDeleteDialog(true);
   };
 
   return (
@@ -283,7 +284,7 @@ export default function ProfileEmpleado() {
                         if (!res.ok) {
                           throw new Error("Error al obtener la URL firmada");
                         }
-                        const data = await res.data;
+                        const data = res.data;
                         window.open(data.url, "_blank");
                       } catch (error) {
                         console.error("Error al descargar el documento:", error);
