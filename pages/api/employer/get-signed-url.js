@@ -1,17 +1,5 @@
 // pages/api/employer/get-signed-url.js
-import { Storage } from "@google-cloud/storage";
-
-const storage = new Storage({
-  projectId: process.env.GCLOUD_PROJECT_ID,
-  credentials: JSON.parse(process.env.GCLOUD_CREDENTIALS),
-});
-
-
-//const storage = new Storage({
-  //projectId: process.env.GCLOUD_PROJECT_ID,
-  //keyFilename: process.env.GCLOUD_KEYFILE,
-//});
-const bucketName = process.env.GCLOUD_BUCKET;
+import { getNewSignedUrl } from '../../../lib/gcs';
 
 export default async function handler(req, res) {
   const { fileName } = req.query; // En este caso, fileName corresponde al fileKey almacenado para el documento legal
@@ -19,14 +7,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Falta el parámetro fileName" });
   }
   try {
-    const bucket = storage.bucket(bucketName);
-    const file = bucket.file(fileName);
-    const options = {
-      version: "v4",
-      action: "read",
-      expires: Date.now() + 60 * 60 * 1000, // URL válida por 1 hora
-    };
-    const [url] = await file.getSignedUrl(options);
+    const url = await getNewSignedUrl(fileName);
     return res.status(200).json({ url });
   } catch (error) {
     console.error("Error generando URL firmada:", error);

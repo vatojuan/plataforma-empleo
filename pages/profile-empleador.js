@@ -32,7 +32,23 @@ export default function ProfileEmpleador() {
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Para la imagen de perfil
+  // Estado para la URL de la imagen de perfil (se inicializa solo una vez)
+  const initialImageUrl = session?.user?.image || "/images/default-user.png";
+  const [profileImageUrl, setProfileImageUrl] = useState(initialImageUrl);
+
+  // Handler para renovar la URL si la imagen falla al cargar
+  const handleImageError = async () => {
+    try {
+      const res = await axios.get("/api/employer/renew-profile-picture");
+      if (res.data?.url) {
+        setProfileImageUrl(res.data.url);
+      }
+    } catch (error) {
+      console.error("Error renovando la URL de la imagen:", error);
+    }
+  };
+
+  // Para la imagen de perfil subido
   const [selectedProfileImage, setSelectedProfileImage] = useState(null);
   const [profileImageMessage, setProfileImageMessage] = useState("");
 
@@ -203,8 +219,9 @@ export default function ProfileEmpleador() {
         </Typography>
         <Box sx={{ mb: 2 }}>
           <ProfileImage
-            currentImage={session?.user?.image || "/images/default-user.png"}
+            currentImage={profileImageUrl}
             onImageSelected={(file) => handleProfileImageUpload(file)}
+            onError={handleImageError}
           />
         </Box>
         <Paper sx={{ maxWidth: 500, mx: "auto", p: 3 }}>

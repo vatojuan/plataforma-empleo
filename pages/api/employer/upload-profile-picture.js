@@ -18,6 +18,7 @@ apiRoute.post(async (req, res) => {
   try {
     const session = await getServerSession(req, res, authOptions);
     if (!session) return res.status(401).json({ error: 'No autorizado' });
+    
     const employerId = Number(session.user.id);
     const file = req.file;
     if (!file) return res.status(400).json({ error: 'No se ha subido ningún archivo.' });
@@ -27,9 +28,13 @@ apiRoute.post(async (req, res) => {
     // Usar la función que genera URL firmada
     const fileUrl = await uploadFile(file.buffer, destination, file.mimetype);
     
+    // Actualizar la imagen de perfil en la BD, guardando tanto la URL como la referencia (destination)
     const updatedUser = await prisma.user.update({
       where: { id: employerId },
-      data: { profilePicture: fileUrl },
+      data: { 
+        profilePicture: fileUrl,
+        profilePictureFileName: destination,
+      },
     });
     console.log('Imagen de perfil actualizada:', updatedUser);
     return res.status(200).json({ message: 'Imagen de perfil actualizada', user: updatedUser });

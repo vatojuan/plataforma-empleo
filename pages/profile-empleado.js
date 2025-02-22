@@ -27,19 +27,39 @@ export default function ProfileEmpleado() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
+  // Estados para el perfil
   const [name, setName] = useState(session?.user?.name || "");
   const [phone, setPhone] = useState("");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Estado para la URL de la imagen de perfil (para renovación)
+  const initialImageUrl = session?.user?.image || "/images/default-user.png";
+  const [profileImageUrl, setProfileImageUrl] = useState(initialImageUrl);
+
+  // Handler para renovar la URL de la imagen en caso de error (cuando expire)
+  const handleImageError = async () => {
+    try {
+      const res = await axios.get("/api/employee/renew-profile-picture");
+      if (res.data?.url) {
+        setProfileImageUrl(res.data.url);
+      }
+    } catch (error) {
+      console.error("Error renovando la URL de la imagen:", error);
+    }
+  };
+
+  // Para la imagen de perfil subido
   const [selectedProfileImage, setSelectedProfileImage] = useState(null);
   const [profileImageMessage, setProfileImageMessage] = useState("");
 
+  // Para los documentos legales
   const [selectedDocument, setSelectedDocument] = useState(null);
   const [documentUploadMessage, setDocumentUploadMessage] = useState("");
   const [uploading, setUploading] = useState(false);
   const [documents, setDocuments] = useState([]);
 
+  // Snackbar para notificaciones
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
   // Diálogo para eliminar documento
@@ -128,7 +148,7 @@ export default function ProfileEmpleado() {
     setUploading(true);
     const formData = new FormData();
     formData.append("document", file);
-    // Aquí agregamos el userId obtenido de la sesión
+    // Agregar el userId obtenido de la sesión
     if (session && session.user && session.user.id) {
       formData.append("userId", session.user.id);
     }
@@ -174,32 +194,20 @@ export default function ProfileEmpleado() {
     setSelectedDocId(null);
   };
 
-  const handleOpenDeleteDialog = () => {
-    setOpenDeleteDialog(true);
-  };
-
-  const handleCloseDeleteDialog = () => {
-    setOpenDeleteDialog(false);
-  };
-
-  const confirmDeleteAccount = async () => {
-    try {
-      const res = await axios.delete("/api/user/delete");
-      if (res.status === 200) {
-        setSnackbar({ open: true, message: "Cuenta eliminada correctamente", severity: "success" });
-        await signOut({ redirect: false });
-        router.push("/login");
+  const handleDeleteAccount = async () => {
+    if (confirm("¿Estás seguro de que deseas eliminar tu cuenta? Esta acción no se puede deshacer.")) {
+      try {
+        const res = await axios.delete("/api/user/delete");
+        if (res.status === 200) {
+          setSnackbar({ open: true, message: "Cuenta eliminada correctamente", severity: "success" });
+          await signOut({ redirect: false });
+          router.push("/login");
+        }
+      } catch (error) {
+        console.error("Error al eliminar la cuenta:", error);
+        setSnackbar({ open: true, message: "Error al eliminar la cuenta", severity: "error" });
       }
-    } catch (error) {
-      console.error("Error al eliminar la cuenta:", error);
-      setSnackbar({ open: true, message: "Error al eliminar la cuenta", severity: "error" });
-    } finally {
-      setOpenDeleteDialog(false);
     }
-  };
-
-  const handleDeleteAccount = () => {
-    setOpenDeleteDialog(true);
   };
 
   return (
@@ -210,8 +218,9 @@ export default function ProfileEmpleado() {
         </Typography>
         <Box sx={{ mb: 2 }}>
           <ProfileImage
-            currentImage={session?.user?.image || "/images/default-user.png"}
+            currentImage={profileImageUrl}
             onImageSelected={(file) => handleProfileImageUpload(file)}
+            onError={handleImageError}
           />
         </Box>
         <Paper sx={{ maxWidth: 500, mx: "auto", p: 3 }}>
@@ -280,7 +289,7 @@ export default function ProfileEmpleado() {
                     onClick={async (e) => {
                       e.preventDefault();
                       try {
-                        const res = await fetch(
+                        const res = await axios.get(
                           `/api/employee/get-signed-url?fileName=${encodeURIComponent(doc.fileKey)}`
                         );
                         if (!res.ok) {
@@ -319,7 +328,6 @@ export default function ProfileEmpleado() {
         </Box>
       </Box>
 
-      {/* Diálogo para confirmar eliminación de documento */}
       <Dialog open={openDocDeleteDialog} onClose={cancelDeleteDocument}>
         <DialogTitle>Confirmar Eliminación de Documento</DialogTitle>
         <DialogContent>
@@ -337,7 +345,6 @@ export default function ProfileEmpleado() {
         </DialogActions>
       </Dialog>
 
-      {/* Diálogo para confirmar eliminación de cuenta */}
       <Dialog open={openDeleteDialog} onClose={handleCloseDeleteDialog}>
         <DialogTitle>Confirmar Eliminación de Cuenta</DialogTitle>
         <DialogContent>
@@ -355,7 +362,6 @@ export default function ProfileEmpleado() {
         </DialogActions>
       </Dialog>
 
-      {/* Snackbar de notificaciones */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={4000}
