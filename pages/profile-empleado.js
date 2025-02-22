@@ -27,39 +27,23 @@ export default function ProfileEmpleado() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  // Estados para el perfil
   const [name, setName] = useState(session?.user?.name || "");
   const [phone, setPhone] = useState("");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Estado para la URL de la imagen de perfil (para renovación)
-  const initialImageUrl = session?.user?.image || "/images/default-user.png";
-  const [profileImageUrl, setProfileImageUrl] = useState(initialImageUrl);
-
-  // Handler para renovar la URL de la imagen en caso de error (cuando expire)
-  const handleImageError = async () => {
-    try {
-      const res = await axios.get("/api/employee/renew-profile-picture");
-      if (res.data?.url) {
-        setProfileImageUrl(res.data.url);
-      }
-    } catch (error) {
-      console.error("Error renovando la URL de la imagen:", error);
-    }
-  };
-
-  // Para la imagen de perfil subido
+  // Estado para la URL de la imagen (si necesitas renovación similar, puedes agregarlo)
+  // Para este ejemplo, usamos la imagen directamente de la sesión
+  // (Si implementas renovación, sigue el patrón similar al de ProfileEmpleador)
+  
   const [selectedProfileImage, setSelectedProfileImage] = useState(null);
   const [profileImageMessage, setProfileImageMessage] = useState("");
 
-  // Para los documentos legales
   const [selectedDocument, setSelectedDocument] = useState(null);
   const [documentUploadMessage, setDocumentUploadMessage] = useState("");
   const [uploading, setUploading] = useState(false);
   const [documents, setDocuments] = useState([]);
 
-  // Snackbar para notificaciones
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
   // Diálogo para eliminar documento
@@ -68,6 +52,11 @@ export default function ProfileEmpleado() {
 
   // Diálogo para eliminar cuenta
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+
+  // Agregamos la definición de handleCloseDeleteDialog
+  const handleCloseDeleteDialog = () => {
+    setOpenDeleteDialog(false);
+  };
 
   // Cargar perfil del empleado
   useEffect(() => {
@@ -148,7 +137,7 @@ export default function ProfileEmpleado() {
     setUploading(true);
     const formData = new FormData();
     formData.append("document", file);
-    // Agregar el userId obtenido de la sesión
+    // Aquí agregamos el userId obtenido de la sesión
     if (session && session.user && session.user.id) {
       formData.append("userId", session.user.id);
     }
@@ -218,9 +207,8 @@ export default function ProfileEmpleado() {
         </Typography>
         <Box sx={{ mb: 2 }}>
           <ProfileImage
-            currentImage={profileImageUrl}
+            currentImage={session?.user?.image || "/images/default-user.png"}
             onImageSelected={(file) => handleProfileImageUpload(file)}
-            onError={handleImageError}
           />
         </Box>
         <Paper sx={{ maxWidth: 500, mx: "auto", p: 3 }}>
@@ -295,7 +283,7 @@ export default function ProfileEmpleado() {
                         if (!res.ok) {
                           throw new Error("Error al obtener la URL firmada");
                         }
-                        const data = await res.json();
+                        const data = await res.data;
                         window.open(data.url, "_blank");
                       } catch (error) {
                         console.error("Error al descargar el documento:", error);
