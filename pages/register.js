@@ -23,11 +23,30 @@ export default function Register() {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
   const router = useRouter();
 
+  // Función para validar que la contraseña sea segura
+  const validatePassword = (pass) => {
+    // Mínimo 8 caracteres, una mayúscula, una minúscula, un número y un carácter especial.
+    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
+    return regex.test(pass);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validar la contraseña antes de enviar
+    if (!validatePassword(password)) {
+      setPasswordError(
+        "La contraseña debe tener al menos 8 caracteres, incluir mayúsculas, minúsculas, números y caracteres especiales."
+      );
+      return;
+    } else {
+      setPasswordError("");
+    }
+
     const res = await fetch("/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -49,7 +68,7 @@ export default function Register() {
 
   return (
     <>
-      {/* GlobalStyles para forzar que el autofill use el mismo fondo y color de texto */}
+      {/* GlobalStyles para que el autofill use el mismo fondo y color del contenedor */}
       <GlobalStyles
         styles={{
           "input:-webkit-autofill, input:-webkit-autofill:focus, input:-webkit-autofill:hover": {
@@ -120,6 +139,8 @@ export default function Register() {
               onChange={(e) => setPassword(e.target.value)}
               fullWidth
               required
+              error={Boolean(passwordError)}
+              helperText={passwordError}
             />
             <Button type="submit" variant="contained" color="primary" fullWidth>
               Registrarse
