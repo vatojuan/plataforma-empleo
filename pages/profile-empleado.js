@@ -33,23 +33,11 @@ export default function ProfileEmpleado() {
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Estado para la URL de la imagen (se inicializa a partir de la sesión)
-  const initialImageUrl = session?.user?.image || "/images/default-user.png";
-  const [profileImageUrl, setProfileImageUrl] = useState(initialImageUrl);
+  // Estado para la URL de la imagen de perfil
+  // Se inicializa con el valor de sesión, pero luego se actualizará desde la API
+  const [profileImageUrl, setProfileImageUrl] = useState(session?.user?.image || "/images/default-user.png");
 
-  // Handler para renovar la URL de la imagen en caso de error (por expiración)
-  const handleImageError = async () => {
-    try {
-      const res = await axios.get("/api/employee/renew-profile-picture");
-      if (res.data?.url) {
-        setProfileImageUrl(res.data.url);
-      }
-    } catch (error) {
-      console.error("Error renovando la URL de la imagen:", error);
-    }
-  };
-
-  // Para la imagen de perfil subido
+  // Para la imagen de perfil subido (cuando se selecciona uno nuevo)
   const [selectedProfileImage, setSelectedProfileImage] = useState(null);
   const [profileImageMessage, setProfileImageMessage] = useState("");
 
@@ -98,7 +86,7 @@ export default function ProfileEmpleado() {
           setName(data.name || "");
           setPhone(data.phone || "");
           setDescription(data.description || "");
-          // Opcional: si el backend actualiza la imagen, puedes actualizar profileImageUrl aquí
+          // Actualiza la imagen desde la API (data.profilePicture)
           if (data.profilePicture) {
             setProfileImageUrl(data.profilePicture);
           }
@@ -131,7 +119,7 @@ export default function ProfileEmpleado() {
     try {
       await axios.put("/api/employee/profile", { name, phone, description });
       setSnackbar({ open: true, message: "Perfil actualizado exitosamente", severity: "success" });
-      setTimeout(() => router.reload(), 1500);
+      setTimeout(() => window.location.reload(), 1500);
     } catch (error) {
       console.error("Error actualizando el perfil:", error);
       setSnackbar({ open: true, message: "Error actualizando el perfil", severity: "error" });
@@ -154,10 +142,9 @@ export default function ProfileEmpleado() {
       });
       setProfileImageMessage("Imagen de perfil actualizada correctamente.");
       setSnackbar({ open: true, message: "Imagen actualizada", severity: "success" });
-      // Actualiza el estado local con la nueva URL devuelta por el backend
-      if (res.data?.user?.profilePicture) {
-        setProfileImageUrl(res.data.user.profilePicture);
-      }
+      // Recarga para obtener datos actualizados o, mejor aún, actualiza el estado local
+      setTimeout(() => window.location.reload(), 1500);
+      console.log("Imagen actualizada:", res.data.user.profilePicture);
     } catch (error) {
       console.error("Error actualizando la imagen de perfil:", error);
       setProfileImageMessage("Error al actualizar la imagen de perfil.");
@@ -165,7 +152,7 @@ export default function ProfileEmpleado() {
     }
   };
 
-  // Subida automática del documento
+  // Subida automática del documento al seleccionar el archivo
   const handleDocumentFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -232,7 +219,6 @@ export default function ProfileEmpleado() {
           <ProfileImage
             currentImage={profileImageUrl}
             onImageSelected={(file) => handleProfileImageUpload(file)}
-            onError={handleImageError}
           />
         </Box>
         <Paper sx={{ maxWidth: 500, mx: "auto", p: 3 }}>
