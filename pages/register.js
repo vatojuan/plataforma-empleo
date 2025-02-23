@@ -93,7 +93,7 @@ export default function Register() {
 
         <Typography variant="body2" sx={{ mt: 2 }}>
           ¿Ya tienes cuenta?{" "}
-          <Link href="/login" style={{ color: "#1976d2", textDecoration: "none" }}>
+          <Link href="/login" style={{ color: "#103B40", textDecoration: "none" }}>
             Inicia sesión aquí
           </Link>
         </Typography>
