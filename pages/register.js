@@ -49,13 +49,13 @@ export default function Register() {
 
   return (
     <>
-      {/* GlobalStyles inyecta reglas para que el autofill use el mismo fondo que el contenedor */}
+      {/* GlobalStyles para forzar que el autofill use el mismo fondo y color de texto */}
       <GlobalStyles
         styles={{
           "input:-webkit-autofill, input:-webkit-autofill:focus, input:-webkit-autofill:hover": {
             WebkitBoxShadow: `0 0 0 1000px ${theme.palette.background.paper} inset !important`,
             boxShadow: `0 0 0 1000px ${theme.palette.background.paper} inset !important`,
-            WebkitTextFillColor: "inherit !important",
+            WebkitTextFillColor: `${theme.palette.text.primary} !important`,
           },
         }}
       />
@@ -82,11 +82,7 @@ export default function Register() {
             Registro
           </Typography>
 
-          <Box
-            component="form"
-            onSubmit={handleSubmit}
-            sx={{ display: "flex", flexDirection: "column", gap: 2 }}
-          >
+          <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
             <FormControl fullWidth sx={{ mb: 1 }}>
               <InputLabel id="user-type-label">Tipo de Usuario</InputLabel>
               <Select
