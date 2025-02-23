@@ -27,15 +27,33 @@ export default function ProfileEmpleado() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
+  // Estados para el perfil
   const [name, setName] = useState(session?.user?.name || "");
   const [phone, setPhone] = useState("");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Para la imagen de perfil (usamos la URL directamente de la sesión)
+  // Estado para la URL de la imagen (se inicializa a partir de la sesión)
+  const initialImageUrl = session?.user?.image || "/images/default-user.png";
+  const [profileImageUrl, setProfileImageUrl] = useState(initialImageUrl);
+
+  // Handler para renovar la URL de la imagen en caso de error (por expiración)
+  const handleImageError = async () => {
+    try {
+      const res = await axios.get("/api/employee/renew-profile-picture");
+      if (res.data?.url) {
+        setProfileImageUrl(res.data.url);
+      }
+    } catch (error) {
+      console.error("Error renovando la URL de la imagen:", error);
+    }
+  };
+
+  // Para la imagen de perfil subido
   const [selectedProfileImage, setSelectedProfileImage] = useState(null);
   const [profileImageMessage, setProfileImageMessage] = useState("");
 
+  // Para los documentos legales
   const [selectedDocument, setSelectedDocument] = useState(null);
   const [documentUploadMessage, setDocumentUploadMessage] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -50,12 +68,10 @@ export default function ProfileEmpleado() {
   // Diálogo para eliminar cuenta
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
 
-  // Función para cerrar el diálogo de eliminación de cuenta
   const handleCloseDeleteDialog = () => {
     setOpenDeleteDialog(false);
   };
 
-  // Función para confirmar eliminación de cuenta
   const confirmDeleteAccount = async () => {
     try {
       const res = await axios.delete("/api/user/delete");
@@ -82,6 +98,10 @@ export default function ProfileEmpleado() {
           setName(data.name || "");
           setPhone(data.phone || "");
           setDescription(data.description || "");
+          // Opcional: si el backend actualiza la imagen, puedes actualizar profileImageUrl aquí
+          if (data.profilePicture) {
+            setProfileImageUrl(data.profilePicture);
+          }
         })
         .catch((err) => console.error("Error al cargar el perfil:", err));
     }
@@ -111,7 +131,7 @@ export default function ProfileEmpleado() {
     try {
       await axios.put("/api/employee/profile", { name, phone, description });
       setSnackbar({ open: true, message: "Perfil actualizado exitosamente", severity: "success" });
-      setTimeout(() => window.location.reload(), 1500);
+      setTimeout(() => router.reload(), 1500);
     } catch (error) {
       console.error("Error actualizando el perfil:", error);
       setSnackbar({ open: true, message: "Error actualizando el perfil", severity: "error" });
@@ -134,8 +154,10 @@ export default function ProfileEmpleado() {
       });
       setProfileImageMessage("Imagen de perfil actualizada correctamente.");
       setSnackbar({ open: true, message: "Imagen actualizada", severity: "success" });
-      setTimeout(() => window.location.reload(), 1500);
-      console.log("Imagen actualizada:", res.data.user.profilePicture);
+      // Actualiza el estado local con la nueva URL devuelta por el backend
+      if (res.data?.user?.profilePicture) {
+        setProfileImageUrl(res.data.user.profilePicture);
+      }
     } catch (error) {
       console.error("Error actualizando la imagen de perfil:", error);
       setProfileImageMessage("Error al actualizar la imagen de perfil.");
@@ -143,7 +165,7 @@ export default function ProfileEmpleado() {
     }
   };
 
-  // Subida automática del documento al seleccionar el archivo
+  // Subida automática del documento
   const handleDocumentFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -208,8 +230,9 @@ export default function ProfileEmpleado() {
         </Typography>
         <Box sx={{ mb: 2 }}>
           <ProfileImage
-            currentImage={session?.user?.image || "/images/default-user.png"}
+            currentImage={profileImageUrl}
             onImageSelected={(file) => handleProfileImageUpload(file)}
+            onError={handleImageError}
           />
         </Box>
         <Paper sx={{ maxWidth: 500, mx: "auto", p: 3 }}>
