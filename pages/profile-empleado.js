@@ -28,14 +28,26 @@ export default function ProfileEmpleado() {
   const router = useRouter();
 
   // Estados para el perfil
-  const [name, setName] = useState(session?.user?.name || "");
+  const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
 
   // Estado para la URL de la imagen de perfil
-  // Se inicializa con el valor de sesión, pero luego se actualizará desde la API
-  const [profileImageUrl, setProfileImageUrl] = useState(session?.user?.image || "/images/default-user.png");
+  // Se inicializa con un valor por defecto y luego se actualiza desde la API
+  const [profileImageUrl, setProfileImageUrl] = useState("/images/default-user.png");
+
+  // Handler para renovar la URL si falla la carga de la imagen
+  const handleImageError = async () => {
+    try {
+      const res = await axios.get("/api/employee/renew-profile-picture");
+      if (res.data?.url) {
+        setProfileImageUrl(res.data.url);
+      }
+    } catch (error) {
+      console.error("Error renovando la URL de la imagen:", error);
+    }
+  };
 
   // Para la imagen de perfil subido (cuando se selecciona uno nuevo)
   const [selectedProfileImage, setSelectedProfileImage] = useState(null);
@@ -86,7 +98,6 @@ export default function ProfileEmpleado() {
           setName(data.name || "");
           setPhone(data.phone || "");
           setDescription(data.description || "");
-          // Actualiza la imagen desde la API (data.profilePicture)
           if (data.profilePicture) {
             setProfileImageUrl(data.profilePicture);
           }
@@ -142,7 +153,7 @@ export default function ProfileEmpleado() {
       });
       setProfileImageMessage("Imagen de perfil actualizada correctamente.");
       setSnackbar({ open: true, message: "Imagen actualizada", severity: "success" });
-      // Recarga para obtener datos actualizados o, mejor aún, actualiza el estado local
+      // Recarga para obtener datos actualizados o actualizar el estado local
       setTimeout(() => window.location.reload(), 1500);
       console.log("Imagen actualizada:", res.data.user.profilePicture);
     } catch (error) {
@@ -219,6 +230,7 @@ export default function ProfileEmpleado() {
           <ProfileImage
             currentImage={profileImageUrl}
             onImageSelected={(file) => handleProfileImageUpload(file)}
+            onError={handleImageError}
           />
         </Box>
         <Paper sx={{ maxWidth: 500, mx: "auto", p: 3 }}>
