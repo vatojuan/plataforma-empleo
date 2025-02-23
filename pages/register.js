@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
+import { useTheme } from "@mui/material/styles";
 import {
   Box,
   Container,
@@ -12,11 +13,12 @@ import {
   InputLabel,
   Snackbar,
   Alert,
-  GlobalStyles
+  GlobalStyles,
 } from "@mui/material";
 import Link from "next/link";
 
 export default function Register() {
+  const theme = useTheme();
   const [userType, setUserType] = useState("empleado");
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
@@ -33,7 +35,11 @@ export default function Register() {
     });
 
     if (res.ok) {
-      setSnackbar({ open: true, message: "Registro exitoso. Revisa tu correo para confirmar la cuenta.", severity: "success" });
+      setSnackbar({
+        open: true,
+        message: "Registro exitoso. Revisa tu correo para confirmar la cuenta.",
+        severity: "success",
+      });
       setTimeout(() => router.push("/login"), 3000);
     } else {
       const data = await res.json();
@@ -43,12 +49,12 @@ export default function Register() {
 
   return (
     <>
-      {/* GlobalStyles para sobreescribir el estilo de autofill sin agregar color */}
+      {/* GlobalStyles inyecta reglas para que el autofill use el mismo fondo que el contenedor */}
       <GlobalStyles
         styles={{
           "input:-webkit-autofill, input:-webkit-autofill:focus, input:-webkit-autofill:hover": {
-            WebkitBoxShadow: "0 0 0 1000px transparent inset !important",
-            boxShadow: "0 0 0 1000px transparent inset !important",
+            WebkitBoxShadow: `0 0 0 1000px ${theme.palette.background.paper} inset !important`,
+            boxShadow: `0 0 0 1000px ${theme.palette.background.paper} inset !important`,
             WebkitTextFillColor: "inherit !important",
           },
         }}
@@ -76,7 +82,11 @@ export default function Register() {
             Registro
           </Typography>
 
-          <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <Box
+            component="form"
+            onSubmit={handleSubmit}
+            sx={{ display: "flex", flexDirection: "column", gap: 2 }}
+          >
             <FormControl fullWidth sx={{ mb: 1 }}>
               <InputLabel id="user-type-label">Tipo de Usuario</InputLabel>
               <Select
