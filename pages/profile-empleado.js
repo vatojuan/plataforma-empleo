@@ -91,20 +91,32 @@ export default function ProfileEmpleado() {
   // Cargar perfil del empleado
   useEffect(() => {
     if (session) {
-      axios
-        .get("/api/employee/profile")
-        .then((res) => {
+      axios.get("/api/employee/profile") // O /api/employer/profile según corresponda
+        .then(async (res) => {
           const data = res.data;
           setName(data.name || "");
           setPhone(data.phone || "");
           setDescription(data.description || "");
+  
           if (data.profilePicture) {
             setProfileImageUrl(data.profilePicture);
+            
+            // Si la imagen es una URL firmada, intenta renovarla
+            if (data.profilePicture.includes("X-Goog-Expires")) {
+              try {
+                const renewRes = await axios.get("/api/employee/renew-profile-picture"); // O employer según corresponda
+                if (renewRes.data?.url) {
+                  setProfileImageUrl(renewRes.data.url);
+                }
+              } catch (error) {
+                console.error("Error renovando la URL firmada de la imagen:", error);
+              }
+            }
           }
         })
         .catch((err) => console.error("Error al cargar el perfil:", err));
     }
-  }, [session]);
+  }, [session]);  
 
   // Cargar documentos subidos
   useEffect(() => {
