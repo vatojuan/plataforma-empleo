@@ -1,4 +1,3 @@
-// pages/_app.js
 import { useState, useMemo, useEffect } from "react";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -6,10 +5,7 @@ import { SessionProvider } from "next-auth/react";
 import useMediaQuery from "@mui/material/useMediaQuery";
 
 export default function App({ Component, pageProps: { session, ...pageProps } }) {
-  // Detecta la preferencia del sistema para modo oscuro
   const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
-  
-  // Inicializa el modo según localStorage o la preferencia del sistema
   const [mode, setMode] = useState("light");
 
   useEffect(() => {
@@ -35,18 +31,17 @@ export default function App({ Component, pageProps: { session, ...pageProps } })
         palette: {
           mode,
           primary: {
-            main: "#C97C5F", // Naranja/marrón pastel
-            dark: "#9E5E47",
+            main: "#D96236", // Nuevo color primario
+            dark: "#B0482B", // Tono oscuro derivado (se puede ajustar)
           },
           secondary: {
-            main: "#FFAB91", // Naranja suave
+            main: "#103B40", // Nuevo color secundario
           },
-          // Nuevo color para textos y elementos (verde/teal oscuro)
           accent: {
-            main: "#2F4F4F", 
+            main: "#2F4F4F", // Si deseas mantener este color o actualizarlo
           },
           background: {
-            default: mode === "light" ? "#F4E4DB" : "#2B1B17",
+            default: mode === "light" ? "#F2E6CE" : "#2B1B17", // Fondo claro con el nuevo tono
             paper: mode === "light" ? "#FFFFFF" : "#3E2723",
           },
           text: {

@@ -192,7 +192,7 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
                 >
                   {applications.map((app) => (
                     <Grid item xs={12} sm={6} md={4} key={app.id}>
-                      <Card sx={{ display: "flex", flexDirection: "column", height: "100%", bgcolor: "rgba(201,124,95, 0.15)" }}>
+                      <Card sx={{ display: "flex", flexDirection: "column", height: "100%", bgcolor: "rgba(217,98,54, 0.15)" }}>
                         <CardContent sx={{ flexGrow: 1 }}>
                           <Typography variant="h6" gutterBottom>
                             {app.job.title}

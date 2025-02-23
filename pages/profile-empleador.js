@@ -73,16 +73,33 @@ export default function ProfileEmpleador() {
     if (session) {
       axios
         .get("/api/employer/profile")
-        .then((res) => {
+        .then(async (res) => {
           const data = res.data;
           setName(data.name || "");
           setCompanyName(data.companyName || "");
           setDescription(data.description || "");
           setPhone(data.phone || "");
+  
+          // Asegura que se use la imagen de perfil correcta
+          if (data.profilePicture) {
+            setProfileImageUrl(data.profilePicture);
+            
+            // Si la imagen es una URL firmada, intenta renovarla automáticamente
+            if (data.profilePicture.includes("X-Goog-Expires")) {
+              try {
+                const renewRes = await axios.get("/api/employer/renew-profile-picture");
+                if (renewRes.data?.url) {
+                  setProfileImageUrl(renewRes.data.url);
+                }
+              } catch (error) {
+                console.error("Error renovando la URL firmada de la imagen:", error);
+              }
+            }
+          }
         })
         .catch((err) => console.error("Error al cargar el perfil:", err));
     }
-  }, [session]);
+  }, [session]);  
 
   // Cargar documentos legales
   useEffect(() => {

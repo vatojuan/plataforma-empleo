@@ -13,6 +13,14 @@ export default async function handler(req, res) {
     try {
       const employerProfile = await prisma.user.findUnique({
         where: { id: employerId },
+        select: {
+          id: true,
+          name: true,
+          companyName: true,
+          description: true,
+          phone: true,
+          profilePicture: true, // Se agrega el campo para que se devuelva la URL actualizada
+        },
       });
       if (!employerProfile) {
         return res.status(404).json({ error: "Perfil no encontrado" });

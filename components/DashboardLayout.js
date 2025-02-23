@@ -1,12 +1,11 @@
-// components/DashboardLayout.js
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useTheme, styled } from "@mui/material/styles";
 import { useSession } from "next-auth/react";
 import {
   AppBar,
   Toolbar,
-  Typography,
   Box,
   Drawer as MuiDrawer,
   List,
@@ -14,7 +13,7 @@ import {
   ListItemIcon,
   ListItemText,
   Divider,
-  IconButton
+  IconButton,
 } from "@mui/material";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import PersonIcon from "@mui/icons-material/Person";
@@ -26,15 +25,11 @@ import Brightness4Icon from "@mui/icons-material/Brightness4";
 import Brightness7Icon from "@mui/icons-material/Brightness7";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import Footer from "./Footer"; // Importa el Footer
 
 const drawerWidth = 260;
 const collapsedWidth = 72;
 
-/* 
-  1) Drawer abierto/cerrado con estilo "mini variant": 
-     - Position: fixed para que no deje hueco.
-     - Transiciones suaves de ancho.
-*/
 const openedMixin = (theme) => ({
   width: drawerWidth,
   transition: theme.transitions.create("width", {
@@ -58,7 +53,6 @@ const DrawerHeader = styled("div")(({ theme }) => ({
   alignItems: "center",
   justifyContent: "space-between",
   padding: theme.spacing(0, 1),
-  // Alinea con la altura del AppBar
   ...theme.mixins.toolbar,
 }));
 
@@ -69,34 +63,26 @@ const Drawer = styled(MuiDrawer, {
   flexShrink: 0,
   whiteSpace: "nowrap",
   position: "fixed",
-  // Alto de la pantalla
   height: "100vh",
   "& .MuiDrawer-paper": {
-    // Aplica el color de fondo recibido
     backgroundColor: drawerbg,
     color: "#fff",
     ...(open ? openedMixin(theme) : closedMixin(theme)),
   },
 }));
 
-/* 
-  2) Contenedor principal con offset a la izquierda
-     según el ancho del Drawer.
-*/
 const Main = styled("main", {
   shouldForwardProp: (prop) => prop !== "open",
 })(({ theme, open }) => ({
   flexGrow: 1,
-  // Para que el contenido arranque justo después del Drawer
   marginLeft: open ? drawerWidth : collapsedWidth,
   transition: theme.transitions.create(["margin", "width"], {
     easing: theme.transitions.easing.sharp,
     duration: theme.transitions.duration.enteringScreen,
   }),
-  // Si quieres que la transición al cerrar sea la misma
-  // puedes añadir un 'leavingScreen' para margin y width
-  // en el else. Este es el valor "por defecto" que
-  // asume MUI, pero puedes personalizarlo igual que openedMixin/closedMixin.
+  display: "flex",
+  flexDirection: "column",
+  minHeight: "100vh",
 }));
 
 export default function DashboardLayout({ children, toggleDarkMode, currentMode }) {
@@ -106,7 +92,6 @@ export default function DashboardLayout({ children, toggleDarkMode, currentMode 
 
   const [userRole, setUserRole] = useState(null);
 
-  // Lee y guarda el estado abierto/cerrado en localStorage
   const [open, setOpen] = useState(() => {
     if (typeof window !== "undefined") {
       const storedState = localStorage.getItem("sidebarOpen");
@@ -135,11 +120,13 @@ export default function DashboardLayout({ children, toggleDarkMode, currentMode 
     });
   };
 
-  // Ajuste de colores para modo oscuro/claro
   const drawerBg = isDark ? "#4E342E" : theme.palette.primary.main;
   const appBarBg = isDark ? "#3E2723" : theme.palette.primary.dark;
 
-  // Opciones de menú según el rol
+  // Definimos dos logos distintos:"/images/Fap rrhh-marca-naranja.png" : "/images/Fap rrhh-marca-blanca.png";
+  const drawerLogoSrc = isDark ? "/images/Fap rrhh-marca-naranja(chico).png" : "/images/Fap rrhh-marca-blanca(chico).png";
+  const appBarLogoSrc = isDark ? "/images/Fap-marca-naranja(chico).png" : "/images/Fap-marca-blanca(chico).png";
+
   const menuItems = userRole === "empleador"
     ? [
         { text: "Inicio", icon: <DashboardIcon />, href: "/" },
@@ -156,13 +143,18 @@ export default function DashboardLayout({ children, toggleDarkMode, currentMode 
 
   return (
     <Box sx={{ display: "flex", backgroundColor: theme.palette.background.default }}>
-      {/* Sidebar tipo "mini variant" fijo */}
       <Drawer variant="permanent" open={open} drawerbg={drawerBg}>
         <DrawerHeader>
           {open && (
-            <Typography variant="h6" noWrap sx={{ pl: 1 }}>
-              FAP Agency
-            </Typography>
+            <Link href="/" passHref>
+              <Image
+                src={drawerLogoSrc}
+                alt="Logo de la empresa"
+                width={210}
+                height={80}
+                priority
+              />
+            </Link>
           )}
           <IconButton onClick={handleDrawerToggle} sx={{ color: "#fff" }}>
             {open ? <ChevronLeftIcon /> : <ChevronRightIcon />}
@@ -183,11 +175,18 @@ export default function DashboardLayout({ children, toggleDarkMode, currentMode 
         </List>
       </Drawer>
 
-      {/* Área principal (AppBar + contenido) */} 
       <Main open={open}>
         <AppBar position="static" sx={{ backgroundColor: appBarBg }}>
           <Toolbar>
-            {/* Se eliminó el título */}
+            <Link href="/" passHref>
+              <Image
+                src={appBarLogoSrc}
+                alt="Logo AppBar"
+                width={140}
+                height={60}
+                priority
+              />
+            </Link>
             {toggleDarkMode && (
               <IconButton onClick={toggleDarkMode} color="inherit" sx={{ marginLeft: "auto" }}>
                 {currentMode === "dark" ? <Brightness7Icon /> : <Brightness4Icon />}
@@ -195,9 +194,12 @@ export default function DashboardLayout({ children, toggleDarkMode, currentMode 
             )}
           </Toolbar>
         </AppBar>
-        <Box sx={{ p: 3, minHeight: "calc(100vh - 64px)" }}>
+        {/* Contenido principal */}
+        <Box sx={{ p: 3, flexGrow: 1 }}>
           {children}
         </Box>
+        {/* Footer integrado en el layout */}
+        <Footer />
       </Main>
     </Box>
   );
