@@ -52,6 +52,9 @@ model User {
   email             String             @unique
   name              String
   password          String?
+  verificationCode  String?  
+  codeExpiration    DateTime?
+  verified          Boolean  @default(false)
   role              String?
   confirmed         Boolean            @default(false)
   createdAt         DateTime           @default(now())

@@ -1,8 +1,10 @@
 // pages/api/register.js
-import clientPromise from "../../lib/mongodb";
-import { generarCodigo } from "../../lib/generateCode";
-import { hash } from "bcryptjs";
-import nodemailer from "nodemailer";
+import { PrismaClient } from '@prisma/client';
+import { generarCodigo } from '../../lib/generateCode';
+import { hash } from 'bcryptjs';
+import nodemailer from 'nodemailer';
+
+const prisma = new PrismaClient();
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -16,17 +18,13 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Conecta a la base de datos
-    const client = await clientPromise;
-    const db = client.db(); // Usa la base de datos por defecto o especifica la que necesites
-
     // Verifica si el usuario ya existe
-    const usuarioExistente = await db.collection("users").findOne({ email });
+    const usuarioExistente = await prisma.user.findUnique({ where: { email } });
     if (usuarioExistente) {
       return res.status(400).json({ error: "El usuario ya existe" });
     }
 
-    // Genera el código de verificación y establece la expiración (15 minutos)
+    // Genera el código de verificación (6 caracteres) y establece su expiración a 15 minutos
     const verificationCode = generarCodigo(6);
     const codeExpiration = new Date(Date.now() + 15 * 60 * 1000);
 
@@ -34,21 +32,20 @@ export default async function handler(req, res) {
     const hashedPassword = await hash(password, 12);
 
     // Guarda el usuario en la base de datos
-    const nuevoUsuario = {
-      email,
-      password: hashedPassword,
-      verificationCode,
-      codeExpiration,
-      verified: false,
-      createdAt: new Date(),
-    };
-
-    await db.collection("users").insertOne(nuevoUsuario);
+    await prisma.user.create({
+      data: {
+        email,
+        password: hashedPassword,
+        verificationCode,
+        codeExpiration,
+        verified: false,
+      }
+    });
 
     // Configura el transporte SMTP usando tus credenciales de Google Workspace
     let transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST, // ej.: smtp.gmail.com
-      port: Number(process.env.SMTP_PORT), // ej.: 465
+      host: process.env.SMTP_HOST, // por ejemplo: "smtp.gmail.com"
+      port: Number(process.env.SMTP_PORT), // por ejemplo: 465
       secure: Number(process.env.SMTP_PORT) === 465, // true si usas puerto 465
       auth: {
         user: process.env.SMTP_USER,
@@ -65,9 +62,7 @@ export default async function handler(req, res) {
       html: `<p>Utiliza este código para verificar tu correo: <strong>${verificationCode}</strong></p>`,
     });
 
-    return res.status(200).json({
-      message: "Usuario creado y correo de verificación enviado",
-    });
+    return res.status(200).json({ message: "Usuario creado y correo de verificación enviado" });
   } catch (error) {
     console.error("Error en el registro:", error);
     return res.status(500).json({ error: "Error en el registro" });
