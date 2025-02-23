@@ -11,8 +11,17 @@ export default async function handler(req, res) {
 
   if (req.method === 'GET') {
     try {
+      // Se seleccionan los campos que necesitas, incluyendo profilePicture
       const employeeProfile = await prisma.user.findUnique({
         where: { id: employeeId },
+        select: {
+          id: true,
+          name: true,
+          phone: true,
+          description: true,
+          profilePicture: true, // Asegúrate de que este campo exista en tu schema
+          // puedes incluir otros campos que necesites
+        },
       });
       if (!employeeProfile) {
         return res.status(404).json({ error: 'Perfil no encontrado' });
