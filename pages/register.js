@@ -43,12 +43,13 @@ export default function Register() {
 
   return (
     <>
-      {/* GlobalStyles para sobreescribir el estilo del autofill */}
+      {/* GlobalStyles para sobreescribir el estilo de autofill sin agregar color */}
       <GlobalStyles
         styles={{
-          "input:-webkit-autofill": {
-            WebkitBoxShadow: `0 0 0 1000px #F4E4DB inset !important`,
-            boxShadow: `0 0 0 1000px #F4E4DB inset !important`,
+          "input:-webkit-autofill, input:-webkit-autofill:focus, input:-webkit-autofill:hover": {
+            WebkitBoxShadow: "0 0 0 1000px transparent inset !important",
+            boxShadow: "0 0 0 1000px transparent inset !important",
+            WebkitTextFillColor: "inherit !important",
           },
         }}
       />
