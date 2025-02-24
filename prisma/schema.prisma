@@ -48,25 +48,28 @@ model Job {
 }
 
 model User {
-  id                Int                @id @default(autoincrement())
-  email             String             @unique
-  name              String
-  password          String?
-  verificationCode  String?  
-  codeExpiration    DateTime?
-  verified          Boolean  @default(false)
-  role              String?
-  confirmed         Boolean            @default(false)
-  createdAt         DateTime           @default(now())
-  googleId          String?
-  companyName       String?
-  description       String?
-  phone             String?
-  profilePicture    String?
-  profilePictureFileName  String?   // La referencia (nombre único del archivo)
-  cvUrl             String?
-  applications      Application[]
-  employeeDocuments EmployeeDocument[]
-  jobs              Job[]
-  legalDocuments    LegalDocument[]
+  id                      Int                @id @default(autoincrement())
+  email                   String             @unique
+  name                    String
+  password                String?
+  verificationCode        String?  
+  codeExpiration          DateTime?
+  verified                Boolean            @default(false)
+  role                    String?
+  confirmed               Boolean            @default(false)
+  verificationAttempts    Int                @default(0)   // Intentos fallidos en este ciclo de verificación
+  resendCount             Int                @default(0)   // Cantidad de veces que se reenvi&oacute; el c&oacute;digo en este ciclo
+  lastResend              DateTime?                          // Fecha del &uacute;ltimo reenv&iacute;o
+  createdAt               DateTime           @default(now())
+  googleId                String?
+  companyName             String?
+  description             String?
+  phone                   String?
+  profilePicture          String?
+  profilePictureFileName  String?            // La referencia (nombre único del archivo)
+  cvUrl                   String?
+  applications            Application[]
+  employeeDocuments       EmployeeDocument[]
+  jobs                    Job[]
+  legalDocuments          LegalDocument[]
 }

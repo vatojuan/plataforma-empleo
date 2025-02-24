@@ -55,7 +55,7 @@ export default function Login() {
           fullWidth 
           sx={{ mb: 3, bgcolor: "#DB4437", color: "#fff", "&:hover": { bgcolor: "#b73c2f" } }}
         >
-          Iniciar sesión con Google
+          Registrar o Iniciar sesión con Google
         </Button>
 
         <Divider sx={{ my: 3 }}>O usa tu email</Divider>

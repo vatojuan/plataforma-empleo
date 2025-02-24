@@ -18,10 +18,10 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Verifica si el usuario ya existe
+    // Si el email ya existe y está verificado, no se permite
     const usuarioExistente = await prisma.user.findUnique({ where: { email } });
-    if (usuarioExistente) {
-      return res.status(400).json({ error: "El usuario ya existe" });
+    if (usuarioExistente && usuarioExistente.verified) {
+      return res.status(400).json({ error: "El email ya está registrado y verificado" });
     }
 
     // Genera el código de verificación (6 caracteres) y establece su expiración a 15 minutos
@@ -31,28 +31,50 @@ export default async function handler(req, res) {
     // Hashea la contraseña
     const hashedPassword = await hash(password, 12);
 
-    // Guarda el usuario en la base de datos
-    await prisma.user.create({
-      data: {
-        email,
-        name,
-        password: hashedPassword,
-        role,
-        verificationCode,
-        codeExpiration,
-        verified: false,
-      },
-    });
+    // Si el usuario existe pero no está verificado, actualiza su registro.
+    // Si no existe, lo crea.
+    if (usuarioExistente) {
+      await prisma.user.update({
+        where: { email },
+        data: {
+          name,
+          password: hashedPassword,
+          role,
+          verificationCode,
+          codeExpiration,
+          verificationAttempts: 0,
+          resendCount: 0,
+          lastResend: new Date(),
+          // Conserva verified: false
+        },
+      });
+    } else {
+      await prisma.user.create({
+        data: {
+          email,
+          name,
+          password: hashedPassword,
+          role,
+          verificationCode,
+          codeExpiration,
+          verified: false,
+          verificationAttempts: 0,
+          resendCount: 0,
+          lastResend: new Date(),
+        },
+      });
+    }
 
-    // Configura el transporte SMTP usando tus credenciales de Google Workspace
+    // Configura el transporte SMTP (asegúrate de tener las variables en .env.local)
     let transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST, // ej.: smtp.gmail.com
-      port: Number(process.env.SMTP_PORT), // ej.: 465
-      secure: Number(process.env.SMTP_PORT) === 465, // true si usas el puerto 465
+      port: Number(process.env.SMTP_PORT),
+      secure: Number(process.env.SMTP_PORT) === 465,
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
       },
+      tls: Number(process.env.SMTP_PORT) === 587 ? { rejectUnauthorized: false } : undefined,
     });
 
     // Envía el correo de verificación
@@ -64,7 +86,7 @@ export default async function handler(req, res) {
       html: `<p>Utiliza este código para verificar tu correo: <strong>${verificationCode}</strong></p>`,
     });
 
-    return res.status(200).json({ message: "Usuario creado y correo de verificación enviado" });
+    return res.status(200).json({ message: "Registro exitoso. Revisa tu correo para confirmar la cuenta." });
   } catch (error) {
     console.error("Error en el registro:", error);
     return res.status(500).json({ error: "Error en el registro" });

@@ -59,10 +59,11 @@ export default function Register() {
         message: "Registro exitoso. Revisa tu correo para confirmar la cuenta.",
         severity: "success",
       });
-      setTimeout(() => router.push("/login"), 3000);
+      // Redirige a la página de verificación pasando el email en la query string
+      setTimeout(() => router.push(`/verify?email=${encodeURIComponent(email)}`), 3000);
     } else {
       const data = await res.json();
-      setSnackbar({ open: true, message: "Error en el registro: " + data.message, severity: "error" });
+      setSnackbar({ open: true, message: "Error en el registro: " + data.error, severity: "error" });
     }
   };
 
