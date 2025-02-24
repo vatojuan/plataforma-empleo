@@ -151,7 +151,7 @@ export default function DashboardLayout({ children, toggleDarkMode, currentMode 
                 src={drawerLogoSrc}
                 alt="Logo de la empresa"
                 width={200}
-                height={100}
+                height={90}
                 priority
               />
             </Link>
