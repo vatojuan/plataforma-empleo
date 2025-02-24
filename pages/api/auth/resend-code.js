@@ -26,12 +26,12 @@ export default async function handler(req, res) {
 
     // Comprueba si se puede reenviar: deben haber pasado al menos 2 minutos
     if (usuario.lastResend && new Date() - new Date(usuario.lastResend) < 2 * 60 * 1000) {
-      return res.status(400).json({ error: "Espera al menos 2 minutos para reenviar el código." });
+      return res.status(400).json({ error: "Por favor, espere al menos 2 minutos para reenviar el código." });
     }
 
     // Verifica que no se haya excedido el límite de 3 reenvíos
     if (usuario.resendCount >= 3) {
-      return res.status(400).json({ error: "Has excedido el límite de reenvíos. Reinicia el proceso de registro." });
+      return res.status(400).json({ error: "Ha excedido el límite de reenvíos. Reinicie el proceso de registro." });
     }
 
     // Genera un nuevo código y actualiza la expiración (15 minutos)
@@ -43,7 +43,7 @@ export default async function handler(req, res) {
       data: {
         verificationCode: nuevoCodigo,
         codeExpiration: nuevaExpiracion,
-        verificationAttempts: 0, // reinicia los intentos
+        verificationAttempts: 0, // Reinicia los intentos
         resendCount: usuario.resendCount + 1,
         lastResend: new Date(),
       },
@@ -65,9 +65,22 @@ export default async function handler(req, res) {
     await transporter.sendMail({
       from: `"No Reply" <no-reply@fapmendoza.com>`,
       to: email,
-      subject: "Nuevo Código de verificación",
-      text: `Utiliza este nuevo código para verificar tu correo: ${nuevoCodigo}`,
-      html: `<p>Utiliza este nuevo código para verificar tu correo: <strong>${nuevoCodigo}</strong></p>`,
+      subject: "Nuevo Código de Verificación de Fap Mendoza",
+      text: `Estimado usuario,
+
+Gracias por utilizar los servicios de Fap Mendoza. Se ha generado un nuevo código de verificación para completar su registro. Por favor, utilice el siguiente código:
+
+${nuevoCodigo}
+
+Este código es válido por los próximos 15 minutos. Si no solicitó este reenvío, ignore este mensaje.
+
+Atentamente,
+El equipo de Fap Mendoza`,
+      html: `<p>Estimado usuario,</p>
+<p>Gracias por utilizar los servicios de <strong>Fap Mendoza</strong>. Se ha generado un nuevo código de verificación para completar su registro. Por favor, utilice el siguiente código:</p>
+<h2>${nuevoCodigo}</h2>
+<p>Este código es válido por los próximos 15 minutos. Si no solicitó este reenvío, ignore este mensaje.</p>
+<p>Atentamente,<br/>El equipo de Fap Mendoza</p>`,
     });
 
     return res.status(200).json({ message: "Nuevo código enviado correctamente" });
