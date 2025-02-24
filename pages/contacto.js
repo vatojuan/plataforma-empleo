@@ -10,19 +10,31 @@ export default function Contacto() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.nombre || !formData.email || !formData.mensaje) {
       setSnackbar({ open: true, message: "Todos los campos son obligatorios", severity: "warning" });
       return;
     }
 
-    // Aquí iría la lógica para enviar el email (por ejemplo, una API de contacto)
-    console.log("Datos enviados:", formData);
-    setSnackbar({ open: true, message: "Mensaje enviado correctamente", severity: "success" });
-
-    // Limpiar formulario
-    setFormData({ nombre: "", email: "", mensaje: "" });
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSnackbar({ open: true, message: data.message, severity: "success" });
+        // Limpiar formulario
+        setFormData({ nombre: "", email: "", mensaje: "" });
+      } else {
+        setSnackbar({ open: true, message: data.message, severity: "error" });
+      }
+    } catch (error) {
+      console.error("Error al enviar el mensaje:", error);
+      setSnackbar({ open: true, message: "Error al enviar el mensaje", severity: "error" });
+    }
   };
 
   return (
