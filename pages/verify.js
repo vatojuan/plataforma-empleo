@@ -86,7 +86,7 @@ export default function Verify() {
           <Button type="submit" variant="contained" color="primary">
             Verificar
           </Button>
-          <Button variant="outlined" color="secondary" onClick={handleReenviar}>
+          <Button variant="contained" color="primary" onClick={handleReenviar}>
             Reenviar código
           </Button>
         </Box>
