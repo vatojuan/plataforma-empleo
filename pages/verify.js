@@ -72,7 +72,8 @@ export default function Verify() {
           Verificar Correo
         </Typography>
         <Typography variant="body1" gutterBottom>
-          Se ha enviado un código de verificación a <strong>{email}</strong>
+          Se ha enviado un código de verificación a <strong>{email}</strong>. <br />
+          <strong>Por favor, revise su carpeta de spam o correo no deseado si no lo encuentra en su bandeja de entrada.</strong>
         </Typography>
         <Box component="form" onSubmit={handleVerificar} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           <TextField
