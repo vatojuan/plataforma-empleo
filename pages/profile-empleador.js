@@ -79,11 +79,11 @@ export default function ProfileEmpleador() {
           setCompanyName(data.companyName || "");
           setDescription(data.description || "");
           setPhone(data.phone || "");
-  
+
           // Asegura que se use la imagen de perfil correcta
           if (data.profilePicture) {
             setProfileImageUrl(data.profilePicture);
-            
+
             // Si la imagen es una URL firmada, intenta renovarla automáticamente
             if (data.profilePicture.includes("X-Goog-Expires")) {
               try {
@@ -99,7 +99,7 @@ export default function ProfileEmpleador() {
         })
         .catch((err) => console.error("Error al cargar el perfil:", err));
     }
-  }, [session]);  
+  }, [session]);
 
   // Cargar documentos legales
   useEffect(() => {
@@ -281,6 +281,16 @@ export default function ProfileEmpleador() {
               {loading ? "Actualizando..." : "Actualizar Perfil"}
             </Button>
           </Box>
+          {/* Botón para cambiar contraseña, solo para usuarios registrados con email */}
+          {session?.user?.provider === "credentials" && (
+            <Box sx={{ textAlign: "center", mt: 2 }}>
+              <Link href="/change-password" style={{ textDecoration: "none" }}>
+                <Button variant="contained" color="primary">
+                  Cambiar Contraseña
+                </Button>
+              </Link>
+            </Box>
+          )}
         </Paper>
         <Divider sx={{ my: 3 }} />
         <Paper sx={{ maxWidth: 500, mx: "auto", p: 3 }}>

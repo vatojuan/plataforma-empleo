@@ -91,7 +91,7 @@ export default function ProfileEmpleado() {
   // Cargar perfil del empleado
   useEffect(() => {
     if (session) {
-      axios.get("/api/employee/profile") // O /api/employer/profile según corresponda
+      axios.get("/api/employee/profile")
         .then(async (res) => {
           const data = res.data;
           setName(data.name || "");
@@ -104,7 +104,7 @@ export default function ProfileEmpleado() {
             // Si la imagen es una URL firmada, intenta renovarla
             if (data.profilePicture.includes("X-Goog-Expires")) {
               try {
-                const renewRes = await axios.get("/api/employee/renew-profile-picture"); // O employer según corresponda
+                const renewRes = await axios.get("/api/employee/renew-profile-picture");
                 if (renewRes.data?.url) {
                   setProfileImageUrl(renewRes.data.url);
                 }
@@ -277,6 +277,16 @@ export default function ProfileEmpleado() {
               {loading ? "Actualizando..." : "Actualizar Perfil"}
             </Button>
           </Box>
+          {/* Botón para cambiar contraseña, solo para usuarios registrados con email */}
+          {session?.user?.provider === "credentials" && (
+            <Box sx={{ textAlign: "center", mt: 2 }}>
+              <Link href="/change-password" style={{ textDecoration: "none" }}>
+                <Button variant="contained" color="primary">
+                  Cambiar Contraseña
+                </Button>
+              </Link>
+            </Box>
+          )}
         </Paper>
         <Divider sx={{ my: 3 }} />
         <Paper sx={{ maxWidth: 500, mx: "auto", p: 3 }}>

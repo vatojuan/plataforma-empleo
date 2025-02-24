@@ -74,7 +74,14 @@ export const authOptions = {
       }
       return true;
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
+      // Asegurarse de que token sea siempre un objeto.
+      token = token || {};
+      if (account) {
+        token.provider = account.provider;
+      } else if (!token.provider) {
+        token.provider = "credentials";
+      }
       if (user) {
         token.id = user.id;
         token.name = user.name;
@@ -84,7 +91,6 @@ export const authOptions = {
       }
       return token;
     },
-    // Actualizamos la sesión consultando la BD para reflejar los cambios
     async session({ session, token }) {
       try {
         const dbUser = await prisma.user.findUnique({
@@ -97,6 +103,7 @@ export const authOptions = {
             email: dbUser.email,
             role: dbUser.role || "",
             image: dbUser.profilePicture || "/images/default-user.png",
+            provider: token.provider, // Agregamos el proveedor aquí
           };
         }
       } catch (error) {
@@ -108,6 +115,20 @@ export const authOptions = {
   pages: {
     signIn: "/login",
     error: "/auth/error",
+  },
+  cookies: {
+    sessionToken: {
+      name:
+        process.env.NODE_ENV === "production"
+          ? "__Secure-next-auth.session-token"
+          : "next-auth.session-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
   },
 };
 
