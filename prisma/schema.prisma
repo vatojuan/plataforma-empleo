@@ -72,4 +72,6 @@ model User {
   employeeDocuments       EmployeeDocument[]
   jobs                    Job[]
   legalDocuments          LegalDocument[]
+  resetToken            String?
+  resetTokenExpiration    DateTime?
 }

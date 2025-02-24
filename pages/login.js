@@ -138,6 +138,13 @@ export default function Login() {
               Regístrate aquí
             </Link>
           </Typography>
+          
+          <Typography variant="body2" sx={{ mt: 1 }}>
+            ¿Olvidaste tu contraseña?{" "}
+            <Link href="/forgot-password" style={{ color: "#1976d2", textDecoration: "none" }}>
+              Recuperarla
+            </Link>
+          </Typography>
 
           {/* Botón para volver a la página de inicio */}
           <Button 
