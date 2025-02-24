@@ -61,9 +61,9 @@ export default async function handler(req, res) {
       tls: Number(process.env.SMTP_PORT) === 587 ? { rejectUnauthorized: false } : undefined,
     });
 
-    // Envía el correo con el nuevo código
+    // Envía el correo con el nuevo código usando el alias "No Reply"
     await transporter.sendMail({
-      from: `"Tu Empresa" <${process.env.SMTP_USER}>`,
+      from: `"No Reply" <no-reply@fapmendoza.com>`,
       to: email,
       subject: "Nuevo Código de verificación",
       text: `Utiliza este nuevo código para verificar tu correo: ${nuevoCodigo}`,
