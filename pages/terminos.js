@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Box, Container, Typography, Button } from "@mui/material";
 
-export default function Terms() {
+export default function Terminos() {
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "background.default", py: 4 }}>
       <Container maxWidth="md">

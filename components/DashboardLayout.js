@@ -184,8 +184,8 @@ export default function DashboardLayout({ children, toggleDarkMode, currentMode 
                 <Image
                   src={appBarLogoSrc}
                   alt="Logo AppBar"
-                  width={140}
-                  height={60}
+                  width={100}
+                  height={50}
                   priority
                 />
               </Link>
