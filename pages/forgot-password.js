@@ -1,9 +1,20 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
-import { Box, Container, Typography, TextField, Button, Snackbar, Alert, GlobalStyles } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
+import {
+  Box,
+  Container,
+  Typography,
+  TextField,
+  Button,
+  Snackbar,
+  Alert,
+  GlobalStyles,
+} from "@mui/material";
 import Link from "next/link";
 
 export default function ForgotPassword() {
+  const theme = useTheme();
   const [email, setEmail] = useState("");
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
   const router = useRouter();
@@ -25,13 +36,13 @@ export default function ForgotPassword() {
 
   return (
     <>
-      {/* Estilos globales para evitar el autofill azul */}
+      {/* GlobalStyles para evitar que el autofill cambie el fondo en modo oscuro */}
       <GlobalStyles
         styles={{
           "input:-webkit-autofill, input:-webkit-autofill:focus, input:-webkit-autofill:hover": {
-            WebkitBoxShadow: "0 0 0px 1000px transparent inset !important",
-            boxShadow: "0 0 0px 1000px transparent inset !important",
-            WebkitTextFillColor: "#ffffff !important",
+            WebkitBoxShadow: `0 0 0 1000px ${theme.palette.background.paper} inset !important`,
+            boxShadow: `0 0 0 1000px ${theme.palette.background.paper} inset !important`,
+            WebkitTextFillColor: `${theme.palette.text.primary} !important`,
           },
         }}
       />
@@ -70,15 +81,15 @@ export default function ForgotPassword() {
               required
               InputProps={{
                 sx: {
-                  backgroundColor: "transparent !important",
+                  backgroundColor: "transparent",
                   "&:hover": {
-                    backgroundColor: "transparent !important",
-                  },
-                  "&:focus": {
-                    backgroundColor: "transparent !important",
+                    backgroundColor: "transparent",
                   },
                   "&.Mui-focused": {
-                    backgroundColor: "transparent !important",
+                    backgroundColor: "transparent",
+                  },
+                  input: {
+                    color: theme.palette.text.primary, // Texto en color correcto para modo claro/oscuro
                   },
                 },
               }}
