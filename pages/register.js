@@ -14,8 +14,12 @@ import {
   Snackbar,
   Alert,
   GlobalStyles,
+  IconButton,
+  InputAdornment,
 } from "@mui/material";
 import Link from "next/link";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
 
 export default function Register() {
   const theme = useTheme();
@@ -25,6 +29,7 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
   // Función para validar que la contraseña sea segura
@@ -135,13 +140,22 @@ export default function Register() {
             />
             <TextField
               label="Contraseña"
-              type="password"
+              type={showPassword ? "text" : "password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               fullWidth
               required
               error={Boolean(passwordError)}
               helperText={passwordError}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={() => setShowPassword((prev) => !prev)} edge="end">
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
             />
             <Button type="submit" variant="contained" color="primary" fullWidth>
               Registrarse
