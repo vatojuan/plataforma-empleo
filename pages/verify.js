@@ -8,10 +8,9 @@ export default function Verify() {
   const [codigo, setCodigo] = useState("");
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
-  // Si no se encuentra el email en el query, se puede redirigir o mostrar un error
+  // Si no se encuentra el email en el query, redirige a registro
   useEffect(() => {
     if (!email) {
-      // Redirige al registro o muestra un mensaje informando al usuario
       router.push("/register");
     }
   }, [email, router]);
@@ -28,7 +27,33 @@ export default function Verify() {
       setSnackbar({ open: true, message: "¡Correo verificado exitosamente!", severity: "success" });
       setTimeout(() => router.push("/login"), 3000);
     } else {
-      setSnackbar({ open: true, message: data.error || "Error en la verificación", severity: "error" });
+      // Si se recibe el error de exceder reenvíos, redirige a registro
+      if (data.error && data.error.includes("excedido el límite de reenvíos")) {
+        setSnackbar({ open: true, message: data.error, severity: "error" });
+        setTimeout(() => router.push("/register"), 3000);
+      } else {
+        setSnackbar({ open: true, message: data.error || "Error en la verificación", severity: "error" });
+      }
+    }
+  };
+
+  const handleReenviar = async () => {
+    const res = await fetch("/api/auth/resend-code", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      setSnackbar({ open: true, message: data.message, severity: "success" });
+    } else {
+      // Si se excede el límite de reenvíos, redirige a registro
+      if (data.error && data.error.includes("excedido el límite de reenvíos")) {
+        setSnackbar({ open: true, message: data.error, severity: "error" });
+        setTimeout(() => router.push("/register"), 3000);
+      } else {
+        setSnackbar({ open: true, message: data.error, severity: "error" });
+      }
     }
   };
 
@@ -61,24 +86,7 @@ export default function Verify() {
           <Button type="submit" variant="contained" color="primary">
             Verificar
           </Button>
-          <Button
-            variant="outlined"
-            color="secondary"
-            onClick={async () => {
-              // Llamada al endpoint para reenviar el código
-              const res = await fetch("/api/auth/resend-code", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email }),
-              });
-              const data = await res.json();
-              if (res.ok) {
-                setSnackbar({ open: true, message: data.message, severity: "success" });
-              } else {
-                setSnackbar({ open: true, message: data.error, severity: "error" });
-              }
-            }}
-          >
+          <Button variant="outlined" color="secondary" onClick={handleReenviar}>
             Reenviar código
           </Button>
         </Box>
