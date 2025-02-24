@@ -10,9 +10,13 @@ import {
   Divider, 
   Snackbar, 
   Alert,
-  GlobalStyles
+  GlobalStyles,
+  IconButton,
+  InputAdornment
 } from "@mui/material";
 import GoogleIcon from "@mui/icons-material/Google";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import Link from "next/link";
 
 export default function Login() {
@@ -20,6 +24,7 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+  const [showPassword, setShowPassword] = useState(false);
 
   // Iniciar sesión con email y contraseña
   const handleEmailLogin = async (e) => {
@@ -103,11 +108,24 @@ export default function Login() {
             />
             <TextField 
               label="Contraseña" 
-              type="password" 
+              type={showPassword ? "text" : "password"}
               value={password} 
               onChange={(e) => setPassword(e.target.value)} 
               fullWidth 
               required 
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      edge="end"
+                      aria-label="toggle password visibility"
+                    >
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
             />
             <Button type="submit" variant="contained" color="primary" fullWidth>
               Iniciar Sesión
