@@ -45,7 +45,6 @@ export default async function handler(req, res) {
           verificationAttempts: 0,
           resendCount: 0,
           lastResend: new Date(),
-          // Conserva verified: false
         },
       });
     } else {
@@ -77,13 +76,26 @@ export default async function handler(req, res) {
       tls: Number(process.env.SMTP_PORT) === 587 ? { rejectUnauthorized: false } : undefined,
     });
 
-    // Envía el correo de verificación
+    // Envía el correo de verificación con un contenido formal
     await transporter.sendMail({
-      from: `"Tu Empresa" <${process.env.SMTP_USER}>`,
+      from: `"No Reply" <no-reply@fapmendoza.com>`,
       to: email,
-      subject: "Código de verificación",
-      text: `Utiliza este código para verificar tu correo: ${verificationCode}`,
-      html: `<p>Utiliza este código para verificar tu correo: <strong>${verificationCode}</strong></p>`,
+      subject: "Código de verificación de Fap Mendoza",
+      text: `Estimado usuario,
+
+Gracias por registrarse en Fap Mendoza. Para completar su proceso de registro, utilice el siguiente código de verificación:
+
+${verificationCode}
+
+Este código es válido por 15 minutos. Si usted no ha solicitado este registro, por favor ignore este mensaje.
+
+Atentamente,
+El equipo de Fap Mendoza`,
+      html: `<p>Estimado usuario,</p>
+<p>Gracias por registrarse en <strong>Fap Mendoza</strong>. Para completar su proceso de registro, utilice el siguiente código de verificación:</p>
+<h2>${verificationCode}</h2>
+<p>Este código es válido por 15 minutos. Si usted no ha solicitado este registro, por favor ignore este mensaje.</p>
+<p>Atentamente,<br/>El equipo de Fap Mendoza</p>`,
     });
 
     return res.status(200).json({ message: "Registro exitoso. Revisa tu correo para confirmar la cuenta." });
