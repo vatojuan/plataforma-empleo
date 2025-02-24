@@ -123,7 +123,7 @@ export default function DashboardLayout({ children, toggleDarkMode, currentMode 
   const drawerBg = isDark ? "#4E342E" : theme.palette.primary.main;
   const appBarBg = isDark ? "#3E2723" : theme.palette.primary.dark;
 
-  // Definimos dos logos distintos:"/images/Fap rrhh-marca-naranja.png" : "/images/Fap rrhh-marca-blanca.png";
+  // Definición de logotipos
   const drawerLogoSrc = isDark ? "/images/Fap rrhh-marca-naranja(chico).png" : "/images/Fap rrhh-marca-blanca(chico).png";
   const appBarLogoSrc = isDark ? "/images/Fap-marca-naranja(chico).png" : "/images/Fap-marca-blanca(chico).png";
 
@@ -178,15 +178,18 @@ export default function DashboardLayout({ children, toggleDarkMode, currentMode 
       <Main open={open}>
         <AppBar position="static" sx={{ backgroundColor: appBarBg }}>
           <Toolbar>
-            <Link href="/" passHref>
-              <Image
-                src={appBarLogoSrc}
-                alt="Logo AppBar"
-                width={140}
-                height={60}
-                priority
-              />
-            </Link>
+            {/* Si el sidebar está cerrado, mostramos el logo en el AppBar */}
+            {!open && (
+              <Link href="/" passHref>
+                <Image
+                  src={appBarLogoSrc}
+                  alt="Logo AppBar"
+                  width={140}
+                  height={60}
+                  priority
+                />
+              </Link>
+            )}
             {toggleDarkMode && (
               <IconButton onClick={toggleDarkMode} color="inherit" sx={{ marginLeft: "auto" }}>
                 {currentMode === "dark" ? <Brightness7Icon /> : <Brightness4Icon />}
