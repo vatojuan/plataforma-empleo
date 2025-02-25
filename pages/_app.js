@@ -3,6 +3,7 @@ import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import { SessionProvider } from "next-auth/react";
 import useMediaQuery from "@mui/material/useMediaQuery";
+import Head from "next/head";
 
 export default function App({ Component, pageProps: { session, ...pageProps } }) {
   const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
@@ -32,16 +33,16 @@ export default function App({ Component, pageProps: { session, ...pageProps } })
           mode,
           primary: {
             main: "#D96236", // Nuevo color primario
-            dark: "#B0482B", // Tono oscuro derivado (se puede ajustar)
+            dark: "#B0482B",
           },
           secondary: {
             main: "#103B40", // Nuevo color secundario
           },
           accent: {
-            main: "#2F4F4F", // Si deseas mantener este color o actualizarlo
+            main: "#2F4F4F",
           },
           background: {
-            default: mode === "light" ? "#F2E6CE" : "#2B1B17", // Fondo claro con el nuevo tono
+            default: mode === "light" ? "#F2E6CE" : "#2B1B17",
             paper: mode === "light" ? "#FFFFFF" : "#3E2723",
           },
           text: {
@@ -74,6 +75,10 @@ export default function App({ Component, pageProps: { session, ...pageProps } })
 
   return (
     <SessionProvider session={session}>
+      <Head>
+        <link rel="icon" href="/favicon.ico" />
+        <title>FAP Mendoza</title>
+      </Head>
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <Component {...pageProps} toggleDarkMode={toggleDarkMode} currentMode={mode} />
