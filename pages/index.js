@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { Box, Typography, Button, AppBar, Toolbar, Container, IconButton, Fab, SvgIcon } from "@mui/material";
-import Footer from "../components/Footer"; // Asegúrate de que la ruta sea correcta
+import Footer from "../components/Footer";
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 
@@ -25,8 +25,8 @@ export default function Home() {
           <Button component={Link} href="/nosotros" color="inherit">
             Nosotros
           </Button>
-          <Button component={Link} href="/historia" color="inherit">
-            Historia
+          <Button component={Link} href="/soluciones" color="inherit">
+            Soluciones
           </Button>
           <Button component={Link} href="/contacto" color="inherit">
             Contacto
@@ -41,18 +41,12 @@ export default function Home() {
             </Button>
           )}
 
-          {/* Íconos de redes sociales en la esquina superior derecha */}
+          {/* Íconos de redes sociales */}
           <Box sx={{ ml: "auto", display: "flex" }}>
-            <IconButton
-              onClick={() => window.open("https://www.instagram.com/faprrhh", "_blank")}
-              color="inherit"
-            >
+            <IconButton onClick={() => window.open("https://www.instagram.com/faprrhh", "_blank")} color="inherit">
               <InstagramIcon />
             </IconButton>
-            <IconButton
-              onClick={() => window.open("https://www.linkedin.com/in/florenciaalvarezfap", "_blank")}
-              color="inherit"
-            >
+            <IconButton onClick={() => window.open("https://www.linkedin.com/in/florenciaalvarezfap", "_blank")} color="inherit">
               <LinkedInIcon />
             </IconButton>
           </Box>
@@ -60,31 +54,16 @@ export default function Home() {
       </AppBar>
 
       {/* Contenido Principal */}
-      <Container
-        maxWidth="md"
-        sx={{
-          flex: 1,
-          textAlign: "center",
-          p: 3,
-          width: { xs: "90%", sm: "100%" }
-        }}
-      >
+      <Container maxWidth="md" sx={{ textAlign: "center", p: 3 }}>
         <Typography variant="h3" gutterBottom>
           Bienvenido a Nuestra Plataforma
         </Typography>
         <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-          Descubre más sobre nuestra agencia, conoce nuestra historia y contáctanos para mayor información.
+          Descubre más sobre nuestra agencia y contáctanos para mayor información.
         </Typography>
 
-        {/* Botón principal basado en estado de sesión */}
         {status !== "loading" && (
-          <Button
-            component={Link}
-            href={session ? "/dashboard" : "/login"}
-            variant="contained"
-            color="primary"
-            sx={{ mt: 2 }}
-          >
+          <Button component={Link} href={session ? "/dashboard" : "/login"} variant="contained" color="primary" sx={{ mt: 2 }}>
             {session ? "Ir al Dashboard" : "Iniciar Sesión"}
           </Button>
         )}
@@ -95,11 +74,7 @@ export default function Home() {
 
       {/* Botón flotante de WhatsApp */}
       <Box sx={{ position: "fixed", bottom: 16, right: 16 }}>
-        <Fab
-          color="success"
-          aria-label="WhatsApp"
-          onClick={() => window.open("https://wa.me/1234567890", "_blank")}
-        >
+        <Fab color="success" aria-label="WhatsApp" onClick={() => window.open("https://wa.me/1234567890", "_blank")}>
           <WhatsAppIcon />
         </Fab>
       </Box>
