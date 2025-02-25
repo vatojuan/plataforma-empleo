@@ -18,62 +18,101 @@ export default function Home() {
   const { data: session, status } = useSession();
 
   return (
-    <Box sx={{ minHeight: "100vh", display: "flex", flexDirection: "column", bgcolor: "background.default" }}>
-      {/* Barra de navegación */}
-      <AppBar position="static" sx={{ mb: 4 }}>
-        <Toolbar sx={{ justifyContent: "center", flexDirection: { xs: "column", sm: "row" } }}>
-          <Button component={Link} href="/nosotros" color="inherit">
-            Nosotros
-          </Button>
-          <Button component={Link} href="/soluciones" color="inherit">
-            Soluciones
-          </Button>
-          <Button component={Link} href="/contacto" color="inherit">
-            Contacto
-          </Button>
-          {status === "loading" ? null : session ? (
-            <Button component={Link} href="/dashboard" color="inherit">
-              Dashboard
+    <Box sx={{ position: "relative", minHeight: "100vh", overflow: "hidden" }}>
+      {/* Video de fondo */}
+      <Box
+        component="video"
+        autoPlay
+        muted
+        loop
+        playsInline
+        src="/videos/fondo-recursos-humanos.mp4" // Ubica aquí tu video
+        sx={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          zIndex: -2,
+        }}
+      />
+
+      {/* Overlay semitransparente */}
+      <Box
+        sx={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          bgcolor: "rgba(0, 0, 0, 0.4)",
+          zIndex: -1,
+        }}
+      />
+
+      {/* Contenedor principal */}
+      <Box sx={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+        {/* AppBar */}
+        <AppBar position="static" sx={{ mb: 4, backgroundColor: "transparent", boxShadow: "none" }}>
+          <Toolbar sx={{ justifyContent: "center", flexDirection: { xs: "column", sm: "row" } }}>
+            <Button component={Link} href="/nosotros" color="inherit">
+              Nosotros
             </Button>
-          ) : (
-            <Button component={Link} href="/login" color="inherit">
-              Ingresar Al Portal
+            <Button component={Link} href="/soluciones" color="inherit">
+              Soluciones
+            </Button>
+            <Button component={Link} href="/contacto" color="inherit">
+              Contacto
+            </Button>
+            {status === "loading" ? null : session ? (
+              <Button component={Link} href="/dashboard" color="inherit">
+                Dashboard
+              </Button>
+            ) : (
+              <Button component={Link} href="/login" color="inherit">
+                Ingresar Al Portal
+              </Button>
+            )}
+
+            {/* Íconos de redes sociales */}
+            <Box sx={{ ml: "auto", display: "flex" }}>
+              <IconButton onClick={() => window.open("https://www.instagram.com/faprrhh", "_blank")} color="inherit">
+                <InstagramIcon />
+              </IconButton>
+              <IconButton onClick={() => window.open("https://www.linkedin.com/in/florenciaalvarezfap", "_blank")} color="inherit">
+                <LinkedInIcon />
+              </IconButton>
+            </Box>
+          </Toolbar>
+        </AppBar>
+
+        {/* Contenido principal */}
+        <Container maxWidth="md" sx={{ textAlign: "center", p: 3, mt: 8 }}>
+          <Typography variant="h3" gutterBottom sx={{ color: "#fff" }}>
+            Bienvenido a Nuestra Plataforma
+          </Typography>
+          <Typography variant="body1" sx={{ mb: 4, color: "#fff" }}>
+            Descubre más sobre nuestra agencia y contáctanos para mayor información.
+          </Typography>
+          {status !== "loading" && (
+            <Button component={Link} href={session ? "/dashboard" : "/login"} variant="contained" color="primary">
+              {session ? "Ir al Dashboard" : "Iniciar Sesión"}
             </Button>
           )}
+        </Container>
 
-          {/* Íconos de redes sociales */}
-          <Box sx={{ ml: "auto", display: "flex" }}>
-            <IconButton onClick={() => window.open("https://www.instagram.com/faprrhh", "_blank")} color="inherit">
-              <InstagramIcon />
-            </IconButton>
-            <IconButton onClick={() => window.open("https://www.linkedin.com/in/florenciaalvarezfap", "_blank")} color="inherit">
-              <LinkedInIcon />
-            </IconButton>
-          </Box>
-        </Toolbar>
-      </AppBar>
+        {/* Espacio flexible para empujar el Footer hacia abajo */}
+        <Box sx={{ flexGrow: 1 }} />
 
-      {/* Contenido Principal */}
-      <Container maxWidth="md" sx={{ textAlign: "center", p: 3 }}>
-        <Typography variant="h3" gutterBottom>
-          Bienvenido a Nuestra Plataforma
-        </Typography>
-        <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-          Descubre más sobre nuestra agencia y contáctanos para mayor información.
-        </Typography>
-
-        {status !== "loading" && (
-          <Button component={Link} href={session ? "/dashboard" : "/login"} variant="contained" color="primary" sx={{ mt: 2 }}>
-            {session ? "Ir al Dashboard" : "Iniciar Sesión"}
-          </Button>
-        )}
-      </Container>
-
-      {/* Footer */}
-      <Footer />
+        {/* Footer envuelto en un contenedor para colocarlo al final */}
+        <Box>
+          <Footer />
+        </Box>
+      </Box>
 
       {/* Botón flotante de WhatsApp */}
-      <Box sx={{ position: "fixed", bottom: 16, right: 16 }}>
+      <Box sx={{ position: "fixed", bottom: 16, right: 16, zIndex: 2 }}>
         <Fab color="success" aria-label="WhatsApp" onClick={() => window.open("https://wa.me/1234567890", "_blank")}>
           <WhatsAppIcon />
         </Fab>
