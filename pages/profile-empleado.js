@@ -33,11 +33,10 @@ export default function ProfileEmpleado() {
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Estado para la URL de la imagen de perfil
-  // Se inicializa con un valor por defecto y luego se actualiza desde la API
+  // Estado para la imagen de perfil
   const [profileImageUrl, setProfileImageUrl] = useState("/images/default-user.png");
 
-  // Handler para renovar la URL si falla la carga de la imagen
+  // Handler para renovar la imagen en caso de error
   const handleImageError = async () => {
     try {
       const res = await axios.get("/api/employee/renew-profile-picture");
@@ -49,15 +48,15 @@ export default function ProfileEmpleado() {
     }
   };
 
-  // Para la imagen de perfil subido (cuando se selecciona uno nuevo)
+  // Estados para la imagen de perfil subida y mensajes
   const [selectedProfileImage, setSelectedProfileImage] = useState(null);
   const [profileImageMessage, setProfileImageMessage] = useState("");
 
-  // Para los documentos legales
+  // Estados para documentos legales
   const [selectedDocument, setSelectedDocument] = useState(null);
-  const [documentUploadMessage, setDocumentUploadMessage] = useState("");
-  const [uploading, setUploading] = useState(false);
+  const [uploadMessage, setUploadMessage] = useState("");
   const [documents, setDocuments] = useState([]);
+  const [uploading, setUploading] = useState(false);
 
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
@@ -97,11 +96,8 @@ export default function ProfileEmpleado() {
           setName(data.name || "");
           setPhone(data.phone || "");
           setDescription(data.description || "");
-  
           if (data.profilePicture) {
             setProfileImageUrl(data.profilePicture);
-            
-            // Si la imagen es una URL firmada, intenta renovarla
             if (data.profilePicture.includes("X-Goog-Expires")) {
               try {
                 const renewRes = await axios.get("/api/employee/renew-profile-picture");
@@ -116,13 +112,12 @@ export default function ProfileEmpleado() {
         })
         .catch((err) => console.error("Error al cargar el perfil:", err));
     }
-  }, [session]);  
+  }, [session]);
 
   // Cargar documentos subidos
   useEffect(() => {
     if (session) {
-      axios
-        .get("/api/employee/documents")
+      axios.get("/api/employee/documents")
         .then((res) => {
           setDocuments(res.data.documents);
         })
@@ -140,6 +135,7 @@ export default function ProfileEmpleado() {
     e.preventDefault();
     setLoading(true);
     try {
+      // Enviar la descripción junto con los otros campos; el servidor se encargará de generar el embedding.
       await axios.put("/api/employee/profile", { name, phone, description });
       setSnackbar({ open: true, message: "Perfil actualizado exitosamente", severity: "success" });
       setTimeout(() => window.location.reload(), 1500);
@@ -165,7 +161,6 @@ export default function ProfileEmpleado() {
       });
       setProfileImageMessage("Imagen de perfil actualizada correctamente.");
       setSnackbar({ open: true, message: "Imagen actualizada", severity: "success" });
-      // Recarga para obtener datos actualizados o actualizar el estado local
       setTimeout(() => window.location.reload(), 1500);
       console.log("Imagen actualizada:", res.data.user.profilePicture);
     } catch (error) {
@@ -175,10 +170,36 @@ export default function ProfileEmpleado() {
     }
   };
 
+  // Restricciones para archivos
+  const MAX_FILE_SIZE_MB = 5; // Tamaño máximo en MB
+  const MAX_FILES = 5; // Número máximo de archivos permitidos
+
   // Subida automática del documento al seleccionar el archivo
   const handleDocumentFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    // Verificar cantidad de archivos subidos
+    if (documents.length >= MAX_FILES) {
+      setSnackbar({
+        open: true,
+        message: `Solo se permiten ${MAX_FILES} documentos.`,
+        severity: "error",
+      });
+      return;
+    }
+
+    // Verificar el tamaño del archivo
+    const fileSizeMB = file.size / (1024 * 1024);
+    if (fileSizeMB > MAX_FILE_SIZE_MB) {
+      setSnackbar({
+        open: true,
+        message: `El archivo es demasiado grande. Máximo permitido: ${MAX_FILE_SIZE_MB} MB.`,
+        severity: "error",
+      });
+      return;
+    }
+
     setSelectedDocument(file);
     setUploading(true);
     const formData = new FormData();
@@ -190,13 +211,13 @@ export default function ProfileEmpleado() {
       const res = await axios.post("/api/employee/upload-document", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      setDocumentUploadMessage("Documento subido correctamente.");
+      setUploadMessage("Documento subido correctamente.");
       setSnackbar({ open: true, message: "Documento subido", severity: "success" });
       const updatedDocs = await axios.get("/api/employee/documents");
       setDocuments(updatedDocs.data.documents);
     } catch (error) {
       console.error("Error al subir el documento:", error);
-      setDocumentUploadMessage("Error al subir el documento.");
+      setUploadMessage("Error al subir el documento.");
       setSnackbar({ open: true, message: "Error subiendo documento", severity: "error" });
     } finally {
       setUploading(false);
@@ -272,12 +293,13 @@ export default function ProfileEmpleado() {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               required
+              helperText="La descripción se usará para generar un embedding para facilitar búsquedas y matching semántico. Máximo 1000 caracteres."
+              inputProps={{ maxLength: 1000 }}
             />
             <Button type="submit" variant="contained" color="primary" disabled={loading} sx={{ mt: 2 }}>
               {loading ? "Actualizando..." : "Actualizar Perfil"}
             </Button>
           </Box>
-          {/* Botón para cambiar contraseña, solo para usuarios registrados con email */}
           {session?.user?.provider === "credentials" && (
             <Box sx={{ textAlign: "center", mt: 2 }}>
               <Link href="/change-password" style={{ textDecoration: "none" }}>
@@ -293,14 +315,17 @@ export default function ProfileEmpleado() {
           <Typography variant="h6" gutterBottom>
             Subir CV o Archivo De Interes
           </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Se permiten hasta {MAX_FILES} documentos. Tamaño máximo de cada archivo: {MAX_FILE_SIZE_MB} MB.
+          </Typography>
           <Button variant="contained" component="label" sx={{ mt: 1 }}>
             Seleccionar Archivo
             <input type="file" hidden onChange={handleDocumentFileChange} accept=".pdf,.doc,.docx,.jpg,.png" />
           </Button>
           {uploading && <LinearProgress sx={{ mt: 2 }} />}
-          {documentUploadMessage && (
+          {uploadMessage && (
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              {documentUploadMessage}
+              {uploadMessage}
             </Typography>
           )}
         </Paper>
@@ -315,29 +340,36 @@ export default function ProfileEmpleado() {
           <Box component="ul" sx={{ listStyle: "none", p: 0, maxWidth: 500, mx: "auto" }}>
             {documents.map((doc) => (
               <Box component="li" key={doc.id} sx={{ mb: 1, display: "flex", alignItems: "center" }}>
-                <Typography variant="body2" sx={{ flexGrow: 1 }}>
-                  <a
-                    href="#"
+                <Box sx={{ flexGrow: 1 }}>
+                  <Button
+                    fullWidth
+                    variant="text"
                     onClick={async (e) => {
                       e.preventDefault();
                       try {
                         const res = await axios.get(
                           `/api/employee/get-signed-url?fileName=${encodeURIComponent(doc.fileKey)}`
                         );
-                        if (!res.ok) {
+                        if (!res.data || !res.data.url) {
                           throw new Error("Error al obtener la URL firmada");
                         }
-                        const data = res.data;
-                        window.open(data.url, "_blank");
+                        window.open(res.data.url, "_blank");
                       } catch (error) {
                         console.error("Error al descargar el documento:", error);
                       }
                     }}
-                    style={{ textDecoration: "none", color: "#1976d2", cursor: "pointer" }}
+                    sx={{
+                      textTransform: "none",
+                      justifyContent: "flex-start",
+                      padding: "20px",
+                      color: "#1976d2",
+                      backgroundColor: "transparent",
+                      "&:hover": { backgroundColor: "rgba(25, 118, 210, 0.04)" },
+                    }}
                   >
                     {doc.originalName || "Documento"}
-                  </a>
-                </Typography>
+                  </Button>
+                </Box>
                 <IconButton color="error" onClick={() => { setSelectedDocId(doc.id); setOpenDocDeleteDialog(true); }}>
                   <DeleteIcon />
                 </IconButton>
@@ -377,7 +409,7 @@ export default function ProfileEmpleado() {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={openDeleteDialog} onClose={handleCloseDeleteDialog}>
+      <Dialog open={openDeleteDialog} onClose={() => setOpenDeleteDialog(false)}>
         <DialogTitle>Confirmar Eliminación de Cuenta</DialogTitle>
         <DialogContent>
           <Typography>
@@ -385,7 +417,7 @@ export default function ProfileEmpleado() {
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDeleteDialog} color="primary">
+          <Button onClick={() => setOpenDeleteDialog(false)} color="primary">
             Cancelar
           </Button>
           <Button onClick={confirmDeleteAccount} color="secondary" variant="contained">

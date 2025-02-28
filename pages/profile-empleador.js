@@ -32,11 +32,11 @@ export default function ProfileEmpleador() {
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Estado para la URL de la imagen de perfil (se inicializa solo una vez)
+  // Estado para la imagen de perfil
   const initialImageUrl = session?.user?.image || "/images/default-user.png";
   const [profileImageUrl, setProfileImageUrl] = useState(initialImageUrl);
 
-  // Handler para renovar la URL si la imagen falla al cargar
+  // Handler para renovar la URL si la imagen falla
   const handleImageError = async () => {
     try {
       const res = await axios.get("/api/employer/renew-profile-picture");
@@ -48,11 +48,11 @@ export default function ProfileEmpleador() {
     }
   };
 
-  // Para la imagen de perfil subido
+  // Estados para la imagen de perfil subida y mensajes
   const [selectedProfileImage, setSelectedProfileImage] = useState(null);
   const [profileImageMessage, setProfileImageMessage] = useState("");
 
-  // Para los documentos legales
+  // Estados para documentos legales
   const [selectedDocument, setSelectedDocument] = useState(null);
   const [uploadMessage, setUploadMessage] = useState("");
   const [documents, setDocuments] = useState([]);
@@ -68,6 +68,10 @@ export default function ProfileEmpleador() {
   // Diálogo para eliminar cuenta
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
 
+  // Restricciones para archivos
+  const MAX_FILE_SIZE_MB = 5; // Tamaño máximo en MB
+  const MAX_FILES = 5; // Número máximo de archivos permitidos
+
   // Cargar perfil desde la API de empleador
   useEffect(() => {
     if (session) {
@@ -79,12 +83,8 @@ export default function ProfileEmpleador() {
           setCompanyName(data.companyName || "");
           setDescription(data.description || "");
           setPhone(data.phone || "");
-
-          // Asegura que se use la imagen de perfil correcta
           if (data.profilePicture) {
             setProfileImageUrl(data.profilePicture);
-
-            // Si la imagen es una URL firmada, intenta renovarla automáticamente
             if (data.profilePicture.includes("X-Goog-Expires")) {
               try {
                 const renewRes = await axios.get("/api/employer/renew-profile-picture");
@@ -101,7 +101,7 @@ export default function ProfileEmpleador() {
     }
   }, [session]);
 
-  // Cargar documentos legales
+  // Cargar documentos subidos
   useEffect(() => {
     if (session) {
       axios
@@ -123,6 +123,7 @@ export default function ProfileEmpleador() {
     e.preventDefault();
     setLoading(true);
     try {
+      // Se envía la descripción; en el backend se genera el embedding y se actualiza
       await axios.put("/api/employer/profile", { name, companyName, description, phone });
       setSnackbar({ open: true, message: "Perfil actualizado exitosamente", severity: "success" });
       setTimeout(() => window.location.reload(), 1500);
@@ -148,7 +149,6 @@ export default function ProfileEmpleador() {
       });
       setProfileImageMessage("Imagen de perfil actualizada correctamente.");
       setSnackbar({ open: true, message: "Imagen actualizada", severity: "success" });
-      // Forzamos la recarga para obtener la sesión actualizada con la nueva imagen:
       window.location.reload();
       console.log("Imagen actualizada:", res.data.user.profilePicture);
     } catch (error) {
@@ -158,15 +158,36 @@ export default function ProfileEmpleador() {
     }
   };
 
-  // Subida automática del documento al seleccionar el archivo (documentos legales)
+  // Subida automática del documento al seleccionar el archivo
   const handleDocumentFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    // Verificar cantidad de documentos subidos
+    if (documents.length >= MAX_FILES) {
+      setSnackbar({
+        open: true,
+        message: `Solo se permiten ${MAX_FILES} documentos.`,
+        severity: "error",
+      });
+      return;
+    }
+
+    // Verificar el tamaño del archivo
+    const fileSizeMB = file.size / (1024 * 1024);
+    if (fileSizeMB > MAX_FILE_SIZE_MB) {
+      setSnackbar({
+        open: true,
+        message: `El archivo es demasiado grande. Máximo permitido: ${MAX_FILE_SIZE_MB} MB.`,
+        severity: "error",
+      });
+      return;
+    }
+
     setSelectedDocument(file);
     setUploading(true);
     const formData = new FormData();
     formData.append("document", file);
-    // Enviar el userId obtenido de la sesión
     if (session && session.user && session.user.id) {
       formData.append("userId", session.user.id);
     }
@@ -268,6 +289,8 @@ export default function ProfileEmpleador() {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               required
+              helperText="La descripción se usará para generar un embedding para facilitar búsquedas y matching semántico. Máximo 1000 caracteres."
+              inputProps={{ maxLength: 1000 }}
             />
             <TextField
               label="Teléfono"
@@ -281,7 +304,6 @@ export default function ProfileEmpleador() {
               {loading ? "Actualizando..." : "Actualizar Perfil"}
             </Button>
           </Box>
-          {/* Botón para cambiar contraseña, solo para usuarios registrados con email */}
           {session?.user?.provider === "credentials" && (
             <Box sx={{ textAlign: "center", mt: 2 }}>
               <Link href="/change-password" style={{ textDecoration: "none" }}>
@@ -295,7 +317,10 @@ export default function ProfileEmpleador() {
         <Divider sx={{ my: 3 }} />
         <Paper sx={{ maxWidth: 500, mx: "auto", p: 3 }}>
           <Typography variant="h6" gutterBottom>
-            Subir Archivo De Interes (Opcional)
+            Subir Archivo De Interés (Opcional)
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Se permiten hasta {MAX_FILES} documentos. Tamaño máximo de cada archivo: {MAX_FILE_SIZE_MB} MB.
           </Typography>
           <Button variant="contained" component="label" sx={{ mt: 1 }}>
             Seleccionar Archivo
