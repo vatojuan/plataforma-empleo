@@ -100,6 +100,15 @@ export default function Home() {
               {session ? "Ir al Dashboard" : "Iniciar Sesión"}
             </Button>
           )}
+          {/* Botón para subir CV */}
+          <Button
+            variant="contained"
+            color="secondary"
+            sx={{ mt: 2 }}
+            onClick={() => window.location.href = "https://fapmendoza.online/cv/upload"}
+          >
+            Subir CV
+          </Button>
         </Container>
 
         {/* Espacio flexible para empujar el Footer hacia abajo */}
