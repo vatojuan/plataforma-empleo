@@ -41,7 +41,7 @@ export default function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     // Validar la contraseña antes de enviar
     if (!validatePassword(password)) {
       setPasswordError(
@@ -51,13 +51,13 @@ export default function Register() {
     } else {
       setPasswordError("");
     }
-
+  
     const res = await fetch("/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, name, password, role: userType }),
+      body: JSON.stringify({ email: email.toLowerCase(), name, password, role: userType }),
     });
-
+  
     if (res.ok) {
       setSnackbar({
         open: true,
@@ -70,7 +70,7 @@ export default function Register() {
       const data = await res.json();
       setSnackbar({ open: true, message: "Error en el registro: " + data.error, severity: "error" });
     }
-  };
+  };  
 
   return (
     <>

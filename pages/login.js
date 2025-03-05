@@ -31,7 +31,7 @@ export default function Login() {
     e.preventDefault();
     const result = await signIn("credentials", {
       redirect: false,
-      email,
+      email: email.toLowerCase(), // Convertir a minúsculas
       password,
       callbackUrl: "/dashboard",
     });
