@@ -53,9 +53,9 @@ export default function Home() {
 
       {/* Contenedor principal */}
       <Box sx={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-        {/* AppBar */}
+        {/* AppBar con botón "Subir CV" */}
         <AppBar position="static" sx={{ mb: 4, backgroundColor: "transparent", boxShadow: "none" }}>
-          <Toolbar sx={{ justifyContent: "center", flexDirection: { xs: "column", sm: "row" } }}>
+          <Toolbar sx={{ flexDirection: { xs: "column", sm: "row" }, alignItems: "center" }}>
             <Button component={Link} href="/nosotros" color="inherit">
               Nosotros
             </Button>
@@ -65,17 +65,25 @@ export default function Home() {
             <Button component={Link} href="/contacto" color="inherit">
               Contacto
             </Button>
+            {/* Botón "Subir CV" en el AppBar */}
+            <Button
+              variant="outlined"
+              color="inherit"
+              sx={{ ml: 2 }}
+              onClick={() => window.location.href = "https://fapmendoza.online/cv/upload"}
+            >
+              Subir CV
+            </Button>
             {status === "loading" ? null : session ? (
-              <Button component={Link} href="/dashboard" color="inherit">
+              <Button component={Link} href="/dashboard" color="inherit" sx={{ ml: 2 }}>
                 Dashboard
               </Button>
             ) : (
-              <Button component={Link} href="/login" color="inherit">
+              <Button component={Link} href="/login" color="inherit" sx={{ ml: 2 }}>
                 Ingresar Al Portal
               </Button>
             )}
-
-            {/* Íconos de redes sociales */}
+            {/* Íconos de redes sociales alineados a la derecha */}
             <Box sx={{ ml: "auto", display: "flex" }}>
               <IconButton onClick={() => window.open("https://www.instagram.com/faprrhh", "_blank")} color="inherit">
                 <InstagramIcon />
@@ -96,25 +104,32 @@ export default function Home() {
             Descubre más sobre nuestra agencia y contáctanos para mayor información.
           </Typography>
           {status !== "loading" && (
-            <Button component={Link} href={session ? "/dashboard" : "/login"} variant="contained" color="primary">
-              {session ? "Ir al Dashboard" : "Iniciar Sesión"}
-            </Button>
+            <>
+              <Button
+                component={Link}
+                href={session ? "/dashboard" : "/login"}
+                variant="contained"
+                color="primary"
+              >
+                {session ? "Ir al Dashboard" : "Iniciar Sesión"}
+              </Button>
+              {/* Botón "Subir CV" en la sección principal */}
+              <Button
+                variant="contained"
+                color="secondary"
+                sx={{ mt: 2, ml: 2 }}
+                onClick={() => window.location.href = "https://fapmendoza.online/cv/upload"}
+              >
+                Subir CV
+              </Button>
+            </>
           )}
-          {/* Botón para subir CV */}
-          <Button
-            variant="contained"
-            color="secondary"
-            sx={{ mt: 2 }}
-            onClick={() => window.location.href = "https://fapmendoza.online/cv/upload"}
-          >
-            Subir CV
-          </Button>
         </Container>
 
         {/* Espacio flexible para empujar el Footer hacia abajo */}
         <Box sx={{ flexGrow: 1 }} />
 
-        {/* Footer envuelto en un contenedor para colocarlo al final */}
+        {/* Footer */}
         <Box>
           <Footer />
         </Box>
