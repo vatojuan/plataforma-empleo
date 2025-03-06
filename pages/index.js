@@ -104,7 +104,7 @@ export default function Home() {
             Descubre más sobre nuestra agencia y contáctanos para mayor información.
           </Typography>
           {status !== "loading" && (
-            <>
+            <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 2 }}>
               <Button
                 component={Link}
                 href={session ? "/dashboard" : "/login"}
@@ -117,12 +117,11 @@ export default function Home() {
               <Button
                 variant="contained"
                 color="secondary"
-                sx={{ mt: 2, ml: 2 }}
                 onClick={() => window.location.href = "https://fapmendoza.online/cv/upload"}
               >
                 Subir CV
               </Button>
-            </>
+            </Box>
           )}
         </Container>
 
