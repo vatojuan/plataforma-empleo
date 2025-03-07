@@ -289,7 +289,7 @@ export default function ProfileEmpleador() {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               required
-              helperText="La descripción se usará para generar un embedding para facilitar búsquedas y matching semántico. Máximo 1000 caracteres."
+              helperText="La descripción se usará para facilitar las búsquedas y matching. Máximo 1000 caracteres."
               inputProps={{ maxLength: 1000 }}
             />
             <TextField

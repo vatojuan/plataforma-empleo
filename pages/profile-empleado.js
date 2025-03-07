@@ -293,8 +293,8 @@ export default function ProfileEmpleado() {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               required
-              helperText="La descripción se usará para generar un embedding para facilitar búsquedas y matching semántico. Máximo 1000 caracteres."
-              inputProps={{ maxLength: 1000 }}
+              helperText="La descripción se usará para facilitar las búsquedas y matching. Máximo 1000 caracteres."
+              inputProps={{ maxLength: 3000 }}
             />
             <Button type="submit" variant="contained" color="primary" disabled={loading} sx={{ mt: 2 }}>
               {loading ? "Actualizando..." : "Actualizar Perfil"}
