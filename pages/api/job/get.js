@@ -24,6 +24,7 @@ export default async function handler(req, res) {
       description: job.description,
       requirements: job.requirements || "No especificados",
       postedAt: job.createdAt ? new Date(job.createdAt).toISOString() : "",
+      expirationDate: job.expirationDate ? new Date(job.expirationDate).toISOString() : null,
       candidatesCount: job.applications.length,
     });
   } catch (error) {
