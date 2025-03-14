@@ -42,12 +42,14 @@ model Job {
   description  String
   requirements String?       
   createdAt    DateTime      @default(now())
+  expirationDate DateTime?   // Nuevo campo para la fecha de expiración (opcional)
   userId       Int
   applications Application[]
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  embedding    Float[]     // Nuevo campo para almacenar el embedding como un array de floats
+  embedding    Float[]     // Campo existente
 }
+
 
 model User {
   id                      Int                @id @default(autoincrement())

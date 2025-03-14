@@ -130,6 +130,16 @@ export default function JobOffer() {
           </Typography>
         </Paper>
       )}
+      {/* Mostrar fecha de expiración si existe */}
+      {job.expirationDate && (
+        <Typography
+          variant="body2"
+          color="error"
+          sx={{ mt: 2, fontSize: { xs: "0.8rem", sm: "0.9rem" } }}
+        >
+          Expira el: {new Date(job.expirationDate).toLocaleDateString()}
+        </Typography>
+      )}
       <Box sx={{ mb: 2 }}>
         <Typography
           variant="body2"

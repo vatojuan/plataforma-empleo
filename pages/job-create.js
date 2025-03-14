@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { useSession, signOut, signIn } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import {
   Box,
   Container,
@@ -18,6 +18,7 @@ export default function JobCreate() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [requirements, setRequirements] = useState("");
+  const [expirationDate, setExpirationDate] = useState(""); // Nuevo estado para la fecha de expiración
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
   useEffect(() => {
@@ -42,6 +43,7 @@ export default function JobCreate() {
           title,
           description,
           requirements,
+          expirationDate: expirationDate || null, // Se envía null si no se selecciona fecha
           userId: session.user.id,
         }),
       });
@@ -99,6 +101,15 @@ export default function JobCreate() {
           multiline
           rows={3}
           fullWidth
+        />
+        {/* Nuevo campo de fecha de expiración */}
+        <TextField
+          label="Fecha de Expiración (Opcional)"
+          type="date"
+          value={expirationDate}
+          onChange={(e) => setExpirationDate(e.target.value)}
+          fullWidth
+          InputLabelProps={{ shrink: true }}
         />
         <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
           <Button type="submit" variant="contained" color="primary">

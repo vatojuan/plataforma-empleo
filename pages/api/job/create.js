@@ -39,8 +39,9 @@ export default async function handler(req, res) {
     return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 
-  const { title, description, requirements, userId } = req.body;
-  console.log("Datos recibidos en /api/job/create:", { title, description, requirements, userId });
+  // Extraemos expirationDate además de los demás campos
+  const { title, description, requirements, userId, expirationDate } = req.body;
+  console.log("Datos recibidos en /api/job/create:", { title, description, requirements, userId, expirationDate });
 
   if (!title || !description || !userId) {
     return res.status(400).json({ message: "Faltan campos obligatorios" });
@@ -61,13 +62,18 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Construir el objeto `data` dinámicamente
+    // Construir el objeto `jobData` dinámicamente
     const jobData = {
       title,
       description,
       requirements,
       userId: Number(userId),
     };
+
+    // Convertir y agregar la fecha de expiración si se proporciona
+    if (expirationDate) {
+      jobData.expirationDate = new Date(expirationDate);
+    }
 
     // Solo agregamos `embedding` si se generó correctamente
     if (embedding) {

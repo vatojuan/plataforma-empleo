@@ -42,7 +42,12 @@ export default function JobList() {
         const res = await fetch(url);
         if (res.ok) {
           const data = await res.json();
-          setJobs(data.jobs);
+          // Filtrar ofertas que no tengan fecha de expiración o cuya fecha de expiración sea posterior a hoy
+          const currentDate = new Date();
+          const validJobs = data.jobs.filter(job =>
+            !job.expirationDate || new Date(job.expirationDate) > currentDate
+          );
+          setJobs(validJobs);
         } else {
           console.error("Error al obtener las ofertas");
         }
@@ -202,7 +207,12 @@ export default function JobList() {
                     <Typography variant="h6" gutterBottom>
                       {job.title}
                     </Typography>
-                    {/* Se ha eliminado la sección de requisitos */}
+                    {/* Se puede agregar la fecha de expiración si está definida */}
+                    {job.expirationDate && (
+                      <Typography variant="body2" color="error">
+                        Expira el: {new Date(job.expirationDate).toLocaleDateString()}
+                      </Typography>
+                    )}
                     <Typography
                       variant="body2"
                       color="text.secondary"
