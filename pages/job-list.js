@@ -42,7 +42,7 @@ export default function JobList() {
         const res = await fetch(url);
         if (res.ok) {
           const data = await res.json();
-          // Filtrar ofertas que no tengan fecha de expiración o cuya fecha de expiración sea posterior a hoy
+          // Filtrar ofertas que no hayan expirado
           const currentDate = new Date();
           const validJobs = data.jobs.filter(job =>
             !job.expirationDate || new Date(job.expirationDate) > currentDate
@@ -78,12 +78,12 @@ export default function JobList() {
     }
   }, [session, status]);
 
-  // Función que determina si el empleado ya ha postulado a la oferta
+  // Determina si el empleado ya ha postulado a la oferta
   const isApplied = (jobId) => {
     return applications.some((app) => app.jobId === jobId);
   };
 
-  // Función para actualizar localmente el conteo de candidatos en una oferta
+  // Actualiza localmente el conteo de candidatos
   const updateJobCandidatesCount = (jobId, change) => {
     setJobs((prevJobs) =>
       prevJobs.map((job) =>
@@ -207,12 +207,12 @@ export default function JobList() {
                     <Typography variant="h6" gutterBottom>
                       {job.title}
                     </Typography>
-                    {/* Se puede agregar la fecha de expiración si está definida */}
-                    {job.expirationDate && (
-                      <Typography variant="body2" color="error">
-                        Expira el: {new Date(job.expirationDate).toLocaleDateString()}
-                      </Typography>
-                    )}
+                    <Typography variant="body2" color="error">
+                      Expiración:{" "}
+                      {job.expirationDate
+                        ? new Date(job.expirationDate).toLocaleDateString()
+                        : "Sin expiración"}
+                    </Typography>
                     <Typography
                       variant="body2"
                       color="text.secondary"
