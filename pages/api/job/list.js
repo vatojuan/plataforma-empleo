@@ -16,8 +16,8 @@ export default async function handler(req, res) {
       title: job.title,
       description: job.description,
       requirements: job.requirements || null,
-      // Usamos createdAt como postedAt y lo convertimos a string ISO
       postedAt: job.createdAt ? new Date(job.createdAt).toISOString() : "",
+      expirationDate: job.expirationDate ? new Date(job.expirationDate).toISOString() : null,
       candidatesCount: job.applications ? job.applications.length : 0,
     }));
 
