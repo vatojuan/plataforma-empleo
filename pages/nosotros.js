@@ -6,9 +6,15 @@ import MainLayout from '../components/MainLayout';
 export default function Nosotros() {
   return (
     <MainLayout>
-      <Box sx={{ backgroundColor: '#103B40', py: 6 }}>
+      <Box
+        sx={{
+          backgroundColor: '#103B40', // Fondo exacto del PDF
+          py: 6,
+          position: 'relative',
+        }}
+      >
         <Container maxWidth="md">
-          {/* Logo en la parte superior izquierda, dentro del flujo */}
+          {/* Logo en la parte superior izquierda */}
           <Box sx={{ textAlign: 'left', mb: 3 }}>
             <img
               src="/images/fap-logo.png"
@@ -20,7 +26,7 @@ export default function Nosotros() {
           {/* Título "Nosotros" */}
           <Typography
             variant="h3"
-            align="center"
+            align="left"
             sx={{
               fontFamily: "'Open Sans', sans-serif",
               fontWeight: 700,
@@ -46,10 +52,10 @@ export default function Nosotros() {
             En FAP Consultora, nos especializamos en la gestión de recursos humanos, brindando soluciones personalizadas que potencian el talento y optimizan el rendimiento organizacional. Trabajamos con un enfoque confiable, flexible y colaborativo, promoviendo relaciones laborales basadas en la transparencia y la empatía.
           </Typography>
 
-          {/* Título: Misión y objetivo (dos líneas) */}
+          {/* Título: Misión y objetivo (dos líneas, ambos alineados a la izquierda y con el mismo tamaño) */}
           <Typography
             variant="h3"
-            align="center"
+            align="left"
             sx={{
               fontFamily: "'Open Sans', sans-serif",
               fontWeight: 700,
@@ -61,7 +67,7 @@ export default function Nosotros() {
           </Typography>
           <Typography
             variant="h3"
-            align="center"
+            align="left"
             sx={{
               fontFamily: "'Open Sans', sans-serif",
               fontWeight: 700,
@@ -87,10 +93,10 @@ export default function Nosotros() {
             Colaborar con empresas para mejorar la gestión de sus recursos humanos, ofreciendo estrategias a medida que impulsen un ambiente de trabajo motivador y productivo. Optimizar la gestión del capital humano para mejorar el rendimiento organizacional y el bienestar de los empleados, generando entornos laborales más eficientes y armoniosos.
           </Typography>
 
-          {/* Título: Visión y valores (dos líneas) */}
+          {/* Título: Visión y valores (dos líneas, ambos alineados a la izquierda y con el mismo tamaño) */}
           <Typography
             variant="h3"
-            align="center"
+            align="left"
             sx={{
               fontFamily: "'Open Sans', sans-serif",
               fontWeight: 700,
@@ -102,7 +108,7 @@ export default function Nosotros() {
           </Typography>
           <Typography
             variant="h3"
-            align="center"
+            align="left"
             sx={{
               fontFamily: "'Open Sans', sans-serif",
               fontWeight: 700,
@@ -129,7 +135,7 @@ export default function Nosotros() {
           </Typography>
 
           {/* Botón "Volver al Inicio" */}
-          <Box sx={{ textAlign: 'center', mt: 4 }}>
+          <Box sx={{ textAlign: 'left', mt: 4 }}>
             <Button component={Link} href="/" variant="contained" color="primary">
               Volver al Inicio
             </Button>
