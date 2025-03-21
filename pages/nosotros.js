@@ -1,12 +1,13 @@
 // pages/nosotros.js
 import { Box, Container, Typography, Button } from '@mui/material';
 import Link from 'next/link';
+import Footer from '../components/Footer'; // Asegurate de tener este componente
 
 export default function Nosotros() {
   return (
     <Box
       sx={{
-        backgroundColor: '#004738', // Fondo verde oscuro, aproximadamente #004738
+        backgroundColor: '#103B40', // Fondo exacto del PDF
         minHeight: '100vh',
         position: 'relative',
         pb: 6,
@@ -28,7 +29,7 @@ export default function Nosotros() {
           align="center"
           sx={{
             fontFamily: "'Bodoni Moda', serif",
-            color: '#fff', // Texto blanco
+            color: '#fff',
             mb: 4,
           }}
         >
@@ -125,6 +126,9 @@ export default function Nosotros() {
           Volver al Inicio
         </Button>
       </Box>
+
+      {/* Footer que se usa en index */}
+      <Footer />
     </Box>
   );
 }
