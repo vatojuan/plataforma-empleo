@@ -1,3 +1,4 @@
+// pages/nosotros.js
 import { Box, Container, Typography, Button } from '@mui/material';
 import Link from 'next/link';
 import MainLayout from '../components/MainLayout';
@@ -58,13 +59,25 @@ export default function Nosotros() {
           <Box sx={{ mb: 6 }}>
             <Typography
               variant="h4"
+              align="center"
+              sx={{
+                fontFamily: "'Bodoni Moda', serif",
+                color: '#fff',
+                mb: 1,
+              }}
+            >
+              Misión y
+            </Typography>
+            <Typography
+              variant="h4"
+              align="center"
               sx={{
                 fontFamily: "'Bodoni Moda', serif",
                 color: '#fff',
                 mb: 2,
               }}
             >
-              Misión y objetivo
+              objetivo
             </Typography>
             <Typography
               variant="body1"
@@ -90,13 +103,25 @@ export default function Nosotros() {
           <Box sx={{ mb: 6 }}>
             <Typography
               variant="h4"
+              align="center"
+              sx={{
+                fontFamily: "'Bodoni Moda', serif",
+                color: '#fff',
+                mb: 1,
+              }}
+            >
+              Visión y
+            </Typography>
+            <Typography
+              variant="h4"
+              align="center"
               sx={{
                 fontFamily: "'Bodoni Moda', serif",
                 color: '#fff',
                 mb: 2,
               }}
             >
-              Visión y valores
+              valores
             </Typography>
             <Typography
               variant="body1"
@@ -118,7 +143,7 @@ export default function Nosotros() {
             </Typography>
           </Box>
 
-          {/* Botón "Volver al Inicio" entre el contenido y el Footer */}
+          {/* Botón "Volver al Inicio" */}
           <Box sx={{ textAlign: 'center', mb: 4 }}>
             <Button component={Link} href="/" variant="contained" color="primary">
               Volver al Inicio
