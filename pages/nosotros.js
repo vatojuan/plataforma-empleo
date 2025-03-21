@@ -8,21 +8,43 @@ export default function Nosotros() {
     <MainLayout>
       <Box
         sx={{
-          backgroundColor: '#103B40',
+          // Imagen de fondo con efecto "agua"
+          backgroundImage: 'url("/images/fondo-agua.jpg")',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
           py: 2,
-          flex: 1,
+          minHeight: 'calc(100vh - 315px)', // Ajustado para que el footer quede justo al final
+          position: 'relative',
         }}
       >
-        {/* Logo en la parte superior izquierda */}
-        <Container maxWidth="lg">
+        {/* Overlay verde con opacidad para mantener la identidad visual */}
+        <Box
+          sx={{
+            backgroundColor: 'rgba(16,59,64,0.9)', // Verde #103B40 con opacidad
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            zIndex: 0,
+          }}
+        />
+        
+        {/* Contenido (se posiciona por encima del overlay) */}
+        <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
+          {/* Logo en la parte superior izquierda */}
           <Box sx={{ textAlign: 'left', mb: 1 }}>
-            <img src="/images/fap-logo.png" alt="FAP Logo" style={{ width: '120px' }} />
+            <img
+              src="/images/fap-logo.png"
+              alt="FAP Logo"
+              style={{ width: '120px' }}
+            />
           </Box>
         </Container>
         
-        {/* Contenedor central con ancho limitado para centrar el contenido */}
-        <Container maxWidth="md">
-          <Grid container spacing={1} alignItems="flex-start">
+        <Container maxWidth="md" sx={{ position: 'relative', zIndex: 1, mt: 2 }}>
+          <Grid container spacing={3} alignItems="flex-start">
             {/* Sección "Nosotros" */}
             <Grid item xs={12} md={4}>
               <Typography
@@ -32,7 +54,7 @@ export default function Nosotros() {
                   fontFamily: "'Open Sans', sans-serif",
                   fontWeight: 700,
                   color: '#fff',
-                  mb: 0.5,
+                  mb: 1,
                   fontSize: '3.6rem',
                 }}
               >
@@ -45,10 +67,10 @@ export default function Nosotros() {
                 align="justify"
                 sx={{
                   fontFamily: "'Open Sans', sans-serif",
-                  fontSize: '1rem',
+                  fontSize: '1.2rem',
                   color: '#fff',
                   lineHeight: 1.5,
-                  mb: 1,
+                  mb: 3,
                 }}
               >
                 En FAP Consultora, nos especializamos en la gestión de recursos humanos, brindando soluciones personalizadas que potencian el talento y optimizan el rendimiento organizacional. Trabajamos con un enfoque confiable, flexible y colaborativo, promoviendo relaciones laborales basadas en la transparencia y la empatía.
@@ -64,7 +86,7 @@ export default function Nosotros() {
                   fontFamily: "'Open Sans', sans-serif",
                   fontWeight: 700,
                   color: '#fff',
-                  mb: 0.3,
+                  mb: 0.5,
                   fontSize: '3.6rem',
                 }}
               >
@@ -77,7 +99,7 @@ export default function Nosotros() {
                   fontFamily: "'Open Sans', sans-serif",
                   fontWeight: 700,
                   color: '#fff',
-                  mb: 1,
+                  mb: 3,
                   fontSize: '3.6rem',
                 }}
               >
@@ -90,10 +112,10 @@ export default function Nosotros() {
                 align="justify"
                 sx={{
                   fontFamily: "'Open Sans', sans-serif",
-                  fontSize: '1rem',
+                  fontSize: '1.2rem',
                   color: '#fff',
                   lineHeight: 1.5,
-                  mb: 1,
+                  mb: 3,
                 }}
               >
                 Colaborar con empresas para mejorar la gestión de sus recursos humanos, ofreciendo estrategias a medida que impulsen un ambiente de trabajo motivador y productivo. Optimizar la gestión del capital humano para mejorar el rendimiento organizacional y el bienestar de los empleados, generando entornos laborales más eficientes y armoniosos.
@@ -109,7 +131,7 @@ export default function Nosotros() {
                   fontFamily: "'Open Sans', sans-serif",
                   fontWeight: 700,
                   color: '#fff',
-                  mb: 0.3,
+                  mb: 0.5,
                   fontSize: '3.6rem',
                 }}
               >
@@ -122,7 +144,7 @@ export default function Nosotros() {
                   fontFamily: "'Open Sans', sans-serif",
                   fontWeight: 700,
                   color: '#fff',
-                  mb: 1,
+                  mb: 3,
                   fontSize: '3.6rem',
                 }}
               >
@@ -135,10 +157,10 @@ export default function Nosotros() {
                 align="justify"
                 sx={{
                   fontFamily: "'Open Sans', sans-serif",
-                  fontSize: '1rem',
+                  fontSize: '1.2rem',
                   color: '#fff',
                   lineHeight: 1.5,
-                  mb: 1,
+                  mb: 3,
                 }}
               >
                 Ser la consultora de referencia en Valle de Uco y Mendoza, reconocida por nuestra excelencia, experiencia y capacidad para contribuir al crecimiento profesional y personal de individuos y organizaciones. Nos guiamos por la solidaridad, la fidelidad y la unión, comprometiéndonos con el bienestar de las personas y el éxito de cada empresa con la que trabajamos.
@@ -147,7 +169,7 @@ export default function Nosotros() {
           </Grid>
 
           {/* Botón "Volver al Inicio" centrado */}
-          <Box sx={{ textAlign: 'center', mt: 2 }}>
+          <Box sx={{ textAlign: 'center', mt: 6 }}>
             <Button component={Link} href="/" variant="contained" color="primary">
               Volver al Inicio
             </Button>
