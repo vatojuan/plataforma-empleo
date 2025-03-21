@@ -6,16 +6,16 @@ import MainLayout from '../components/MainLayout';
 export default function Nosotros() {
   return (
     <MainLayout>
-      <Box sx={{ backgroundColor: '#103B40', py: 4 }}>
-        {/* Logo en la parte superior izquierda */}
+      <Box sx={{ backgroundColor: '#103B40', py: 4, minHeight: '100vh' }}>
+        {/* Logo en la parte superior izquierda, en un contenedor amplio */}
         <Container maxWidth="lg">
           <Box sx={{ textAlign: 'left', mb: 2 }}>
             <img src="/images/fap-logo.png" alt="FAP Logo" style={{ width: '120px' }} />
           </Box>
         </Container>
         
-        {/* Contenedor central */}
-        <Container maxWidth="lg" sx={{ mt: 2, ml: { md: '150px' } }}>
+        {/* Contenedor central para el contenido, con margen izquierdo para separar del logo */}
+        <Container maxWidth="md" sx={{ mt: 2, ml: { md: '80px' } }}>
           <Grid container spacing={2} alignItems="flex-start">
             {/* Sección "Nosotros" */}
             <Grid item xs={12} md={4}>
@@ -27,7 +27,7 @@ export default function Nosotros() {
                   fontWeight: 700,
                   color: '#fff',
                   mb: 1,
-                  fontSize: '3.6rem', // Doble tamaño
+                  fontSize: '3.6rem',
                 }}
               >
                 Nosotros
@@ -140,7 +140,7 @@ export default function Nosotros() {
             </Grid>
           </Grid>
 
-          {/* Botón "Volver al Inicio" centrado al final */}
+          {/* Botón "Volver al Inicio" centrado */}
           <Box sx={{ textAlign: 'center', mt: 4 }}>
             <Button component={Link} href="/" variant="contained" color="primary">
               Volver al Inicio
