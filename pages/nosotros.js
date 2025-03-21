@@ -6,17 +6,23 @@ import MainLayout from '../components/MainLayout';
 export default function Nosotros() {
   return (
     <MainLayout>
-      <Box sx={{ backgroundColor: '#103B40', py: 4, minHeight: '100vh' }}>
-        {/* Logo en la parte superior izquierda, en un contenedor amplio */}
+      <Box
+        sx={{
+          backgroundColor: '#103B40',
+          py: 2,
+          flex: 1,
+        }}
+      >
+        {/* Logo en la parte superior izquierda */}
         <Container maxWidth="lg">
-          <Box sx={{ textAlign: 'left', mb: 2 }}>
+          <Box sx={{ textAlign: 'left', mb: 1 }}>
             <img src="/images/fap-logo.png" alt="FAP Logo" style={{ width: '120px' }} />
           </Box>
         </Container>
         
-        {/* Contenedor central para el contenido, con margen izquierdo para separar del logo */}
-        <Container maxWidth="md" sx={{ mt: 2, ml: { md: '80px' } }}>
-          <Grid container spacing={2} alignItems="flex-start">
+        {/* Contenedor central con ancho limitado para centrar el contenido */}
+        <Container maxWidth="md">
+          <Grid container spacing={1} alignItems="flex-start">
             {/* Sección "Nosotros" */}
             <Grid item xs={12} md={4}>
               <Typography
@@ -26,7 +32,7 @@ export default function Nosotros() {
                   fontFamily: "'Open Sans', sans-serif",
                   fontWeight: 700,
                   color: '#fff',
-                  mb: 1,
+                  mb: 0.5,
                   fontSize: '3.6rem',
                 }}
               >
@@ -42,7 +48,7 @@ export default function Nosotros() {
                   fontSize: '1rem',
                   color: '#fff',
                   lineHeight: 1.5,
-                  mb: 2,
+                  mb: 1,
                 }}
               >
                 En FAP Consultora, nos especializamos en la gestión de recursos humanos, brindando soluciones personalizadas que potencian el talento y optimizan el rendimiento organizacional. Trabajamos con un enfoque confiable, flexible y colaborativo, promoviendo relaciones laborales basadas en la transparencia y la empatía.
@@ -71,7 +77,7 @@ export default function Nosotros() {
                   fontFamily: "'Open Sans', sans-serif",
                   fontWeight: 700,
                   color: '#fff',
-                  mb: 1.5,
+                  mb: 1,
                   fontSize: '3.6rem',
                 }}
               >
@@ -87,7 +93,7 @@ export default function Nosotros() {
                   fontSize: '1rem',
                   color: '#fff',
                   lineHeight: 1.5,
-                  mb: 2,
+                  mb: 1,
                 }}
               >
                 Colaborar con empresas para mejorar la gestión de sus recursos humanos, ofreciendo estrategias a medida que impulsen un ambiente de trabajo motivador y productivo. Optimizar la gestión del capital humano para mejorar el rendimiento organizacional y el bienestar de los empleados, generando entornos laborales más eficientes y armoniosos.
@@ -116,7 +122,7 @@ export default function Nosotros() {
                   fontFamily: "'Open Sans', sans-serif",
                   fontWeight: 700,
                   color: '#fff',
-                  mb: 2,
+                  mb: 1,
                   fontSize: '3.6rem',
                 }}
               >
@@ -132,7 +138,7 @@ export default function Nosotros() {
                   fontSize: '1rem',
                   color: '#fff',
                   lineHeight: 1.5,
-                  mb: 2,
+                  mb: 1,
                 }}
               >
                 Ser la consultora de referencia en Valle de Uco y Mendoza, reconocida por nuestra excelencia, experiencia y capacidad para contribuir al crecimiento profesional y personal de individuos y organizaciones. Nos guiamos por la solidaridad, la fidelidad y la unión, comprometiéndonos con el bienestar de las personas y el éxito de cada empresa con la que trabajamos.
@@ -141,7 +147,7 @@ export default function Nosotros() {
           </Grid>
 
           {/* Botón "Volver al Inicio" centrado */}
-          <Box sx={{ textAlign: 'center', mt: 4 }}>
+          <Box sx={{ textAlign: 'center', mt: 2 }}>
             <Button component={Link} href="/" variant="contained" color="primary">
               Volver al Inicio
             </Button>
