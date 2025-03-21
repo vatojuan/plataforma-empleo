@@ -1,11 +1,10 @@
-// components/MainLayout.js
 import { Box, AppBar, Toolbar, Button, IconButton, SvgIcon, Fab } from '@mui/material';
 import Link from 'next/link';
 import Footer from './Footer';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 
-// Componente para el ícono de Instagram personalizado
+// Ícono de Instagram personalizado
 function InstagramIcon(props) {
   return (
     <SvgIcon {...props}>
@@ -17,8 +16,8 @@ function InstagramIcon(props) {
 export default function MainLayout({ children }) {
   return (
     <Box sx={{ position: 'relative', minHeight: '100vh', overflow: 'hidden' }}>
-      {/* AppBar persistente */}
-      <AppBar position="static" sx={{ backgroundColor: 'transparent', boxShadow: 'none', mb: 4 }}>
+      {/* AppBar fijo y transparente */}
+      <AppBar position="fixed" sx={{ backgroundColor: 'transparent', boxShadow: 'none', zIndex: 1100 }}>
         <Toolbar sx={{ flexDirection: { xs: 'column', sm: 'row' }, alignItems: 'center' }}>
           <Button component={Link} href="/nosotros" color="inherit">
             Nosotros
@@ -37,7 +36,6 @@ export default function MainLayout({ children }) {
           >
             Subir CV
           </Button>
-          {/* Puedes agregar botones de sesión aquí según corresponda */}
           <Box sx={{ ml: 'auto', display: 'flex' }}>
             <IconButton onClick={() => window.open("https://www.instagram.com/faprrhh", "_blank")} color="inherit">
               <InstagramIcon />
@@ -49,15 +47,16 @@ export default function MainLayout({ children }) {
         </Toolbar>
       </AppBar>
 
-      {/* Contenido principal: se inyecta el children */}
-      <Box sx={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', minHeight: 'calc(100vh - 64px)' }}>
+      {/* Contenido principal con padding top para compensar el AppBar */}
+      <Box sx={{ pt: { xs: '80px', sm: '100px' } }}>
         {children}
-        <Box sx={{ flexGrow: 1 }} />
-        <Footer />
       </Box>
 
+      {/* Footer fijo al final del contenido */}
+      <Footer />
+
       {/* Botón flotante de WhatsApp */}
-      <Box sx={{ position: 'fixed', bottom: 16, right: 16, zIndex: 2 }}>
+      <Box sx={{ position: 'fixed', bottom: 16, right: 16, zIndex: 1200 }}>
         <Fab color="success" aria-label="WhatsApp" onClick={() => window.open("http://api.whatsapp.com/send?phone=542622542125&text=Me+interesa+el+Servicio+de+Recursos+Humanos", "_blank")}>
           <WhatsAppIcon />
         </Fab>
