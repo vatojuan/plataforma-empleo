@@ -1,20 +1,20 @@
 // pages/nosotros.js
 import { Box, Container, Typography, Button } from '@mui/material';
 import Link from 'next/link';
-import Footer from '../components/Footer';
+import MainLayout from '../components/MainLayout';
 
 export default function Nosotros() {
   return (
-    <Box
-      sx={{
-        backgroundColor: '#103B40', // Fondo exacto del PDF
-        minHeight: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-      }}
-    >
-      {/* Contenido principal */}
-      <Box sx={{ flex: 1, position: 'relative', pb: 6 }}>
+    <MainLayout>
+      <Box
+        sx={{
+          backgroundColor: '#103B40', // Fondo exacto del PDF
+          minHeight: '100vh',
+          pt: 8,
+          pb: 6,
+          position: 'relative',
+        }}
+      >
         {/* Logo FAP en la esquina superior izquierda */}
         <Box sx={{ position: 'absolute', top: 16, left: 16 }}>
           <img
@@ -24,7 +24,7 @@ export default function Nosotros() {
           />
         </Box>
 
-        <Container maxWidth="md" sx={{ pt: 8 }}>
+        <Container maxWidth="md">
           {/* Título "Nosotros" */}
           <Typography
             variant="h2"
@@ -120,18 +120,15 @@ export default function Nosotros() {
               trabajamos.
             </Typography>
           </Box>
+
+          {/* Botón "Volver al Inicio" ubicado entre el contenido y el Footer */}
+          <Box sx={{ textAlign: 'center', mb: 4 }}>
+            <Button component={Link} href="/" variant="contained" color="primary">
+              Volver al Inicio
+            </Button>
+          </Box>
         </Container>
       </Box>
-
-      {/* Botón "Volver al Inicio" ubicado entre el contenido y el Footer */}
-      <Box sx={{ textAlign: 'center', mb: 4 }}>
-        <Button component={Link} href="/" variant="contained" color="primary">
-          Volver al Inicio
-        </Button>
-      </Box>
-
-      {/* Footer al final de la página */}
-      <Footer />
-    </Box>
+    </MainLayout>
   );
 }

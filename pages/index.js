@@ -136,7 +136,7 @@ export default function Home() {
 
       {/* Botón flotante de WhatsApp */}
       <Box sx={{ position: "fixed", bottom: 16, right: 16, zIndex: 2 }}>
-        <Fab color="success" aria-label="WhatsApp" onClick={() => window.open("https://wa.me/1234567890", "_blank")}>
+        <Fab color="success" aria-label="WhatsApp" onClick={() => window.open("http://api.whatsapp.com/send?phone=542622542125&text=Me+interesa+el+Servicio+de+Recursos+Humanos", "_blank")}>
           <WhatsAppIcon />
         </Fab>
       </Box>
