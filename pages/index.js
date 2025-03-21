@@ -1,11 +1,26 @@
+// pages/index.js
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { Box, Typography, Button, AppBar, Toolbar, Container, IconButton, Fab, SvgIcon } from "@mui/material";
+import { useState } from "react";
+import {
+  Box,
+  Typography,
+  Button,
+  AppBar,
+  Toolbar,
+  Container,
+  IconButton,
+  Fab,
+  SvgIcon,
+  Menu,
+  MenuItem,
+} from "@mui/material";
 import Footer from "../components/Footer";
-import WhatsAppIcon from '@mui/icons-material/WhatsApp';
-import LinkedInIcon from '@mui/icons-material/LinkedIn';
+import WhatsAppIcon from "@mui/icons-material/WhatsApp";
+import LinkedInIcon from "@mui/icons-material/LinkedIn";
+import { useRouter } from "next/router";
 
-// Componente para el ícono de Instagram personalizado
+// Ícono personalizado de Instagram
 function InstagramIcon(props) {
   return (
     <SvgIcon {...props}>
@@ -16,6 +31,21 @@ function InstagramIcon(props) {
 
 export default function Home() {
   const { data: session, status } = useSession();
+  const router = useRouter();
+  const [anchorEl, setAnchorEl] = useState(null);
+
+  const handleSolucionesOpen = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleSolucionesClose = () => {
+    setAnchorEl(null);
+  };
+
+  const navigateTo = (path) => {
+    handleSolucionesClose();
+    router.push(path);
+  };
 
   return (
     <Box sx={{ position: "relative", minHeight: "100vh", overflow: "hidden" }}>
@@ -26,7 +56,7 @@ export default function Home() {
         muted
         loop
         playsInline
-        src="/videos/fondo-recursos-humanos.mp4" // Ubica aquí tu video
+        src="/videos/fondo-recursos-humanos.mp4"
         sx={{
           position: "absolute",
           top: 0,
@@ -38,7 +68,7 @@ export default function Home() {
         }}
       />
 
-      {/* Overlay semitransparente */}
+      {/* Overlay oscuro */}
       <Box
         sx={{
           position: "absolute",
@@ -51,21 +81,34 @@ export default function Home() {
         }}
       />
 
-      {/* Contenedor principal */}
+      {/* Contenido con AppBar */}
       <Box sx={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-        {/* AppBar con botón "Subir CV" */}
         <AppBar position="static" sx={{ mb: 4, backgroundColor: "transparent", boxShadow: "none" }}>
           <Toolbar sx={{ flexDirection: { xs: "column", sm: "row" }, alignItems: "center" }}>
             <Button component={Link} href="/nosotros" color="inherit">
               Nosotros
             </Button>
-            <Button component={Link} href="/soluciones" color="inherit">
+
+            {/* Menú desplegable de Soluciones */}
+            <Button color="inherit" onClick={handleSolucionesOpen}>
               Soluciones
             </Button>
+            <Menu
+              anchorEl={anchorEl}
+              open={Boolean(anchorEl)}
+              onClose={handleSolucionesClose}
+              anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+            >
+              <MenuItem onClick={() => navigateTo("/soluciones/recruitment")}>Recruitment Process</MenuItem>
+              <MenuItem onClick={() => navigateTo("/soluciones/capacitacion")}>Capacitación y Desarrollo</MenuItem>
+              <MenuItem onClick={() => navigateTo("/soluciones/branding")}>Employer Branding & Engagement</MenuItem>
+              <MenuItem onClick={() => navigateTo("/soluciones/outsourcing")}>Outsourcing</MenuItem>
+            </Menu>
+
             <Button component={Link} href="/contacto" color="inherit">
               Contacto
             </Button>
-            {/* Botón "Subir CV" en el AppBar */}
+
             <Button
               variant="outlined"
               color="inherit"
@@ -74,6 +117,7 @@ export default function Home() {
             >
               Subir CV
             </Button>
+
             {status === "loading" ? null : session ? (
               <Button component={Link} href="/dashboard" color="inherit" sx={{ ml: 2 }}>
                 Dashboard
@@ -83,7 +127,7 @@ export default function Home() {
                 Ingresar Al Portal
               </Button>
             )}
-            {/* Íconos de redes sociales alineados a la derecha */}
+
             <Box sx={{ ml: "auto", display: "flex" }}>
               <IconButton onClick={() => window.open("https://www.instagram.com/faprrhh", "_blank")} color="inherit">
                 <InstagramIcon />
@@ -113,7 +157,6 @@ export default function Home() {
               >
                 {session ? "Ir al Dashboard" : "Iniciar Sesión"}
               </Button>
-              {/* Botón "Subir CV" en la sección principal */}
               <Button
                 variant="contained"
                 color="secondary"
@@ -125,7 +168,7 @@ export default function Home() {
           )}
         </Container>
 
-        {/* Espacio flexible para empujar el Footer hacia abajo */}
+        {/* Espaciador para empujar el footer al fondo */}
         <Box sx={{ flexGrow: 1 }} />
 
         {/* Footer */}
@@ -136,7 +179,11 @@ export default function Home() {
 
       {/* Botón flotante de WhatsApp */}
       <Box sx={{ position: "fixed", bottom: 16, right: 16, zIndex: 2 }}>
-        <Fab color="success" aria-label="WhatsApp" onClick={() => window.open("http://api.whatsapp.com/send?phone=542622542125&text=Me+interesa+el+Servicio+de+Recursos+Humanos", "_blank")}>
+        <Fab
+          color="success"
+          aria-label="WhatsApp"
+          onClick={() => window.open("http://api.whatsapp.com/send?phone=542622542125&text=Me+interesa+el+Servicio+de+Recursos+Humanos", "_blank")}
+        >
           <WhatsAppIcon />
         </Fab>
       </Box>
