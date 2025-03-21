@@ -1,129 +1,144 @@
-// pages/nosotros.js
-import { Box, Container, Typography, Button } from '@mui/material';
-import Link from 'next/link';
+import Link from "next/link";
+import { useSession } from "next-auth/react";
+import { Box, Typography, Button, AppBar, Toolbar, Container, IconButton, Fab, SvgIcon } from "@mui/material";
+import Footer from "../components/Footer";
+import WhatsAppIcon from '@mui/icons-material/WhatsApp';
+import LinkedInIcon from '@mui/icons-material/LinkedIn';
 
-export default function Nosotros() {
+// Componente para el ícono de Instagram personalizado
+function InstagramIcon(props) {
   return (
-    <Box
-      sx={{
-        backgroundColor: '#2F9D27', // fondo verde
-        minHeight: '100vh',
-        position: 'relative',
-        pb: 6,
-      }}
-    >
-      {/* Logo FAP en la esquina superior derecha */}
-      <Box sx={{ position: 'absolute', top: 16, right: 16 }}>
-        <img
-          src="/images/fap-logo.png"
-          alt="FAP Logo"
-          style={{ maxWidth: '150px', width: '100%' }}
-        />
+    <SvgIcon {...props}>
+      <path d="M7.5 2C4.46243 2 2 4.46243 2 7.5V16.5C2 19.5376 4.46243 22 7.5 22H16.5C19.5376 22 22 19.5376 22 16.5V7.5C22 4.46243 19.5376 2 16.5 2H7.5ZM12 7C14.2091 7 16 8.79086 16 11C16 13.2091 14.2091 15 12 15C9.79086 15 8 13.2091 8 11C8 8.79086 9.79086 7 12 7ZM18 6.5C18 7.32843 17.3284 8 16.5 8C15.6716 8 15 7.32843 15 6.5C15 5.67157 15.6716 5 16.5 5C17.3284 5 18 5.67157 18 6.5Z" />
+    </SvgIcon>
+  );
+}
+
+export default function Home() {
+  const { data: session, status } = useSession();
+
+  return (
+    <Box sx={{ position: "relative", minHeight: "100vh", overflow: "hidden" }}>
+      {/* Video de fondo */}
+      <Box
+        component="video"
+        autoPlay
+        muted
+        loop
+        playsInline
+        src="/videos/fondo-recursos-humanos.mp4" // Ubica aquí tu video
+        sx={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          zIndex: -2,
+        }}
+      />
+
+      {/* Overlay semitransparente */}
+      <Box
+        sx={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          bgcolor: "rgba(0, 0, 0, 0.4)",
+          zIndex: -1,
+        }}
+      />
+
+      {/* Contenedor principal */}
+      <Box sx={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+        {/* AppBar con botón "Subir CV" */}
+        <AppBar position="static" sx={{ mb: 4, backgroundColor: "transparent", boxShadow: "none" }}>
+          <Toolbar sx={{ flexDirection: { xs: "column", sm: "row" }, alignItems: "center" }}>
+            <Button component={Link} href="/nosotros" color="inherit">
+              Nosotros
+            </Button>
+            <Button component={Link} href="/soluciones" color="inherit">
+              Soluciones
+            </Button>
+            <Button component={Link} href="/contacto" color="inherit">
+              Contacto
+            </Button>
+            {/* Botón "Subir CV" en el AppBar */}
+            <Button
+              variant="outlined"
+              color="inherit"
+              sx={{ ml: 2 }}
+              onClick={() => window.location.href = "https://fapmendoza.online/cv/upload"}
+            >
+              Subir CV
+            </Button>
+            {status === "loading" ? null : session ? (
+              <Button component={Link} href="/dashboard" color="inherit" sx={{ ml: 2 }}>
+                Dashboard
+              </Button>
+            ) : (
+              <Button component={Link} href="/login" color="inherit" sx={{ ml: 2 }}>
+                Ingresar Al Portal
+              </Button>
+            )}
+            {/* Íconos de redes sociales alineados a la derecha */}
+            <Box sx={{ ml: "auto", display: "flex" }}>
+              <IconButton onClick={() => window.open("https://www.instagram.com/faprrhh", "_blank")} color="inherit">
+                <InstagramIcon />
+              </IconButton>
+              <IconButton onClick={() => window.open("https://www.linkedin.com/in/florenciaalvarezfap", "_blank")} color="inherit">
+                <LinkedInIcon />
+              </IconButton>
+            </Box>
+          </Toolbar>
+        </AppBar>
+
+        {/* Contenido principal */}
+        <Container maxWidth="md" sx={{ textAlign: "center", p: 3, mt: 8 }}>
+          <Typography variant="h3" gutterBottom sx={{ color: "#fff" }}>
+            Bienvenido a Nuestra Plataforma
+          </Typography>
+          <Typography variant="body1" sx={{ mb: 4, color: "#fff" }}>
+            Descubre más sobre nuestra agencia y contáctanos para mayor información.
+          </Typography>
+          {status !== "loading" && (
+            <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 2 }}>
+              <Button
+                component={Link}
+                href={session ? "/dashboard" : "/login"}
+                variant="contained"
+                color="primary"
+              >
+                {session ? "Ir al Dashboard" : "Iniciar Sesión"}
+              </Button>
+              {/* Botón "Subir CV" en la sección principal */}
+              <Button
+                variant="contained"
+                color="secondary"
+                onClick={() => window.location.href = "https://fapmendoza.online/cv/upload"}
+              >
+                Subir CV
+              </Button>
+            </Box>
+          )}
+        </Container>
+
+        {/* Espacio flexible para empujar el Footer hacia abajo */}
+        <Box sx={{ flexGrow: 1 }} />
+
+        {/* Footer */}
+        <Box>
+          <Footer />
+        </Box>
       </Box>
 
-      <Container maxWidth="md" sx={{ pt: 8 }}>
-        {/* Título "Nosotros" */}
-        <Typography
-          variant="h2"
-          align="center"
-          sx={{
-            fontFamily: "'Bodoni Moda', serif",
-            color: '#fff', // letras blancas
-            mb: 4,
-          }}
-        >
-          Nosotros
-        </Typography>
-
-        {/* Texto introductorio */}
-        <Typography
-          variant="body1"
-          align="justify"
-          sx={{
-            fontFamily: "'Bodoni Moda', serif",
-            fontSize: '1.2rem',
-            color: '#fff',
-            mb: 6,
-            lineHeight: 1.6,
-          }}
-        >
-          En FAP Consultora, nos especializamos en la gestión de recursos humanos,
-          brindando soluciones personalizadas que potencian el talento y optimizan
-          el rendimiento organizacional. Trabajamos con un enfoque confiable,
-          flexible y colaborativo, promoviendo relaciones laborales basadas en la
-          transparencia y la empatía.
-        </Typography>
-
-        {/* Sección: Misión y objetivo */}
-        <Box sx={{ mb: 6 }}>
-          <Typography
-            variant="h4"
-            sx={{
-              fontFamily: "'Bodoni Moda', serif",
-              color: '#fff',
-              mb: 2,
-            }}
-          >
-            Misión y objetivo
-          </Typography>
-          <Typography
-            variant="body1"
-            align="justify"
-            sx={{
-              fontFamily: "'Bodoni Moda', serif",
-              fontSize: '1.2rem',
-              color: '#fff',
-              lineHeight: 1.6,
-            }}
-          >
-            Colaborar con empresas para mejorar la gestión de sus recursos humanos,
-            ofreciendo estrategias a medida que impulsen un ambiente de trabajo
-            motivador y productivo.
-            <br /><br />
-            Optimizar la gestión del capital humano para mejorar el rendimiento
-            organizacional y el bienestar de los empleados, generando entornos
-            laborales más eficientes y armoniosos.
-          </Typography>
-        </Box>
-
-        {/* Sección: Visión y valores */}
-        <Box sx={{ mb: 6 }}>
-          <Typography
-            variant="h4"
-            sx={{
-              fontFamily: "'Bodoni Moda', serif",
-              color: '#fff',
-              mb: 2,
-            }}
-          >
-            Visión y valores
-          </Typography>
-          <Typography
-            variant="body1"
-            align="justify"
-            sx={{
-              fontFamily: "'Bodoni Moda', serif",
-              fontSize: '1.2rem',
-              color: '#fff',
-              lineHeight: 1.6,
-            }}
-          >
-            Ser la consultora de referencia en Valle de Uco y Mendoza, reconocida por
-            nuestra excelencia, experiencia y capacidad para contribuir al crecimiento
-            profesional y personal de individuos y organizaciones.
-            <br /><br />
-            Nos guiamos por la solidaridad, la fidelidad y la unión, comprometiéndonos
-            con el bienestar de las personas y el éxito de cada empresa con la que
-            trabajamos.
-          </Typography>
-        </Box>
-      </Container>
-
-      {/* Botón "Volver al Inicio" */}
-      <Box sx={{ textAlign: 'center', mt: 4 }}>
-        <Button component={Link} href="/" variant="contained" color="primary">
-          Volver al Inicio
-        </Button>
+      {/* Botón flotante de WhatsApp */}
+      <Box sx={{ position: "fixed", bottom: 16, right: 16, zIndex: 2 }}>
+        <Fab color="success" aria-label="WhatsApp" onClick={() => window.open("https://wa.me/1234567890", "_blank")}>
+          <WhatsAppIcon />
+        </Fab>
       </Box>
     </Box>
   );

@@ -1,60 +1,49 @@
 // pages/nosotros.js
-import { Box, Container, Typography } from "@mui/material";
+import { Box, Container, Typography, Button } from '@mui/material';
+import Link from 'next/link';
 
 export default function Nosotros() {
   return (
     <Box
       sx={{
-        position: "relative",
-        width: "100%",
-        minHeight: "100vh",
-        bgcolor: "#fff", // fondo blanco, igual que el PDF
-        py: 6,
-        px: { xs: 2, md: 4 },
+        backgroundColor: '#004738', // Fondo verde oscuro, aproximadamente #004738
+        minHeight: '100vh',
+        position: 'relative',
+        pb: 6,
       }}
     >
-      {/* Logo FAP en la esquina superior derecha */}
-      <Box sx={{ position: "absolute", top: 16, right: 16 }}>
+      {/* Logo FAP en la esquina superior izquierda */}
+      <Box sx={{ position: 'absolute', top: 16, left: 16 }}>
         <img
           src="/images/fap-logo.png"
           alt="FAP Logo"
-          style={{ maxWidth: 150, width: "100%" }}
+          style={{ maxWidth: '150px', width: '100%' }}
         />
       </Box>
 
-      <Container maxWidth="md">
-        {/* Título superior */}
+      <Container maxWidth="md" sx={{ pt: 8 }}>
+        {/* Título "Nosotros" */}
         <Typography
-          variant="h6"
+          variant="h2"
           align="center"
           sx={{
             fontFamily: "'Bodoni Moda', serif",
-            color: "#C97C5F", // color primario del sitio
-            mb: 1,
-          }}
-        >
-          Naranja Negocios Servicios Sitio Web
-        </Typography>
-
-        <Typography
-          variant="h3"
-          align="center"
-          sx={{
-            fontFamily: "'Bodoni Moda', serif",
+            color: '#fff', // Texto blanco
             mb: 4,
           }}
         >
           Nosotros
         </Typography>
 
-        {/* Texto principal */}
+        {/* Texto introductorio */}
         <Typography
           variant="body1"
           align="justify"
           sx={{
             fontFamily: "'Bodoni Moda', serif",
-            fontSize: "1.2rem",
-            mb: 4,
+            fontSize: '1.2rem',
+            color: '#fff',
+            mb: 6,
             lineHeight: 1.6,
           }}
         >
@@ -65,12 +54,13 @@ export default function Nosotros() {
           transparencia y la empatía.
         </Typography>
 
-        {/* Sección: Misión y Objetivo */}
-        <Box sx={{ mb: 4 }}>
+        {/* Sección: Misión y objetivo */}
+        <Box sx={{ mb: 6 }}>
           <Typography
             variant="h4"
             sx={{
               fontFamily: "'Bodoni Moda', serif",
+              color: '#fff',
               mb: 2,
             }}
           >
@@ -81,27 +71,28 @@ export default function Nosotros() {
             align="justify"
             sx={{
               fontFamily: "'Bodoni Moda', serif",
-              fontSize: "1.2rem",
+              fontSize: '1.2rem',
+              color: '#fff',
               lineHeight: 1.6,
             }}
           >
             Colaborar con empresas para mejorar la gestión de sus recursos humanos,
             ofreciendo estrategias a medida que impulsen un ambiente de trabajo
             motivador y productivo.
-            <br />
-            <br />
+            <br /><br />
             Optimizar la gestión del capital humano para mejorar el rendimiento
             organizacional y el bienestar de los empleados, generando entornos
             laborales más eficientes y armoniosos.
           </Typography>
         </Box>
 
-        {/* Sección: Visión y Valores */}
-        <Box>
+        {/* Sección: Visión y valores */}
+        <Box sx={{ mb: 6 }}>
           <Typography
             variant="h4"
             sx={{
               fontFamily: "'Bodoni Moda', serif",
+              color: '#fff',
               mb: 2,
             }}
           >
@@ -112,21 +103,28 @@ export default function Nosotros() {
             align="justify"
             sx={{
               fontFamily: "'Bodoni Moda', serif",
-              fontSize: "1.2rem",
+              fontSize: '1.2rem',
+              color: '#fff',
               lineHeight: 1.6,
             }}
           >
             Ser la consultora de referencia en Valle de Uco y Mendoza, reconocida por
             nuestra excelencia, experiencia y capacidad para contribuir al crecimiento
             profesional y personal de individuos y organizaciones.
-            <br />
-            <br />
+            <br /><br />
             Nos guiamos por la solidaridad, la fidelidad y la unión, comprometiéndonos
             con el bienestar de las personas y el éxito de cada empresa con la que
             trabajamos.
           </Typography>
         </Box>
       </Container>
+
+      {/* Botón "Volver al Inicio" */}
+      <Box sx={{ textAlign: 'center', mt: 4 }}>
+        <Button component={Link} href="/" variant="contained" color="primary">
+          Volver al Inicio
+        </Button>
+      </Box>
     </Box>
   );
 }
