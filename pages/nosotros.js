@@ -7,20 +7,16 @@ export default function Nosotros() {
   return (
     <MainLayout>
       <Box sx={{ backgroundColor: '#103B40', py: 4 }}>
-        {/* Logo en la parte superior izquierda en un contenedor amplio */}
+        {/* Logo en la parte superior izquierda */}
         <Container maxWidth="lg">
           <Box sx={{ textAlign: 'left', mb: 2 }}>
-            <img
-              src="/images/fap-logo.png"
-              alt="FAP Logo"
-              style={{ width: '120px' }}
-            />
+            <img src="/images/fap-logo.png" alt="FAP Logo" style={{ width: '120px' }} />
           </Box>
         </Container>
         
-        {/* Contenedor central con ancho limitado para que el texto se ajuste y se centre horizontalmente */}
-        <Container maxWidth="md">
-          <Grid container spacing={1} alignItems="flex-start">
+        {/* Contenedor central */}
+        <Container maxWidth="lg" sx={{ mt: 2, ml: { md: '150px' } }}>
+          <Grid container spacing={2} alignItems="flex-start">
             {/* Sección "Nosotros" */}
             <Grid item xs={12} md={4}>
               <Typography
@@ -30,8 +26,8 @@ export default function Nosotros() {
                   fontFamily: "'Open Sans', sans-serif",
                   fontWeight: 700,
                   color: '#fff',
-                  mb: 0.5,
-                  fontSize: '1.8rem',
+                  mb: 1,
+                  fontSize: '3.6rem', // Doble tamaño
                 }}
               >
                 Nosotros
@@ -63,7 +59,7 @@ export default function Nosotros() {
                   fontWeight: 700,
                   color: '#fff',
                   mb: 0.3,
-                  fontSize: '1.8rem',
+                  fontSize: '3.6rem',
                 }}
               >
                 Misión y
@@ -76,7 +72,7 @@ export default function Nosotros() {
                   fontWeight: 700,
                   color: '#fff',
                   mb: 1.5,
-                  fontSize: '1.8rem',
+                  fontSize: '3.6rem',
                 }}
               >
                 objetivo
@@ -108,7 +104,7 @@ export default function Nosotros() {
                   fontWeight: 700,
                   color: '#fff',
                   mb: 0.3,
-                  fontSize: '1.8rem',
+                  fontSize: '3.6rem',
                 }}
               >
                 Visión y
@@ -120,8 +116,8 @@ export default function Nosotros() {
                   fontFamily: "'Open Sans', sans-serif",
                   fontWeight: 700,
                   color: '#fff',
-                  mb: 1.5,
-                  fontSize: '1.8rem',
+                  mb: 2,
+                  fontSize: '3.6rem',
                 }}
               >
                 valores
@@ -144,8 +140,8 @@ export default function Nosotros() {
             </Grid>
           </Grid>
 
-          {/* Botón "Volver al Inicio" */}
-          <Box sx={{ textAlign: 'left', mt: 2 }}>
+          {/* Botón "Volver al Inicio" centrado al final */}
+          <Box sx={{ textAlign: 'center', mt: 4 }}>
             <Button component={Link} href="/" variant="contained" color="primary">
               Volver al Inicio
             </Button>
