@@ -1,10 +1,11 @@
+// components/MainLayout.js
 import { Box, AppBar, Toolbar, Button, IconButton, SvgIcon, Fab } from '@mui/material';
 import Link from 'next/link';
 import Footer from './Footer';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 
-// Ícono de Instagram personalizado
+// Componente para el ícono de Instagram personalizado
 function InstagramIcon(props) {
   return (
     <SvgIcon {...props}>
@@ -16,8 +17,15 @@ function InstagramIcon(props) {
 export default function MainLayout({ children }) {
   return (
     <Box sx={{ position: 'relative', minHeight: '100vh', overflow: 'hidden' }}>
-      {/* AppBar fijo y transparente */}
-      <AppBar position="fixed" sx={{ backgroundColor: 'transparent', boxShadow: 'none', zIndex: 1100 }}>
+      {/* AppBar fijo con fondo semi-transparente */}
+      <AppBar
+        position="fixed"
+        sx={{
+          backgroundColor: 'rgba(16,59,64,0.8)', // Fondo basado en #103B40, 80% opacidad
+          boxShadow: 'none',
+          zIndex: 1100,
+        }}
+      >
         <Toolbar sx={{ flexDirection: { xs: 'column', sm: 'row' }, alignItems: 'center' }}>
           <Button component={Link} href="/nosotros" color="inherit">
             Nosotros
@@ -47,12 +55,12 @@ export default function MainLayout({ children }) {
         </Toolbar>
       </AppBar>
 
-      {/* Contenido principal con padding top para compensar el AppBar */}
+      {/* Contenido principal con padding superior para compensar la altura del AppBar */}
       <Box sx={{ pt: { xs: '80px', sm: '100px' } }}>
         {children}
       </Box>
 
-      {/* Footer fijo al final del contenido */}
+      {/* Footer al final del contenido */}
       <Footer />
 
       {/* Botón flotante de WhatsApp */}
