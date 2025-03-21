@@ -1,9 +1,11 @@
 // components/MainLayout.js
-import { Box, AppBar, Toolbar, Button, IconButton, SvgIcon, Fab } from '@mui/material';
+import { Box, AppBar, Toolbar, Button, IconButton, Menu, MenuItem, SvgIcon, Fab } from '@mui/material';
 import Link from 'next/link';
 import Footer from './Footer';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
+import { useState } from 'react';
+import { useRouter } from 'next/router';
 
 // Componente para el ícono de Instagram personalizado
 function InstagramIcon(props) {
@@ -15,13 +17,30 @@ function InstagramIcon(props) {
 }
 
 export default function MainLayout({ children }) {
+  const router = useRouter();
+  const [solucionesAnchor, setSolucionesAnchor] = useState(null);
+
+  const handleSolucionesOpen = (event) => {
+    setSolucionesAnchor(event.currentTarget);
+  };
+
+  const handleSolucionesClose = () => {
+    setSolucionesAnchor(null);
+  };
+
+  const handleSolucionesNavigate = (path) => {
+    handleSolucionesClose();
+    router.push(path);
+  };
+
   return (
-    <Box sx={{ position: 'relative', minHeight: '100vh', overflow: 'hidden' }}>
-      {/* AppBar fijo con fondo semi-transparente */}
+    // Contenedor principal con flexbox en columna y minHeight para ocupar toda la pantalla
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      {/* AppBar fijo */}
       <AppBar
         position="fixed"
         sx={{
-          backgroundColor: 'rgba(16,59,64,0.8)', // Fondo basado en #103B40, 80% opacidad
+          backgroundColor: 'rgba(16,59,64,0.8)',
           boxShadow: 'none',
           zIndex: 1100,
         }}
@@ -30,9 +49,32 @@ export default function MainLayout({ children }) {
           <Button component={Link} href="/nosotros" color="inherit">
             Nosotros
           </Button>
-          <Button component={Link} href="/soluciones" color="inherit">
+          {/* Botón con menú desplegable para "Soluciones" */}
+          <Button color="inherit" onClick={handleSolucionesOpen}>
             Soluciones
           </Button>
+          <Menu
+            id="soluciones-menu"
+            anchorEl={solucionesAnchor}
+            open={Boolean(solucionesAnchor)}
+            onClose={handleSolucionesClose}
+            MenuListProps={{
+              'aria-labelledby': 'soluciones-button',
+            }}
+          >
+            <MenuItem onClick={() => handleSolucionesNavigate('/soluciones/recruitment')}>
+              Recruitment Process
+            </MenuItem>
+            <MenuItem onClick={() => handleSolucionesNavigate('/soluciones/capacitacion')}>
+              Capacitación y Desarrollo
+            </MenuItem>
+            <MenuItem onClick={() => handleSolucionesNavigate('/soluciones/branding')}>
+              Employer Branding & Engagement
+            </MenuItem>
+            <MenuItem onClick={() => handleSolucionesNavigate('/soluciones/outsourcing')}>
+              Outsourcing
+            </MenuItem>
+          </Menu>
           <Button component={Link} href="/contacto" color="inherit">
             Contacto
           </Button>
@@ -55,17 +97,21 @@ export default function MainLayout({ children }) {
         </Toolbar>
       </AppBar>
 
-      {/* Contenido principal con padding superior para compensar la altura del AppBar */}
-      <Box sx={{ pt: { xs: '80px', sm: '100px' } }}>
+      {/* Contenido principal con flexGrow para ocupar el espacio disponible */}
+      <Box sx={{ flexGrow: 1, pt: { xs: '80px', sm: '100px' } }}>
         {children}
       </Box>
 
-      {/* Footer al final del contenido */}
+      {/* Footer que se ubicará al final */}
       <Footer />
 
       {/* Botón flotante de WhatsApp */}
       <Box sx={{ position: 'fixed', bottom: 16, right: 16, zIndex: 1200 }}>
-        <Fab color="success" aria-label="WhatsApp" onClick={() => window.open("http://api.whatsapp.com/send?phone=542622542125&text=Me+interesa+el+Servicio+de+Recursos+Humanos", "_blank")}>
+        <Fab
+          color="success"
+          aria-label="WhatsApp"
+          onClick={() => window.open("http://api.whatsapp.com/send?phone=542622542125&text=Me+interesa+el+Servicio+de+Recursos+Humanos", "_blank")}
+        >
           <WhatsAppIcon />
         </Fab>
       </Box>

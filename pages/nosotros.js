@@ -1,27 +1,34 @@
 // pages/nosotros.js
-import { Box, Container, Grid, Typography, Button } from '@mui/material';
+import { Box, Container, Grid, Typography, Button, IconButton } from '@mui/material';
 import Link from 'next/link';
 import MainLayout from '../components/MainLayout';
+import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
+import { useRouter } from 'next/router';
 
 export default function Nosotros() {
+  const router = useRouter();
+
+  const handleArrowClick = () => {
+    // Redirige a recruitment.js (ajusta la ruta si es necesario)
+    router.push('/soluciones/recruitment');
+  };
+
   return (
     <MainLayout>
       <Box
         sx={{
-          // Imagen de fondo con efecto "agua"
           backgroundImage: 'url("/images/fondo-agua.jpg")',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
-          py: 2,
-          minHeight: 'calc(100vh - 315px)', // Ajustado para que el footer quede justo al final
           position: 'relative',
+          minHeight: 'calc(100vh - 315px)',
         }}
       >
-        {/* Overlay verde con opacidad para mantener la identidad visual */}
+        {/* Overlay para opacar el fondo */}
         <Box
           sx={{
-            backgroundColor: 'rgba(16,59,64,0.9)', // Verde #103B40 con opacidad
+            backgroundColor: 'rgba(16,59,64,0.9)',
             position: 'absolute',
             top: 0,
             left: 0,
@@ -30,20 +37,23 @@ export default function Nosotros() {
             zIndex: 0,
           }}
         />
-        
-        {/* Contenido (se posiciona por encima del overlay) */}
-        <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
-          {/* Logo en la parte superior izquierda */}
-          <Box sx={{ textAlign: 'left', mb: 1 }}>
-            <img
-              src="/images/fap-logo.png"
-              alt="FAP Logo"
-              style={{ width: '120px' }}
-            />
-          </Box>
-        </Container>
-        
-        <Container maxWidth="md" sx={{ position: 'relative', zIndex: 1, mt: 2 }}>
+
+        {/* Header: Logo y flecha */}
+        <Box sx={{ position: 'relative', zIndex: 1, pt: 2 }}>
+          <Container maxWidth="lg" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            {/* Logo a la izquierda */}
+            <Box>
+              <img src="/images/fap-logo.png" alt="FAP Logo" style={{ width: '120px' }} />
+            </Box>
+            {/* Flecha a la derecha para navegar a Recruitment */}
+            <IconButton onClick={handleArrowClick} sx={{ color: '#fff' }}>
+              <ArrowForwardIosIcon fontSize="large" />
+            </IconButton>
+          </Container>
+        </Box>
+
+        {/* Contenido principal */}
+        <Container maxWidth="md" sx={{ position: 'relative', zIndex: 1, mt: 4, pb: 4 }}>
           <Grid container spacing={4} alignItems="center">
             {/* Sección "Nosotros" */}
             <Grid item xs={12} md={4}>
@@ -66,7 +76,7 @@ export default function Nosotros() {
                 variant="body1"
                 align="justify"
                 sx={{
-                  mt: 3, // mayor espacio entre título y texto
+                  mt: 3,
                   fontFamily: "'Open Sans', sans-serif",
                   fontSize: '1.2rem',
                   color: '#fff',
@@ -169,14 +179,16 @@ export default function Nosotros() {
                 Ser la consultora de referencia en Valle de Uco y Mendoza, reconocida por nuestra excelencia, experiencia y capacidad para contribuir al crecimiento profesional y personal de individuos y organizaciones. Nos guiamos por la solidaridad, la fidelidad y la unión, comprometiéndonos con el bienestar de las personas y el éxito de cada empresa con la que trabajamos.
               </Typography>
             </Grid>
-          </Grid>
 
-          {/* Botón "Volver al Inicio" centrado con mayor separación */}
-          <Box sx={{ textAlign: 'center', mt: 6 }}>
-            <Button component={Link} href="/" variant="contained" color="primary">
-              Volver al Inicio
-            </Button>
-          </Box>
+            {/* Botón "Volver al Inicio" centrado */}
+            <Grid item xs={12}>
+              <Box sx={{ textAlign: 'center', mt: 6 }}>
+                <Button component={Link} href="/" variant="contained" color="primary">
+                  Volver al Inicio
+                </Button>
+              </Box>
+            </Grid>
+          </Grid>
         </Container>
       </Box>
     </MainLayout>
