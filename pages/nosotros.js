@@ -44,7 +44,7 @@ export default function Nosotros() {
         </Container>
         
         <Container maxWidth="md" sx={{ position: 'relative', zIndex: 1, mt: 2 }}>
-          <Grid container spacing={3} alignItems="flex-start">
+          <Grid container spacing={4} alignItems="center">
             {/* Sección "Nosotros" */}
             <Grid item xs={12} md={4}>
               <Typography
@@ -66,6 +66,7 @@ export default function Nosotros() {
                 variant="body1"
                 align="justify"
                 sx={{
+                  mt: 3, // mayor espacio entre título y texto
                   fontFamily: "'Open Sans', sans-serif",
                   fontSize: '1.2rem',
                   color: '#fff',
@@ -111,6 +112,7 @@ export default function Nosotros() {
                 variant="body1"
                 align="justify"
                 sx={{
+                  mt: 3,
                   fontFamily: "'Open Sans', sans-serif",
                   fontSize: '1.2rem',
                   color: '#fff',
@@ -156,6 +158,7 @@ export default function Nosotros() {
                 variant="body1"
                 align="justify"
                 sx={{
+                  mt: 3,
                   fontFamily: "'Open Sans', sans-serif",
                   fontSize: '1.2rem',
                   color: '#fff',
@@ -168,7 +171,7 @@ export default function Nosotros() {
             </Grid>
           </Grid>
 
-          {/* Botón "Volver al Inicio" centrado */}
+          {/* Botón "Volver al Inicio" centrado con mayor separación */}
           <Box sx={{ textAlign: 'center', mt: 6 }}>
             <Button component={Link} href="/" variant="contained" color="primary">
               Volver al Inicio
