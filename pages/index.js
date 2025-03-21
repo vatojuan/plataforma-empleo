@@ -56,7 +56,7 @@ export default function Home() {
         muted
         loop
         playsInline
-        src="/videos/fondo-recursos-humanos.mp4"
+        src="/videos/nuevo-fondo.mp4"
         sx={{
           position: "absolute",
           top: 0,
@@ -138,36 +138,6 @@ export default function Home() {
             </Box>
           </Toolbar>
         </AppBar>
-
-        {/* Contenido principal */}
-        <Container maxWidth="md" sx={{ textAlign: "center", p: 3, mt: 8 }}>
-          <Typography variant="h3" gutterBottom sx={{ color: "#fff" }}>
-            Bienvenido a Nuestra Plataforma
-          </Typography>
-          <Typography variant="body1" sx={{ mb: 4, color: "#fff" }}>
-            Descubre más sobre nuestra agencia y contáctanos para mayor información.
-          </Typography>
-          {status !== "loading" && (
-            <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 2 }}>
-              <Button
-                component={Link}
-                href={session ? "/dashboard" : "/login"}
-                variant="contained"
-                color="primary"
-              >
-                {session ? "Ir al Dashboard" : "Iniciar Sesión"}
-              </Button>
-              <Button
-                variant="contained"
-                color="secondary"
-                onClick={() => window.location.href = "https://fapmendoza.online/cv/upload"}
-              >
-                Subir CV
-              </Button>
-            </Box>
-          )}
-        </Container>
-
         {/* Espaciador para empujar el footer al fondo */}
         <Box sx={{ flexGrow: 1 }} />
 
