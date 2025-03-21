@@ -11,24 +11,15 @@ export default function Nosotros() {
         left: 0,
         width: "100vw",
         height: "100vh",
-        overflow: "hidden",
         bgcolor: "background.default",
+        overflow: "hidden",
       }}
     >
-      <object
-        data="/nosotros.pdf#toolbar=0&navpanes=0&scrollbar=0"
+      <embed
+        src="/nosotros.pdf#toolbar=0&navpanes=0&scrollbar=0"
         type="application/pdf"
-        width="100%"
-        height="100%"
-        style={{ display: "block" }}
-      >
-        <p>
-          El PDF no se pudo cargar.{" "}
-          <a href="/nosotros.pdf" target="_blank" rel="noopener noreferrer">
-            Descargar PDF
-          </a>
-        </p>
-      </object>
+        style={{ width: "100vw", height: "100vh", border: "none" }}
+      />
       <Box sx={{ position: "absolute", top: 16, left: 16 }}>
         <Button component={Link} href="/" variant="contained" color="primary">
           Volver al Inicio
