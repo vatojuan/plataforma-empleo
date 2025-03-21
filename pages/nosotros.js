@@ -120,14 +120,14 @@ export default function Nosotros() {
               trabajamos.
             </Typography>
           </Box>
-
-          {/* Botón "Volver al Inicio" */}
-          <Box sx={{ textAlign: 'center', mt: 4 }}>
-            <Button component={Link} href="/" variant="contained" color="primary">
-              Volver al Inicio
-            </Button>
-          </Box>
         </Container>
+      </Box>
+
+      {/* Botón "Volver al Inicio" ubicado entre el contenido y el Footer */}
+      <Box sx={{ textAlign: 'center', mb: 4 }}>
+        <Button component={Link} href="/" variant="contained" color="primary">
+          Volver al Inicio
+        </Button>
       </Box>
 
       {/* Footer al final de la página */}
