@@ -389,7 +389,7 @@ export default function ProfileEmpleador() {
             </Button>
           </Link>
         </Box>
-        <Box sx={{ mt: 4, textAlign: "center", borderTop: "1px solid red", pt: 2 }}>
+        <Box sx={{ mt: 4, display: "flex", justifyContent: "flex-end", borderTop: "1px solid red", pt: 2 }}>
           <Button onClick={handleDeleteAccount} variant="contained" color="warning">
             Eliminar Cuenta
           </Button>
