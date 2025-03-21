@@ -1,7 +1,7 @@
 // pages/nosotros.js
 import { Box, Container, Typography, Button } from '@mui/material';
 import Link from 'next/link';
-import Footer from '../components/Footer'; // Asegurate de tener este componente
+import Footer from '../components/Footer';
 
 export default function Nosotros() {
   return (
@@ -9,64 +9,36 @@ export default function Nosotros() {
       sx={{
         backgroundColor: '#103B40', // Fondo exacto del PDF
         minHeight: '100vh',
-        position: 'relative',
-        pb: 6,
+        display: 'flex',
+        flexDirection: 'column',
       }}
     >
-      {/* Logo FAP en la esquina superior izquierda */}
-      <Box sx={{ position: 'absolute', top: 16, left: 16 }}>
-        <img
-          src="/images/fap-logo.png"
-          alt="FAP Logo"
-          style={{ maxWidth: '150px', width: '100%' }}
-        />
-      </Box>
+      {/* Contenido principal */}
+      <Box sx={{ flex: 1, position: 'relative', pb: 6 }}>
+        {/* Logo FAP en la esquina superior izquierda */}
+        <Box sx={{ position: 'absolute', top: 16, left: 16 }}>
+          <img
+            src="/images/fap-logo.png"
+            alt="FAP Logo"
+            style={{ maxWidth: '150px', width: '100%' }}
+          />
+        </Box>
 
-      <Container maxWidth="md" sx={{ pt: 8 }}>
-        {/* Título "Nosotros" */}
-        <Typography
-          variant="h2"
-          align="center"
-          sx={{
-            fontFamily: "'Bodoni Moda', serif",
-            color: '#fff',
-            mb: 4,
-          }}
-        >
-          Nosotros
-        </Typography>
-
-        {/* Texto introductorio */}
-        <Typography
-          variant="body1"
-          align="justify"
-          sx={{
-            fontFamily: "'Bodoni Moda', serif",
-            fontSize: '1.2rem',
-            color: '#fff',
-            mb: 6,
-            lineHeight: 1.6,
-          }}
-        >
-          En FAP Consultora, nos especializamos en la gestión de recursos humanos,
-          brindando soluciones personalizadas que potencian el talento y optimizan
-          el rendimiento organizacional. Trabajamos con un enfoque confiable,
-          flexible y colaborativo, promoviendo relaciones laborales basadas en la
-          transparencia y la empatía.
-        </Typography>
-
-        {/* Sección: Misión y objetivo */}
-        <Box sx={{ mb: 6 }}>
+        <Container maxWidth="md" sx={{ pt: 8 }}>
+          {/* Título "Nosotros" */}
           <Typography
-            variant="h4"
+            variant="h2"
+            align="center"
             sx={{
               fontFamily: "'Bodoni Moda', serif",
               color: '#fff',
-              mb: 2,
+              mb: 4,
             }}
           >
-            Misión y objetivo
+            Nosotros
           </Typography>
+
+          {/* Texto introductorio */}
           <Typography
             variant="body1"
             align="justify"
@@ -74,60 +46,91 @@ export default function Nosotros() {
               fontFamily: "'Bodoni Moda', serif",
               fontSize: '1.2rem',
               color: '#fff',
+              mb: 6,
               lineHeight: 1.6,
             }}
           >
-            Colaborar con empresas para mejorar la gestión de sus recursos humanos,
-            ofreciendo estrategias a medida que impulsen un ambiente de trabajo
-            motivador y productivo.
-            <br /><br />
-            Optimizar la gestión del capital humano para mejorar el rendimiento
-            organizacional y el bienestar de los empleados, generando entornos
-            laborales más eficientes y armoniosos.
+            En FAP Consultora, nos especializamos en la gestión de recursos humanos,
+            brindando soluciones personalizadas que potencian el talento y optimizan
+            el rendimiento organizacional. Trabajamos con un enfoque confiable,
+            flexible y colaborativo, promoviendo relaciones laborales basadas en la
+            transparencia y la empatía.
           </Typography>
-        </Box>
 
-        {/* Sección: Visión y valores */}
-        <Box sx={{ mb: 6 }}>
-          <Typography
-            variant="h4"
-            sx={{
-              fontFamily: "'Bodoni Moda', serif",
-              color: '#fff',
-              mb: 2,
-            }}
-          >
-            Visión y valores
-          </Typography>
-          <Typography
-            variant="body1"
-            align="justify"
-            sx={{
-              fontFamily: "'Bodoni Moda', serif",
-              fontSize: '1.2rem',
-              color: '#fff',
-              lineHeight: 1.6,
-            }}
-          >
-            Ser la consultora de referencia en Valle de Uco y Mendoza, reconocida por
-            nuestra excelencia, experiencia y capacidad para contribuir al crecimiento
-            profesional y personal de individuos y organizaciones.
-            <br /><br />
-            Nos guiamos por la solidaridad, la fidelidad y la unión, comprometiéndonos
-            con el bienestar de las personas y el éxito de cada empresa con la que
-            trabajamos.
-          </Typography>
-        </Box>
-      </Container>
+          {/* Sección: Misión y objetivo */}
+          <Box sx={{ mb: 6 }}>
+            <Typography
+              variant="h4"
+              sx={{
+                fontFamily: "'Bodoni Moda', serif",
+                color: '#fff',
+                mb: 2,
+              }}
+            >
+              Misión y objetivo
+            </Typography>
+            <Typography
+              variant="body1"
+              align="justify"
+              sx={{
+                fontFamily: "'Bodoni Moda', serif",
+                fontSize: '1.2rem',
+                color: '#fff',
+                lineHeight: 1.6,
+              }}
+            >
+              Colaborar con empresas para mejorar la gestión de sus recursos humanos,
+              ofreciendo estrategias a medida que impulsen un ambiente de trabajo
+              motivador y productivo.
+              <br /><br />
+              Optimizar la gestión del capital humano para mejorar el rendimiento
+              organizacional y el bienestar de los empleados, generando entornos
+              laborales más eficientes y armoniosos.
+            </Typography>
+          </Box>
 
-      {/* Botón "Volver al Inicio" */}
-      <Box sx={{ textAlign: 'center', mt: 4 }}>
-        <Button component={Link} href="/" variant="contained" color="primary">
-          Volver al Inicio
-        </Button>
+          {/* Sección: Visión y valores */}
+          <Box sx={{ mb: 6 }}>
+            <Typography
+              variant="h4"
+              sx={{
+                fontFamily: "'Bodoni Moda', serif",
+                color: '#fff',
+                mb: 2,
+              }}
+            >
+              Visión y valores
+            </Typography>
+            <Typography
+              variant="body1"
+              align="justify"
+              sx={{
+                fontFamily: "'Bodoni Moda', serif",
+                fontSize: '1.2rem',
+                color: '#fff',
+                lineHeight: 1.6,
+              }}
+            >
+              Ser la consultora de referencia en Valle de Uco y Mendoza, reconocida por
+              nuestra excelencia, experiencia y capacidad para contribuir al crecimiento
+              profesional y personal de individuos y organizaciones.
+              <br /><br />
+              Nos guiamos por la solidaridad, la fidelidad y la unión, comprometiéndonos
+              con el bienestar de las personas y el éxito de cada empresa con la que
+              trabajamos.
+            </Typography>
+          </Box>
+
+          {/* Botón "Volver al Inicio" */}
+          <Box sx={{ textAlign: 'center', mt: 4 }}>
+            <Button component={Link} href="/" variant="contained" color="primary">
+              Volver al Inicio
+            </Button>
+          </Box>
+        </Container>
       </Box>
 
-      {/* Footer que se usa en index */}
+      {/* Footer al final de la página */}
       <Footer />
     </Box>
   );
