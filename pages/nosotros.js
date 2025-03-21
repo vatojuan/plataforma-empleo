@@ -6,18 +6,22 @@ import MainLayout from '../components/MainLayout';
 export default function Nosotros() {
   return (
     <MainLayout>
-      <Box sx={{ backgroundColor: '#103B40', py: 6 }}>
+      <Box sx={{ backgroundColor: '#103B40', py: 6, minHeight: '100vh' }}>
+        {/* Logo en la parte superior izquierda (fuera del contenedor de contenido) */}
         <Container maxWidth="lg">
-          {/* Logo en la parte superior izquierda */}
-          <Box sx={{ textAlign: 'left', mb: 4 }}>
+          <Box sx={{ textAlign: 'left', mb: 2 }}>
             <img src="/images/fap-logo.png" alt="FAP Logo" style={{ width: '120px' }} />
           </Box>
+        </Container>
 
+        {/* Contenedor de contenido con margen izquierdo para separarlo del logo */}
+        <Container maxWidth="lg" sx={{ mt: 4, ml: { md: '150px' } }}>
           {/* Sección "Nosotros" */}
           <Grid container spacing={4} alignItems="flex-start">
             <Grid item xs={12} md={4}>
               <Typography
                 variant="h4"
+                align="left"
                 sx={{
                   fontFamily: "'Open Sans', sans-serif",
                   fontWeight: 700,
@@ -30,6 +34,7 @@ export default function Nosotros() {
             <Grid item xs={12} md={8}>
               <Typography
                 variant="body1"
+                align="justify"
                 sx={{
                   fontFamily: "'Open Sans', sans-serif",
                   fontSize: '1rem',
@@ -37,7 +42,11 @@ export default function Nosotros() {
                   lineHeight: 1.6,
                 }}
               >
-                En FAP Consultora, nos especializamos en la gestión de recursos humanos, brindando soluciones personalizadas que potencian el talento y optimizan el rendimiento organizacional. Trabajamos con un enfoque confiable, flexible y colaborativo, promoviendo relaciones laborales basadas en la transparencia y la empatía.
+                En FAP Consultora, nos especializamos en la gestión de recursos humanos,
+                brindando soluciones personalizadas que potencian el talento y optimizan
+                el rendimiento organizacional. Trabajamos con un enfoque confiable,
+                flexible y colaborativo, promoviendo relaciones laborales basadas en la
+                transparencia y la empatía.
               </Typography>
             </Grid>
           </Grid>
@@ -47,6 +56,7 @@ export default function Nosotros() {
             <Grid item xs={12} md={4}>
               <Typography
                 variant="h4"
+                align="left"
                 sx={{
                   fontFamily: "'Open Sans', sans-serif",
                   fontWeight: 700,
@@ -59,6 +69,7 @@ export default function Nosotros() {
             <Grid item xs={12} md={8}>
               <Typography
                 variant="body1"
+                align="justify"
                 sx={{
                   fontFamily: "'Open Sans', sans-serif",
                   fontSize: '1rem',
@@ -66,7 +77,11 @@ export default function Nosotros() {
                   lineHeight: 1.6,
                 }}
               >
-                Colaborar con empresas para mejorar la gestión de sus recursos humanos, ofreciendo estrategias a medida que impulsen un ambiente de trabajo motivador y productivo. Optimizar la gestión del capital humano para mejorar el rendimiento organizacional y el bienestar de los empleados, generando entornos laborales más eficientes y armoniosos.
+                Colaborar con empresas para mejorar la gestión de sus recursos humanos,
+                ofreciendo estrategias a medida que impulsen un ambiente de trabajo
+                motivador y productivo. Optimizar la gestión del capital humano para
+                mejorar el rendimiento organizacional y el bienestar de los empleados,
+                generando entornos laborales más eficientes y armoniosos.
               </Typography>
             </Grid>
           </Grid>
@@ -76,6 +91,7 @@ export default function Nosotros() {
             <Grid item xs={12} md={4}>
               <Typography
                 variant="h4"
+                align="left"
                 sx={{
                   fontFamily: "'Open Sans', sans-serif",
                   fontWeight: 700,
@@ -88,6 +104,7 @@ export default function Nosotros() {
             <Grid item xs={12} md={8}>
               <Typography
                 variant="body1"
+                align="justify"
                 sx={{
                   fontFamily: "'Open Sans', sans-serif",
                   fontSize: '1rem',
@@ -95,7 +112,11 @@ export default function Nosotros() {
                   lineHeight: 1.6,
                 }}
               >
-                Ser la consultora de referencia en Valle de Uco y Mendoza, reconocida por nuestra excelencia, experiencia y capacidad para contribuir al crecimiento profesional y personal de individuos y organizaciones. Nos guiamos por la solidaridad, la fidelidad y la unión, comprometiéndonos con el bienestar de las personas y el éxito de cada empresa con la que trabajamos.
+                Ser la consultora de referencia en Valle de Uco y Mendoza, reconocida por
+                nuestra excelencia, experiencia y capacidad para contribuir al crecimiento
+                profesional y personal de individuos y organizaciones. Nos guiamos por la
+                solidaridad, la fidelidad y la unión, comprometiéndonos con el bienestar
+                de las personas y el éxito de cada empresa con la que trabajamos.
               </Typography>
             </Grid>
           </Grid>
