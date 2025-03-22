@@ -25,15 +25,15 @@ function InstagramIcon(props) {
 export default function Home() {
   const { data: session, status } = useSession();
 
-  // Ajusta la altura real del viewport en móviles
+  // Corrige el 100vh en móviles calculando la altura real
   useEffect(() => {
     const setVH = () => {
       const vh = window.innerHeight * 0.01;
-      document.documentElement.style.setProperty('--vh', `${vh}px`);
+      document.documentElement.style.setProperty("--vh", `${vh}px`);
     };
     setVH();
-    window.addEventListener('resize', setVH);
-    return () => window.removeEventListener('resize', setVH);
+    window.addEventListener("resize", setVH);
+    return () => window.removeEventListener("resize", setVH);
   }, []);
 
   return (
@@ -41,9 +41,9 @@ export default function Home() {
       sx={{
         position: "relative",
         minHeight: "calc(var(--vh, 1vh) * 100)",
+        overflow: "hidden",
         display: "flex",
-        flexDirection: "column",
-        overflow: "hidden"
+        flexDirection: "column"
       }}
     >
       {/* VIDEO DE FONDO */}
@@ -59,21 +59,22 @@ export default function Home() {
           top: 0,
           left: 0,
           width: "100vw",
-          height: "calc(var(--vh, 1vh) * 100)",
-          objectFit: "cover",
+          height: "100vh",
+          objectFit: "contain", // Usa "contain" para mostrar el video completo
+          backgroundColor: "black", // Fondo negro para las bandas que puedan aparecer
           zIndex: -2
         }}
       />
 
-      {/* OVERLAY OSCURO */}
+      {/* (Overlay opcional – puedes quitarlo si prefieres ver el video sin oscurecer) */}
       <Box
         sx={{
           position: "fixed",
           top: 0,
           left: 0,
           width: "100vw",
-          height: "calc(var(--vh, 1vh) * 100)",
-          bgcolor: "rgba(0, 0, 0, 0.4)",
+          height: "100vh",
+          bgcolor: "rgba(0, 0, 0, 0.2)",
           zIndex: -1
         }}
       />
@@ -106,9 +107,7 @@ export default function Home() {
           <Button
             variant="outlined"
             color="inherit"
-            onClick={() =>
-              window.location.href = "https://fapmendoza.online/cv/upload"
-            }
+            onClick={() => window.location.href = "https://fapmendoza.online/cv/upload"}
           >
             Subir CV
           </Button>
@@ -138,7 +137,7 @@ export default function Home() {
         </Toolbar>
       </AppBar>
 
-      {/* Espacio flexible para empujar el Footer al final */}
+      {/* Espacio flexible para empujar el Footer hacia abajo */}
       <Box sx={{ flexGrow: 1 }} />
 
       {/* FOOTER */}
