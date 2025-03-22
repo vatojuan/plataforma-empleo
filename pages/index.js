@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import {
@@ -25,60 +24,50 @@ function InstagramIcon(props) {
 export default function Home() {
   const { data: session, status } = useSession();
 
-  // Ajusta la altura real del viewport en móviles para corregir el 100vh
-  useEffect(() => {
-    const setVH = () => {
-      const vh = window.innerHeight * 0.01;
-      document.documentElement.style.setProperty('--vh', `${vh}px`);
-    };
-    setVH();
-    window.addEventListener('resize', setVH);
-    return () => window.removeEventListener('resize', setVH);
-  }, []);
-
   return (
     <Box
       sx={{
-        position: "relative",
-        minHeight: "calc(var(--vh, 1vh) * 100)",
+        // Ocupa toda la pantalla, organizando en columna
+        minHeight: "100vh",
         display: "flex",
         flexDirection: "column",
+        position: "relative",
         overflow: "hidden"
       }}
     >
-      {/* VIDEO DE FONDO: llena todo el viewport */}
+      {/* VIDEO DE FONDO */}
       <Box
         component="video"
+        src="/videos/nuevo-fondo.mp4"
         autoPlay
         muted
         loop
         playsInline
-        src="/videos/nuevo-fondo.mp4"
         sx={{
-          position: "fixed",
+          position: "absolute",
           top: 0,
           left: 0,
-          width: "100vw",
-          height: "calc(var(--vh, 1vh) * 100)",
-          objectFit: "cover", // Rellena y recorta si es necesario
+          width: "100%",
+          height: "100%",
+          objectFit: "cover", // Llenar pantalla (recorta si es necesario)
           zIndex: -2
         }}
       />
 
-      {/* Puedes agregar un overlay sutil si deseas suavizar el video */}
+      {/* Opcional: Overlay semitransparente para oscurecer un poco el video */}
       {/* <Box
         sx={{
-          position: "fixed",
+          position: "absolute",
           top: 0,
           left: 0,
-          width: "100vw",
-          height: "calc(var(--vh, 1vh) * 100)",
-          bgcolor: "rgba(0, 0, 0, 0.2)",
+          width: "100%",
+          height: "100%",
+          bgcolor: "rgba(0,0,0,0.3)",
           zIndex: -1
         }}
       /> */}
 
-      {/* APPBAR transparente */}
+      {/* APPBAR TRANSPARENTE en una sola fila */}
       <AppBar
         position="static"
         sx={{
@@ -88,67 +77,68 @@ export default function Home() {
       >
         <Toolbar
           sx={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between"
+            // Forzamos todo en una fila, y si no cabe, hace wrap
+            flexWrap: "wrap",
+            gap: 1
           }}
         >
-          <Box sx={{ display: "flex", gap: 2 }}>
-            <Button component={Link} href="/nosotros" color="inherit">
-              Nosotros
+          <Button component={Link} href="/nosotros" color="inherit">
+            Nosotros
+          </Button>
+          <Button component={Link} href="/soluciones" color="inherit">
+            Soluciones
+          </Button>
+          <Button component={Link} href="/contacto" color="inherit">
+            Contacto
+          </Button>
+          <Button
+            variant="outlined"
+            color="inherit"
+            onClick={() => window.location.href = "https://fapmendoza.online/cv/upload"}
+          >
+            Subir CV
+          </Button>
+          {status === "loading" ? null : session ? (
+            <Button component={Link} href="/dashboard" color="inherit">
+              Dashboard
             </Button>
-            <Button component={Link} href="/soluciones" color="inherit">
-              Soluciones
+          ) : (
+            <Button component={Link} href="/login" color="inherit">
+              Ingresar
             </Button>
-            <Button component={Link} href="/contacto" color="inherit">
-              Contacto
-            </Button>
-            <Button
-              variant="outlined"
-              color="inherit"
-              onClick={() =>
-                window.location.href = "https://fapmendoza.online/cv/upload"
-              }
-            >
-              Subir CV
-            </Button>
-          </Box>
-          <Box sx={{ display: "flex", gap: 1 }}>
-            {status === "loading" ? null : session ? (
-              <Button component={Link} href="/dashboard" color="inherit">
-                Dashboard
-              </Button>
-            ) : (
-              <Button component={Link} href="/login" color="inherit">
-                Ingresar Al Portal
-              </Button>
-            )}
-            <IconButton
-              onClick={() => window.open("https://www.instagram.com/faprrhh", "_blank")}
-              color="inherit"
-            >
-              <InstagramIcon />
-            </IconButton>
-            <IconButton
-              onClick={() => window.open("https://www.linkedin.com/in/florenciaalvarezfap", "_blank")}
-              color="inherit"
-            >
-              <LinkedInIcon />
-            </IconButton>
-          </Box>
+          )}
+          <IconButton
+            onClick={() => window.open("https://www.instagram.com/faprrhh", "_blank")}
+            color="inherit"
+          >
+            <InstagramIcon />
+          </IconButton>
+          <IconButton
+            onClick={() => window.open("https://www.linkedin.com/in/florenciaalvarezfap", "_blank")}
+            color="inherit"
+          >
+            <LinkedInIcon />
+          </IconButton>
         </Toolbar>
       </AppBar>
 
-      {/* Espaciador para empujar el Footer */}
+      {/* Espacio flexible para empujar el Footer al final, sin excesos */}
       <Box sx={{ flexGrow: 1 }} />
 
-      {/* FOOTER: puede mantenerse transparente o ajustarse según convenga */}
-      <Box sx={{ backgroundColor: "transparent" }}>
+      {/* FOOTER con fondo transparente o muy leve */}
+      <Box>
         <Footer />
       </Box>
 
       {/* BOTÓN FLOTANTE DE WHATSAPP */}
-      <Box sx={{ position: "fixed", bottom: 16, right: 16, zIndex: 2 }}>
+      <Box
+        sx={{
+          position: "fixed",
+          bottom: 16,
+          right: 16,
+          zIndex: (theme) => theme.zIndex.drawer + 1
+        }}
+      >
         <Fab
           color="success"
           aria-label="WhatsApp"
