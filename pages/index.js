@@ -2,11 +2,9 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import {
   Box,
-  Typography,
   Button,
   AppBar,
   Toolbar,
-  Container,
   IconButton,
   Fab,
   SvgIcon
@@ -33,7 +31,8 @@ export default function Home() {
         position: "relative",
         minHeight: "100vh",
         display: "flex",
-        flexDirection: "column"
+        flexDirection: "column",
+        overflow: "hidden"
       }}
     >
       {/* VIDEO DE FONDO */}
@@ -45,12 +44,12 @@ export default function Home() {
         playsInline
         src="/videos/nuevo-fondo.mp4"
         sx={{
-          position: "fixed",     // Fijado para que se adapte al viewport
+          position: "fixed",
           top: 0,
           left: 0,
-          width: "100vw",        // Ancho total del viewport
-          height: "100vh",       // Alto total del viewport
-          objectFit: "cover",    // Abarca todo el espacio posible (puede recortar algo)
+          width: "100vw",
+          height: "100vh",
+          objectFit: "cover",
           zIndex: -2
         }}
       />
@@ -68,7 +67,7 @@ export default function Home() {
         }}
       />
 
-      {/* ENCABEZADO (APPBAR) */}
+      {/* APPBAR TRANSPARENTE */}
       <AppBar
         position="static"
         sx={{
@@ -111,7 +110,7 @@ export default function Home() {
             </Button>
           )}
 
-          {/* Íconos de redes, alineados a la derecha en pantallas grandes */}
+          {/* Íconos de redes alineados a la derecha en pantallas grandes */}
           <Box sx={{ ml: { xs: 0, sm: "auto" }, display: "flex" }}>
             <IconButton
               onClick={() => window.open("https://www.instagram.com/faprrhh", "_blank")}
@@ -129,43 +128,7 @@ export default function Home() {
         </Toolbar>
       </AppBar>
 
-      {/* Aquí podrías agregar contenido central si lo deseas */}
-      <Container
-        sx={{
-          textAlign: "center",
-          mt: 8,
-          mb: 4,
-          color: "#fff"
-        }}
-      >
-        <Typography variant="h3" sx={{ mb: 2 }}>
-          Bienvenido a Nuestra Plataforma
-        </Typography>
-        <Typography variant="body1" sx={{ mb: 4 }}>
-          Descubre más sobre nuestra agencia y contáctanos para mayor información.
-        </Typography>
-        {status !== "loading" && (
-          <Box sx={{ display: "flex", justifyContent: "center", gap: 2 }}>
-            <Button
-              component={Link}
-              href={session ? "/dashboard" : "/login"}
-              variant="contained"
-              color="primary"
-            >
-              {session ? "Ir al Dashboard" : "Iniciar Sesión"}
-            </Button>
-            <Button
-              variant="contained"
-              color="secondary"
-              onClick={() => window.location.href = "https://fapmendoza.online/cv/upload"}
-            >
-              Subir CV
-            </Button>
-          </Box>
-        )}
-      </Container>
-
-      {/* Empuja el footer hacia la parte de abajo */}
+      {/* Espacio flexible para empujar el Footer al final */}
       <Box sx={{ flexGrow: 1 }} />
 
       {/* FOOTER */}
