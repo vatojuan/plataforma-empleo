@@ -1,26 +1,11 @@
-// pages/index.js
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { useState } from "react";
-import {
-  Box,
-  Typography,
-  Button,
-  AppBar,
-  Toolbar,
-  Container,
-  IconButton,
-  Fab,
-  SvgIcon,
-  Menu,
-  MenuItem,
-} from "@mui/material";
+import { Box, Typography, Button, AppBar, Toolbar, Container, IconButton, Fab, SvgIcon } from "@mui/material";
 import Footer from "../components/Footer";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
-import { useRouter } from "next/router";
 
-// Ícono personalizado de Instagram
+// Componente para el ícono de Instagram personalizado
 function InstagramIcon(props) {
   return (
     <SvgIcon {...props}>
@@ -31,21 +16,6 @@ function InstagramIcon(props) {
 
 export default function Home() {
   const { data: session, status } = useSession();
-  const router = useRouter();
-  const [anchorEl, setAnchorEl] = useState(null);
-
-  const handleSolucionesOpen = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleSolucionesClose = () => {
-    setAnchorEl(null);
-  };
-
-  const navigateTo = (path) => {
-    handleSolucionesClose();
-    router.push(path);
-  };
 
   return (
     <Box sx={{ position: "relative", minHeight: "100vh", overflow: "hidden" }}>
@@ -61,54 +31,46 @@ export default function Home() {
           position: "absolute",
           top: 0,
           left: 0,
-          width: "100%",
-          height: "100%",
+          width: "100vw",    // Usa 100vw para ocupar el ancho completo del viewport
+          height: "100vh",   // Usa 100vh para ocupar toda la altura
           objectFit: "cover",
           zIndex: -2,
         }}
       />
 
-      {/* Overlay oscuro */}
+      {/* Overlay semitransparente */}
       <Box
         sx={{
           position: "absolute",
           top: 0,
           left: 0,
-          width: "100%",
-          height: "100%",
+          width: "100vw",
+          height: "100vh",
           bgcolor: "rgba(0, 0, 0, 0.4)",
           zIndex: -1,
         }}
       />
 
-      {/* Contenido con AppBar */}
+      {/* Contenedor principal */}
       <Box sx={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+        {/* AppBar */}
         <AppBar position="static" sx={{ mb: 4, backgroundColor: "transparent", boxShadow: "none" }}>
-          <Toolbar sx={{ flexDirection: { xs: "column", sm: "row" }, alignItems: "center" }}>
+          <Toolbar
+            sx={{
+              flexDirection: { xs: "column", sm: "row" },
+              alignItems: "center",
+              flexWrap: "wrap", // Permite que los elementos se ajusten en varias líneas en móviles
+            }}
+          >
             <Button component={Link} href="/nosotros" color="inherit">
               Nosotros
             </Button>
-
-            {/* Menú desplegable de Soluciones */}
-            <Button color="inherit" onClick={handleSolucionesOpen}>
+            <Button component={Link} href="/soluciones" color="inherit">
               Soluciones
             </Button>
-            <Menu
-              anchorEl={anchorEl}
-              open={Boolean(anchorEl)}
-              onClose={handleSolucionesClose}
-              anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-            >
-              <MenuItem onClick={() => navigateTo("/soluciones/recruitment")}>Recruitment Process</MenuItem>
-              <MenuItem onClick={() => navigateTo("/soluciones/capacitacion")}>Capacitación y Desarrollo</MenuItem>
-              <MenuItem onClick={() => navigateTo("/soluciones/branding")}>Employer Branding & Engagement</MenuItem>
-              <MenuItem onClick={() => navigateTo("/soluciones/outsourcing")}>Outsourcing</MenuItem>
-            </Menu>
-
             <Button component={Link} href="/contacto" color="inherit">
               Contacto
             </Button>
-
             <Button
               variant="outlined"
               color="inherit"
@@ -117,7 +79,6 @@ export default function Home() {
             >
               Subir CV
             </Button>
-
             {status === "loading" ? null : session ? (
               <Button component={Link} href="/dashboard" color="inherit" sx={{ ml: 2 }}>
                 Dashboard
@@ -127,7 +88,6 @@ export default function Home() {
                 Ingresar Al Portal
               </Button>
             )}
-
             <Box sx={{ ml: "auto", display: "flex" }}>
               <IconButton onClick={() => window.open("https://www.instagram.com/faprrhh", "_blank")} color="inherit">
                 <InstagramIcon />
@@ -138,7 +98,8 @@ export default function Home() {
             </Box>
           </Toolbar>
         </AppBar>
-        {/* Espaciador para empujar el footer al fondo */}
+
+        {/* Espaciador para empujar el Footer al fondo */}
         <Box sx={{ flexGrow: 1 }} />
 
         {/* Footer */}
