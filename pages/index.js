@@ -32,9 +32,8 @@ export default function Home() {
       sx={{
         position: "relative",
         minHeight: "100vh",
-        overflow: "hidden",
         display: "flex",
-        flexDirection: "column",
+        flexDirection: "column"
       }}
     >
       {/* VIDEO DE FONDO */}
@@ -46,35 +45,35 @@ export default function Home() {
         playsInline
         src="/videos/nuevo-fondo.mp4"
         sx={{
-          position: "absolute",
+          position: "fixed",     // Fijado para que se adapte al viewport
           top: 0,
           left: 0,
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-          zIndex: -2,
+          width: "100vw",        // Ancho total del viewport
+          height: "100vh",       // Alto total del viewport
+          objectFit: "cover",    // Abarca todo el espacio posible (puede recortar algo)
+          zIndex: -2
         }}
       />
 
       {/* OVERLAY OSCURO SEMI-TRANSPARENTE */}
       <Box
         sx={{
-          position: "absolute",
+          position: "fixed",
           top: 0,
           left: 0,
-          width: "100%",
-          height: "100%",
+          width: "100vw",
+          height: "100vh",
           bgcolor: "rgba(0, 0, 0, 0.4)",
-          zIndex: -1,
+          zIndex: -1
         }}
       />
 
-      {/* APPBAR TRANSPARENTE */}
+      {/* ENCABEZADO (APPBAR) */}
       <AppBar
-        position="relative"
+        position="static"
         sx={{
           backgroundColor: "rgba(0,0,0,0.5)",
-          boxShadow: "none",
+          boxShadow: "none"
         }}
       >
         <Toolbar
@@ -82,7 +81,7 @@ export default function Home() {
             flexDirection: { xs: "column", sm: "row" },
             alignItems: "center",
             justifyContent: { xs: "center", sm: "start" },
-            gap: { xs: 1, sm: 2 },
+            gap: { xs: 1, sm: 2 }
           }}
         >
           <Button component={Link} href="/nosotros" color="inherit">
@@ -130,10 +129,47 @@ export default function Home() {
         </Toolbar>
       </AppBar>
 
+      {/* Aquí podrías agregar contenido central si lo deseas */}
+      <Container
+        sx={{
+          textAlign: "center",
+          mt: 8,
+          mb: 4,
+          color: "#fff"
+        }}
+      >
+        <Typography variant="h3" sx={{ mb: 2 }}>
+          Bienvenido a Nuestra Plataforma
+        </Typography>
+        <Typography variant="body1" sx={{ mb: 4 }}>
+          Descubre más sobre nuestra agencia y contáctanos para mayor información.
+        </Typography>
+        {status !== "loading" && (
+          <Box sx={{ display: "flex", justifyContent: "center", gap: 2 }}>
+            <Button
+              component={Link}
+              href={session ? "/dashboard" : "/login"}
+              variant="contained"
+              color="primary"
+            >
+              {session ? "Ir al Dashboard" : "Iniciar Sesión"}
+            </Button>
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={() => window.location.href = "https://fapmendoza.online/cv/upload"}
+            >
+              Subir CV
+            </Button>
+          </Box>
+        )}
+      </Container>
+
+      {/* Empuja el footer hacia la parte de abajo */}
+      <Box sx={{ flexGrow: 1 }} />
+
       {/* FOOTER */}
-      <Box sx={{ mt: "auto" }}>
-        <Footer />
-      </Box>
+      <Footer />
 
       {/* BOTÓN FLOTANTE DE WHATSAPP */}
       <Box sx={{ position: "fixed", bottom: 16, right: 16, zIndex: 2 }}>
