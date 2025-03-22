@@ -27,7 +27,7 @@ export default function Home() {
   return (
     <Box
       sx={{
-        // Ocupa toda la pantalla, organizando en columna
+        // Estructura principal en columna
         minHeight: "100vh",
         display: "flex",
         flexDirection: "column",
@@ -49,25 +49,14 @@ export default function Home() {
           left: 0,
           width: "100%",
           height: "100%",
-          objectFit: "cover", // Llenar pantalla (recorta si es necesario)
+          // En móviles ("xs") muestra "contain", en pantallas >= "sm" usa "cover"
+          objectFit: { xs: "contain", sm: "cover" },
+          backgroundColor: "#000", // Evita fondo blanco en barras
           zIndex: -2
         }}
       />
 
-      {/* Opcional: Overlay semitransparente para oscurecer un poco el video */}
-      {/* <Box
-        sx={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100%",
-          bgcolor: "rgba(0,0,0,0.3)",
-          zIndex: -1
-        }}
-      /> */}
-
-      {/* APPBAR TRANSPARENTE en una sola fila */}
+      {/* APPBAR TRANSPARENTE */}
       <AppBar
         position="static"
         sx={{
@@ -77,11 +66,12 @@ export default function Home() {
       >
         <Toolbar
           sx={{
-            // Forzamos todo en una fila, y si no cabe, hace wrap
+            // En fila, si no cabe todo, se hace wrap
             flexWrap: "wrap",
             gap: 1
           }}
         >
+          {/* Botones a la izquierda */}
           <Button component={Link} href="/nosotros" color="inherit">
             Nosotros
           </Button>
@@ -94,7 +84,7 @@ export default function Home() {
           <Button
             variant="outlined"
             color="inherit"
-            onClick={() => window.location.href = "https://fapmendoza.online/cv/upload"}
+            onClick={() => (window.location.href = "https://fapmendoza.online/cv/upload")}
           >
             Subir CV
           </Button>
@@ -107,28 +97,30 @@ export default function Home() {
               Ingresar
             </Button>
           )}
-          <IconButton
-            onClick={() => window.open("https://www.instagram.com/faprrhh", "_blank")}
-            color="inherit"
-          >
-            <InstagramIcon />
-          </IconButton>
-          <IconButton
-            onClick={() => window.open("https://www.linkedin.com/in/florenciaalvarezfap", "_blank")}
-            color="inherit"
-          >
-            <LinkedInIcon />
-          </IconButton>
+
+          {/* Redes sociales a la derecha */}
+          <Box sx={{ ml: "auto", display: "flex", gap: 1 }}>
+            <IconButton
+              onClick={() => window.open("https://www.instagram.com/faprrhh", "_blank")}
+              color="inherit"
+            >
+              <InstagramIcon />
+            </IconButton>
+            <IconButton
+              onClick={() => window.open("https://www.linkedin.com/in/florenciaalvarezfap", "_blank")}
+              color="inherit"
+            >
+              <LinkedInIcon />
+            </IconButton>
+          </Box>
         </Toolbar>
       </AppBar>
 
-      {/* Espacio flexible para empujar el Footer al final, sin excesos */}
+      {/* Espacio flexible para empujar el footer hacia abajo */}
       <Box sx={{ flexGrow: 1 }} />
 
-      {/* FOOTER con fondo transparente o muy leve */}
-      <Box>
-        <Footer />
-      </Box>
+      {/* FOOTER (fondo transparente o claro) */}
+      <Footer />
 
       {/* BOTÓN FLOTANTE DE WHATSAPP */}
       <Box
