@@ -27,7 +27,6 @@ export default function Home() {
   return (
     <Box
       sx={{
-        // Estructura principal en columna
         minHeight: "100vh",
         display: "flex",
         flexDirection: "column",
@@ -49,24 +48,22 @@ export default function Home() {
           left: 0,
           width: "100%",
           height: "100%",
-          // En móviles ("xs") muestra "contain", en pantallas >= "sm" usa "cover"
           objectFit: { xs: "contain", sm: "cover" },
-          backgroundColor: "#000", // Evita fondo blanco en barras
+          backgroundColor: "#000",
           zIndex: -2
         }}
       />
 
-      {/* APPBAR TRANSPARENTE */}
+      {/* APPBAR con fondo condicional */}
       <AppBar
         position="static"
         sx={{
-          backgroundColor: "transparent",
+          backgroundColor: { xs: "#103B40", sm: "transparent" },
           boxShadow: "none"
         }}
       >
         <Toolbar
           sx={{
-            // En fila, si no cabe todo, se hace wrap
             flexWrap: "wrap",
             gap: 1
           }}
@@ -84,7 +81,9 @@ export default function Home() {
           <Button
             variant="outlined"
             color="inherit"
-            onClick={() => (window.location.href = "https://fapmendoza.online/cv/upload")}
+            onClick={() =>
+              (window.location.href = "https://fapmendoza.online/cv/upload")
+            }
           >
             Subir CV
           </Button>
@@ -101,13 +100,17 @@ export default function Home() {
           {/* Redes sociales a la derecha */}
           <Box sx={{ ml: "auto", display: "flex", gap: 1 }}>
             <IconButton
-              onClick={() => window.open("https://www.instagram.com/faprrhh", "_blank")}
+              onClick={() =>
+                window.open("https://www.instagram.com/faprrhh", "_blank")
+              }
               color="inherit"
             >
               <InstagramIcon />
             </IconButton>
             <IconButton
-              onClick={() => window.open("https://www.linkedin.com/in/florenciaalvarezfap", "_blank")}
+              onClick={() =>
+                window.open("https://www.linkedin.com/in/florenciaalvarezfap", "_blank")
+              }
               color="inherit"
             >
               <LinkedInIcon />
@@ -116,10 +119,10 @@ export default function Home() {
         </Toolbar>
       </AppBar>
 
-      {/* Espacio flexible para empujar el footer hacia abajo */}
+      {/* Espacio flexible para empujar el Footer */}
       <Box sx={{ flexGrow: 1 }} />
 
-      {/* FOOTER (fondo transparente o claro) */}
+      {/* FOOTER */}
       <Footer />
 
       {/* BOTÓN FLOTANTE DE WHATSAPP */}
