@@ -25,15 +25,15 @@ function InstagramIcon(props) {
 export default function Home() {
   const { data: session, status } = useSession();
 
-  // Corrige el 100vh en móviles calculando la altura real
+  // Ajusta la altura real del viewport en móviles para corregir el 100vh
   useEffect(() => {
     const setVH = () => {
       const vh = window.innerHeight * 0.01;
-      document.documentElement.style.setProperty("--vh", `${vh}px`);
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
     };
     setVH();
-    window.addEventListener("resize", setVH);
-    return () => window.removeEventListener("resize", setVH);
+    window.addEventListener('resize', setVH);
+    return () => window.removeEventListener('resize', setVH);
   }, []);
 
   return (
@@ -41,12 +41,12 @@ export default function Home() {
       sx={{
         position: "relative",
         minHeight: "calc(var(--vh, 1vh) * 100)",
-        overflow: "hidden",
         display: "flex",
-        flexDirection: "column"
+        flexDirection: "column",
+        overflow: "hidden"
       }}
     >
-      {/* VIDEO DE FONDO */}
+      {/* VIDEO DE FONDO: llena todo el viewport */}
       <Box
         component="video"
         autoPlay
@@ -59,68 +59,70 @@ export default function Home() {
           top: 0,
           left: 0,
           width: "100vw",
-          height: "100vh",
-          objectFit: "contain", // Usa "contain" para mostrar el video completo
-          backgroundColor: "black", // Fondo negro para las bandas que puedan aparecer
+          height: "calc(var(--vh, 1vh) * 100)",
+          objectFit: "cover", // Rellena y recorta si es necesario
           zIndex: -2
         }}
       />
 
-      {/* (Overlay opcional – puedes quitarlo si prefieres ver el video sin oscurecer) */}
-      <Box
+      {/* Puedes agregar un overlay sutil si deseas suavizar el video */}
+      {/* <Box
         sx={{
           position: "fixed",
           top: 0,
           left: 0,
           width: "100vw",
-          height: "100vh",
+          height: "calc(var(--vh, 1vh) * 100)",
           bgcolor: "rgba(0, 0, 0, 0.2)",
           zIndex: -1
         }}
-      />
+      /> */}
 
-      {/* APPBAR */}
+      {/* APPBAR transparente */}
       <AppBar
         position="static"
         sx={{
-          backgroundColor: "rgba(0,0,0,0.5)",
+          backgroundColor: "transparent",
           boxShadow: "none"
         }}
       >
         <Toolbar
           sx={{
-            flexDirection: { xs: "column", sm: "row" },
+            flexDirection: "row",
             alignItems: "center",
-            justifyContent: { xs: "center", sm: "start" },
-            gap: { xs: 1, sm: 2 }
+            justifyContent: "space-between"
           }}
         >
-          <Button component={Link} href="/nosotros" color="inherit">
-            Nosotros
-          </Button>
-          <Button component={Link} href="/soluciones" color="inherit">
-            Soluciones
-          </Button>
-          <Button component={Link} href="/contacto" color="inherit">
-            Contacto
-          </Button>
-          <Button
-            variant="outlined"
-            color="inherit"
-            onClick={() => window.location.href = "https://fapmendoza.online/cv/upload"}
-          >
-            Subir CV
-          </Button>
-          {status === "loading" ? null : session ? (
-            <Button component={Link} href="/dashboard" color="inherit">
-              Dashboard
+          <Box sx={{ display: "flex", gap: 2 }}>
+            <Button component={Link} href="/nosotros" color="inherit">
+              Nosotros
             </Button>
-          ) : (
-            <Button component={Link} href="/login" color="inherit">
-              Ingresar Al Portal
+            <Button component={Link} href="/soluciones" color="inherit">
+              Soluciones
             </Button>
-          )}
-          <Box sx={{ ml: { xs: 0, sm: "auto" }, display: "flex" }}>
+            <Button component={Link} href="/contacto" color="inherit">
+              Contacto
+            </Button>
+            <Button
+              variant="outlined"
+              color="inherit"
+              onClick={() =>
+                window.location.href = "https://fapmendoza.online/cv/upload"
+              }
+            >
+              Subir CV
+            </Button>
+          </Box>
+          <Box sx={{ display: "flex", gap: 1 }}>
+            {status === "loading" ? null : session ? (
+              <Button component={Link} href="/dashboard" color="inherit">
+                Dashboard
+              </Button>
+            ) : (
+              <Button component={Link} href="/login" color="inherit">
+                Ingresar Al Portal
+              </Button>
+            )}
             <IconButton
               onClick={() => window.open("https://www.instagram.com/faprrhh", "_blank")}
               color="inherit"
@@ -137,11 +139,13 @@ export default function Home() {
         </Toolbar>
       </AppBar>
 
-      {/* Espacio flexible para empujar el Footer hacia abajo */}
+      {/* Espaciador para empujar el Footer */}
       <Box sx={{ flexGrow: 1 }} />
 
-      {/* FOOTER */}
-      <Footer />
+      {/* FOOTER: puede mantenerse transparente o ajustarse según convenga */}
+      <Box sx={{ backgroundColor: "transparent" }}>
+        <Footer />
+      </Box>
 
       {/* BOTÓN FLOTANTE DE WHATSAPP */}
       <Box sx={{ position: "fixed", bottom: 16, right: 16, zIndex: 2 }}>
