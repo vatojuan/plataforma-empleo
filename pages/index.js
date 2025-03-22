@@ -1,11 +1,21 @@
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { Box, Typography, Button, AppBar, Toolbar, Container, IconButton, Fab, SvgIcon } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Button,
+  AppBar,
+  Toolbar,
+  Container,
+  IconButton,
+  Fab,
+  SvgIcon
+} from "@mui/material";
 import Footer from "../components/Footer";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
 
-// Componente para el ícono de Instagram personalizado
+// Ícono de Instagram personalizado
 function InstagramIcon(props) {
   return (
     <SvgIcon {...props}>
@@ -18,8 +28,16 @@ export default function Home() {
   const { data: session, status } = useSession();
 
   return (
-    <Box sx={{ position: "relative", minHeight: "100vh", overflow: "hidden" }}>
-      {/* Video de fondo */}
+    <Box
+      sx={{
+        position: "relative",
+        minHeight: "100vh",
+        overflow: "hidden",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      {/* VIDEO DE FONDO */}
       <Box
         component="video"
         autoPlay
@@ -31,89 +49,103 @@ export default function Home() {
           position: "absolute",
           top: 0,
           left: 0,
-          width: "100vw",    // Usa 100vw para ocupar el ancho completo del viewport
-          height: "100vh",   // Usa 100vh para ocupar toda la altura
+          width: "100%",
+          height: "100%",
           objectFit: "cover",
           zIndex: -2,
         }}
       />
 
-      {/* Overlay semitransparente */}
+      {/* OVERLAY OSCURO SEMI-TRANSPARENTE */}
       <Box
         sx={{
           position: "absolute",
           top: 0,
           left: 0,
-          width: "100vw",
-          height: "100vh",
+          width: "100%",
+          height: "100%",
           bgcolor: "rgba(0, 0, 0, 0.4)",
           zIndex: -1,
         }}
       />
 
-      {/* Contenedor principal */}
-      <Box sx={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-        {/* AppBar */}
-        <AppBar position="static" sx={{ mb: 4, backgroundColor: "transparent", boxShadow: "none" }}>
-          <Toolbar
-            sx={{
-              flexDirection: { xs: "column", sm: "row" },
-              alignItems: "center",
-              flexWrap: "wrap", // Permite que los elementos se ajusten en varias líneas en móviles
-            }}
+      {/* APPBAR TRANSPARENTE */}
+      <AppBar
+        position="relative"
+        sx={{
+          backgroundColor: "rgba(0,0,0,0.5)",
+          boxShadow: "none",
+        }}
+      >
+        <Toolbar
+          sx={{
+            flexDirection: { xs: "column", sm: "row" },
+            alignItems: "center",
+            justifyContent: { xs: "center", sm: "start" },
+            gap: { xs: 1, sm: 2 },
+          }}
+        >
+          <Button component={Link} href="/nosotros" color="inherit">
+            Nosotros
+          </Button>
+          <Button component={Link} href="/soluciones" color="inherit">
+            Soluciones
+          </Button>
+          <Button component={Link} href="/contacto" color="inherit">
+            Contacto
+          </Button>
+          <Button
+            variant="outlined"
+            color="inherit"
+            onClick={() => window.location.href = "https://fapmendoza.online/cv/upload"}
           >
-            <Button component={Link} href="/nosotros" color="inherit">
-              Nosotros
+            Subir CV
+          </Button>
+
+          {status === "loading" ? null : session ? (
+            <Button component={Link} href="/dashboard" color="inherit">
+              Dashboard
             </Button>
-            <Button component={Link} href="/soluciones" color="inherit">
-              Soluciones
+          ) : (
+            <Button component={Link} href="/login" color="inherit">
+              Ingresar Al Portal
             </Button>
-            <Button component={Link} href="/contacto" color="inherit">
-              Contacto
-            </Button>
-            <Button
-              variant="outlined"
+          )}
+
+          {/* Íconos de redes, alineados a la derecha en pantallas grandes */}
+          <Box sx={{ ml: { xs: 0, sm: "auto" }, display: "flex" }}>
+            <IconButton
+              onClick={() => window.open("https://www.instagram.com/faprrhh", "_blank")}
               color="inherit"
-              sx={{ ml: 2 }}
-              onClick={() => window.location.href = "https://fapmendoza.online/cv/upload"}
             >
-              Subir CV
-            </Button>
-            {status === "loading" ? null : session ? (
-              <Button component={Link} href="/dashboard" color="inherit" sx={{ ml: 2 }}>
-                Dashboard
-              </Button>
-            ) : (
-              <Button component={Link} href="/login" color="inherit" sx={{ ml: 2 }}>
-                Ingresar Al Portal
-              </Button>
-            )}
-            <Box sx={{ ml: "auto", display: "flex" }}>
-              <IconButton onClick={() => window.open("https://www.instagram.com/faprrhh", "_blank")} color="inherit">
-                <InstagramIcon />
-              </IconButton>
-              <IconButton onClick={() => window.open("https://www.linkedin.com/in/florenciaalvarezfap", "_blank")} color="inherit">
-                <LinkedInIcon />
-              </IconButton>
-            </Box>
-          </Toolbar>
-        </AppBar>
+              <InstagramIcon />
+            </IconButton>
+            <IconButton
+              onClick={() => window.open("https://www.linkedin.com/in/florenciaalvarezfap", "_blank")}
+              color="inherit"
+            >
+              <LinkedInIcon />
+            </IconButton>
+          </Box>
+        </Toolbar>
+      </AppBar>
 
-        {/* Espaciador para empujar el Footer al fondo */}
-        <Box sx={{ flexGrow: 1 }} />
-
-        {/* Footer */}
-        <Box>
-          <Footer />
-        </Box>
+      {/* FOOTER */}
+      <Box sx={{ mt: "auto" }}>
+        <Footer />
       </Box>
 
-      {/* Botón flotante de WhatsApp */}
+      {/* BOTÓN FLOTANTE DE WHATSAPP */}
       <Box sx={{ position: "fixed", bottom: 16, right: 16, zIndex: 2 }}>
         <Fab
           color="success"
           aria-label="WhatsApp"
-          onClick={() => window.open("http://api.whatsapp.com/send?phone=542622542125&text=Me+interesa+el+Servicio+de+Recursos+Humanos", "_blank")}
+          onClick={() =>
+            window.open(
+              "http://api.whatsapp.com/send?phone=542622542125&text=Me+interesa+el+Servicio+de+Recursos+Humanos",
+              "_blank"
+            )
+          }
         >
           <WhatsAppIcon />
         </Fab>
