@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import {
@@ -13,7 +14,6 @@ import Footer from "../components/Footer";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
 
-// Ícono de Instagram personalizado
 function InstagramIcon(props) {
   return (
     <SvgIcon {...props}>
@@ -25,11 +25,22 @@ function InstagramIcon(props) {
 export default function Home() {
   const { data: session, status } = useSession();
 
+  // Ajusta la altura real del viewport en móviles
+  useEffect(() => {
+    const setVH = () => {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    };
+    setVH();
+    window.addEventListener('resize', setVH);
+    return () => window.removeEventListener('resize', setVH);
+  }, []);
+
   return (
     <Box
       sx={{
         position: "relative",
-        minHeight: "100vh",
+        minHeight: "calc(var(--vh, 1vh) * 100)",
         display: "flex",
         flexDirection: "column",
         overflow: "hidden"
@@ -48,26 +59,26 @@ export default function Home() {
           top: 0,
           left: 0,
           width: "100vw",
-          height: "100vh",
+          height: "calc(var(--vh, 1vh) * 100)",
           objectFit: "cover",
           zIndex: -2
         }}
       />
 
-      {/* OVERLAY OSCURO SEMI-TRANSPARENTE */}
+      {/* OVERLAY OSCURO */}
       <Box
         sx={{
           position: "fixed",
           top: 0,
           left: 0,
           width: "100vw",
-          height: "100vh",
+          height: "calc(var(--vh, 1vh) * 100)",
           bgcolor: "rgba(0, 0, 0, 0.4)",
           zIndex: -1
         }}
       />
 
-      {/* APPBAR TRANSPARENTE */}
+      {/* APPBAR */}
       <AppBar
         position="static"
         sx={{
@@ -95,11 +106,12 @@ export default function Home() {
           <Button
             variant="outlined"
             color="inherit"
-            onClick={() => window.location.href = "https://fapmendoza.online/cv/upload"}
+            onClick={() =>
+              window.location.href = "https://fapmendoza.online/cv/upload"
+            }
           >
             Subir CV
           </Button>
-
           {status === "loading" ? null : session ? (
             <Button component={Link} href="/dashboard" color="inherit">
               Dashboard
@@ -109,8 +121,6 @@ export default function Home() {
               Ingresar Al Portal
             </Button>
           )}
-
-          {/* Íconos de redes alineados a la derecha en pantallas grandes */}
           <Box sx={{ ml: { xs: 0, sm: "auto" }, display: "flex" }}>
             <IconButton
               onClick={() => window.open("https://www.instagram.com/faprrhh", "_blank")}
