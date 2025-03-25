@@ -30,21 +30,29 @@ export default function SelectRole() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+  
     const res = await fetch("/api/auth/select-role", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email: session.user.email, role: selectedRole }),
     });
-
+  
     if (res.ok) {
       setSnackbar({ open: true, message: "Rol seleccionado con éxito", severity: "success" });
-      setTimeout(async () => {
-        await signIn(undefined, { callbackUrl: "/dashboard" });
-      }, 2000);
+  
+      // 🔄 Forzar actualización del session.token.role
+      if (typeof window !== "undefined") {
+        const { update } = await import("next-auth/react");
+        await update(); // Esto volverá a consultar el backend y actualizará el role en session
+      }
+  
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 1500);
     } else {
       setSnackbar({ open: true, message: "Error al actualizar el rol", severity: "error" });
     }
-  };
+  };  
 
   return (
     <Box
