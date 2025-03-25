@@ -16,16 +16,48 @@ export const authOptions = {
       },
       async authorize(credentials) {
         try {
+          console.log("🟡 Iniciando login con:", credentials.email);
+
           const user = await prisma.user.findUnique({
             where: { email: credentials.email },
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              password: true,
+              role: true,
+              confirmed: true,
+              profilePicture: true,
+              // Se omite el campo "embedding" para evitar errores de deserialización
+            },
           });
-          if (!user) throw new Error("Usuario no encontrado");
-          if (!user.password)
+
+          if (!user) {
+            console.log("🔴 Usuario no encontrado");
+            throw new Error("Usuario no encontrado");
+          }
+
+          if (!user.password) {
+            console.log("🔴 Usuario registrado con Google");
             throw new Error("Este usuario se registró con Google, usa Google");
+          }
+
+          console.log("🟢 Usuario encontrado. Hashed password:", user.password);
           const isValid = await bcrypt.compare(credentials.password, user.password);
-          if (!isValid) throw new Error("Contraseña incorrecta");
-          if (!user.confirmed)
+          console.log("🧪 Resultado bcrypt.compare:", isValid);
+
+          if (!isValid) {
+            console.log("🔴 Contraseña incorrecta");
+            throw new Error("Contraseña incorrecta");
+          }
+
+          if (!user.confirmed) {
+            console.log("🔴 Usuario no confirmado");
             throw new Error("Confirma tu correo antes de iniciar sesión");
+          }
+
+          console.log("✅ Login exitoso para:", user.email);
+
           return {
             id: user.id.toString(),
             name: user.name,
@@ -34,8 +66,8 @@ export const authOptions = {
             image: user.profilePicture || "/images/default-user.png",
           };
         } catch (error) {
-          console.error("Error in Credentials authorize:", error);
-          throw new Error("Error en la autenticación");
+          console.error("🚨 Error in Credentials authorize:", error.message);
+          throw new Error(error.message || "Error en la autenticación");
         }
       },
     }),
@@ -64,7 +96,6 @@ export const authOptions = {
             });
           }
           user.id = existingUser.id.toString();
-          // Si ya existe, no forzamos el cambio de nombre para preservar la edición manual
           user.image = existingUser.profilePicture || user.image;
           user.role = existingUser.role;
         } catch (error) {
@@ -75,7 +106,6 @@ export const authOptions = {
       return true;
     },
     async jwt({ token, user, account }) {
-      // Asegurarse de que token sea siempre un objeto.
       token = token || {};
       if (account) {
         token.provider = account.provider;
@@ -103,7 +133,7 @@ export const authOptions = {
             email: dbUser.email,
             role: dbUser.role || "",
             image: dbUser.profilePicture || "/images/default-user.png",
-            provider: token.provider, // Agregamos el proveedor aquí
+            provider: token.provider,
           };
         }
       } catch (error) {
