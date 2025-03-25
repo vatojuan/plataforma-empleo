@@ -1,6 +1,6 @@
 // pages/api/auth/reset-password.js
 import { PrismaClient } from '@prisma/client';
-import { hash } from 'bcryptjs';
+import { hash } from 'bcrypt';
 
 const prisma = new PrismaClient();
 
