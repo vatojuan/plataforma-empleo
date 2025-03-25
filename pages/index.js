@@ -49,7 +49,7 @@ export default function Home() {
           width: "100%",
           height: "100%",
           objectFit: { xs: "contain", sm: "cover" },
-          objectPosition: { xs: "center 20%", sm: "center" },
+          objectPosition: { xs: "center 35%", sm: "center" },
           backgroundColor: "#103B40",
           zIndex: -2
         }}
