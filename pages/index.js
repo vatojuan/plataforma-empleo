@@ -60,7 +60,7 @@ export default function Home() {
       <AppBar
         position="static"
         sx={{
-          backgroundColor: { xs: "#103B40", sm: "transparent" },
+          backgroundColor: { xs: "rgba(16,59,64,0.8)", sm: "transparent" },
           boxShadow: "none"
         }}
       >
