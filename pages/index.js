@@ -48,13 +48,15 @@ export default function Home() {
           left: 0,
           width: "100%",
           height: "100%",
+          // En móviles, se usa "contain" para ver el video completo; en desktop "cover"
           objectFit: { xs: "contain", sm: "cover" },
+          objectPosition: "top", // Alinea el video hacia arriba
           backgroundColor: "#000",
           zIndex: -2
         }}
       />
 
-      {/* APPBAR con fondo condicional */}
+      {/* APPBAR transparente o con fondo #103B40 en móviles */}
       <AppBar
         position="static"
         sx={{
@@ -82,7 +84,8 @@ export default function Home() {
             variant="outlined"
             color="inherit"
             onClick={() =>
-              (window.location.href = "https://fapmendoza.online/cv/upload")
+              (window.location.href =
+                "https://fapmendoza.online/cv/upload")
             }
           >
             Subir CV
@@ -119,10 +122,10 @@ export default function Home() {
         </Toolbar>
       </AppBar>
 
-      {/* Espacio flexible para empujar el Footer */}
+      {/* Espacio flexible para empujar el Footer hacia abajo */}
       <Box sx={{ flexGrow: 1 }} />
 
-      {/* FOOTER */}
+      {/* FOOTER (se recomienda que Footer tenga estilos adecuados) */}
       <Footer />
 
       {/* BOTÓN FLOTANTE DE WHATSAPP */}
