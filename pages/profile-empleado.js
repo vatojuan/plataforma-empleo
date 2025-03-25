@@ -39,7 +39,7 @@ export default function ProfileEmpleado() {
   // Handler para renovar la imagen en caso de error
   const handleImageError = async () => {
     try {
-      const res = await axios.get("/api/employee/renew-profile-picture");
+      const res = await axios.get("/api/picture/renew.js");
       if (res.data?.url) {
         setProfileImageUrl(res.data.url);
       }

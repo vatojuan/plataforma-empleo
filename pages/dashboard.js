@@ -44,9 +44,9 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
     try {
       let endpoint = "";
       if (session.user.role === "empleado") {
-        endpoint = "/api/employee/renew-profile-picture";
+        endpoint = "/api/picture/renew.js";
       } else {
-        endpoint = "/api/employer/renew-profile-picture";
+        endpoint = "/api/picture/renewdor.js";
       }
       const res = await fetch(endpoint);
       const data = await res.json();

@@ -1,6 +1,8 @@
+// pages/select-role.js
+
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { useSession, signOut, signIn } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import {
   Box,
   Container,
@@ -30,29 +32,25 @@ export default function SelectRole() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
-    const res = await fetch("/api/auth/select-role", {
+    if (!session?.user?.email) {
+      return setSnackbar({ open: true, message: "No se encontró sesión válida", severity: "error" });
+    }
+
+    const res = await fetch("/api/user/select-role", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email: session.user.email, role: selectedRole }),
     });
-  
+
     if (res.ok) {
       setSnackbar({ open: true, message: "Rol seleccionado con éxito", severity: "success" });
-  
-      // 🔄 Forzar actualización del session.token.role
-      if (typeof window !== "undefined") {
-        const { update } = await import("next-auth/react");
-        await update(); // Esto volverá a consultar el backend y actualizará el role en session
-      }
-  
       setTimeout(() => {
-        router.push("/dashboard");
-      }, 1500);
+        router.push("/dashboard"); // redirigimos sin forzar signIn()
+      }, 2000);
     } else {
       setSnackbar({ open: true, message: "Error al actualizar el rol", severity: "error" });
     }
-  };  
+  };
 
   return (
     <Box
@@ -69,7 +67,7 @@ export default function SelectRole() {
         sx={{
           textAlign: "center",
           p: 4,
-          pt: 6, // Aumentamos el padding top para dar más espacio al título
+          pt: 6,
           boxShadow: 3,
           borderRadius: 2,
           bgcolor: "background.paper",

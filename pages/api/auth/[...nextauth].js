@@ -52,10 +52,13 @@ export const authOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      // Puedes usar 'profile' si deseas un flujo distinto:
+      // https://next-auth.js.org/configuration/providers/oauth#using-a-custom-profile
     }),
   ],
   callbacks: {
     async signIn({ user, account, profile }) {
+      // Si el provider es Google, actualizamos/creamos el usuario en la base de datos
       if (account.provider === "google") {
         try {
           let existingUser = await prisma.user.findUnique({
@@ -75,15 +78,15 @@ export const authOptions = {
               data: {
                 email: user.email,
                 name: user.name,
-                role: null,
+                role: null, // El usuario definirá su rol después
                 confirmed: true,
-                googleId: profile.sub,
-                profilePicture: user.image || profile.picture,
+                googleId: profile?.sub || null,
+                profilePicture: user.image || profile?.picture || null,
               },
             });
           }
 
-          // ✅ Retornar un user válido para que NextAuth lo use correctamente
+          // Devolvemos un user "sintético" para NextAuth
           return {
             id: existingUser.id.toString(),
             name: existingUser.name,
@@ -98,21 +101,30 @@ export const authOptions = {
       }
       return true;
     },
+
     async jwt({ token, user, account }) {
-      if (account) {
-        token.provider = account.provider;
+      try {
+        if (account) {
+          token.provider = account.provider;
+        }
+        if (user) {
+          token.id = user.id;
+          token.name = user.name;
+          token.email = user.email;
+          token.role = user.role;
+          token.image = user.image;
+        }
+        return token;
+      } catch (err) {
+        console.error("❌ Error en jwt callback:", err);
+        return token;
       }
-      if (user) {
-        token.id = user.id;
-        token.name = user.name;
-        token.email = user.email;
-        token.role = user.role;
-        token.image = user.image;
-      }
-      return token;
     },
+
     async session({ session, token }) {
       try {
+        if (!token?.email) return session;
+
         const dbUser = await prisma.user.findUnique({
           where: { email: token.email },
           select: {
@@ -133,9 +145,12 @@ export const authOptions = {
             image: dbUser.profilePicture || "/images/default-user.png",
             provider: token.provider,
           };
+        } else {
+          session.user = null;
         }
       } catch (error) {
         console.error("❌ Error en session callback:", error);
+        session.user = null;
       }
 
       return session;
