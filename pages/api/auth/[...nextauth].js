@@ -2,7 +2,7 @@ import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import prisma from "../../../lib/prisma";
-import bcrypt from "bcryptjs";
+import bcrypt from "bcrypt";
 
 export const authOptions = {
   secret: process.env.NEXTAUTH_SECRET,
