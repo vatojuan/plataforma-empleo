@@ -1,7 +1,7 @@
 // pages/api/user/change-password.js
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../auth/[...nextauth]";
-import { hash, compare } from "bcryptjs";
+import { hash, compare } from "bcrypt";  // <-- Actualizado: bcrypt en lugar de bcryptjs
 import prisma from "../../../lib/prisma"; // Asegúrate de la ruta correcta
 
 export default async function handler(req, res) {
