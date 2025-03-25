@@ -50,8 +50,8 @@ export default function Home() {
           height: "100%",
           // En móviles, se usa "contain" para ver el video completo; en desktop "cover"
           objectFit: { xs: "contain", sm: "cover" },
-          objectPosition: { xs: "center 40%", sm: "center" }, // Alinea el video hacia arriba
-          backgroundColor: "#000",
+          objectPosition: { xs: "center 36%", sm: "center" }, // Alinea el video hacia arriba
+          backgroundColor: "#103B40",
           zIndex: -2
         }}
       />
