@@ -125,7 +125,15 @@ export const authOptions = {
       try {
         const dbUser = await prisma.user.findUnique({
           where: { email: token.email },
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+            profilePicture: true,
+          },
         });
+    
         if (dbUser) {
           session.user = {
             id: dbUser.id.toString(),
