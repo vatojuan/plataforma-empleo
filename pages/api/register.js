@@ -1,7 +1,7 @@
 // pages/api/register.js
 import { PrismaClient } from '@prisma/client';
 import { generarCodigo } from '../../lib/generateCode';
-import { hash } from 'bcryptjs';
+import { hash } from "bcrypt";
 import nodemailer from 'nodemailer';
 
 const prisma = new PrismaClient();
