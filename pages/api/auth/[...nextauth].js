@@ -16,8 +16,6 @@ export const authOptions = {
       },
       async authorize(credentials) {
         try {
-          console.log("🟡 Iniciando login con:", credentials.email);
-
           const user = await prisma.user.findUnique({
             where: { email: credentials.email },
             select: {
@@ -28,35 +26,15 @@ export const authOptions = {
               role: true,
               confirmed: true,
               profilePicture: true,
-              // Se omite el campo "embedding" para evitar errores de deserialización
             },
           });
 
-          if (!user) {
-            console.log("🔴 Usuario no encontrado");
-            throw new Error("Usuario no encontrado");
-          }
+          if (!user) throw new Error("Usuario no encontrado");
+          if (!user.password) throw new Error("Este usuario se registró con Google, usa Google");
+          if (!user.confirmed) throw new Error("Confirma tu correo antes de iniciar sesión");
 
-          if (!user.password) {
-            console.log("🔴 Usuario registrado con Google");
-            throw new Error("Este usuario se registró con Google, usa Google");
-          }
-
-          console.log("🟢 Usuario encontrado. Hashed password:", user.password);
           const isValid = await bcrypt.compare(credentials.password, user.password);
-          console.log("🧪 Resultado bcrypt.compare:", isValid);
-
-          if (!isValid) {
-            console.log("🔴 Contraseña incorrecta");
-            throw new Error("Contraseña incorrecta");
-          }
-
-          if (!user.confirmed) {
-            console.log("🔴 Usuario no confirmado");
-            throw new Error("Confirma tu correo antes de iniciar sesión");
-          }
-
-          console.log("✅ Login exitoso para:", user.email);
+          if (!isValid) throw new Error("Contraseña incorrecta");
 
           return {
             id: user.id.toString(),
@@ -66,7 +44,7 @@ export const authOptions = {
             image: user.profilePicture || "/images/default-user.png",
           };
         } catch (error) {
-          console.error("🚨 Error in Credentials authorize:", error.message);
+          console.error("❌ Error en authorize:", error.message);
           throw new Error(error.message || "Error en la autenticación");
         }
       },
@@ -82,40 +60,47 @@ export const authOptions = {
         try {
           let existingUser = await prisma.user.findUnique({
             where: { email: user.email },
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              role: true,
+              confirmed: true,
+              profilePicture: true,
+            },
           });
+
           if (!existingUser) {
             existingUser = await prisma.user.create({
               data: {
                 email: user.email,
                 name: user.name,
-                role: null, // El usuario deberá seleccionar su rol posteriormente
+                role: null,
                 confirmed: true,
                 googleId: profile.sub,
                 profilePicture: user.image || profile.picture,
               },
             });
           }
-          // Retornamos un nuevo objeto con los datos del usuario
+
+          // ✅ Retornar un user válido para que NextAuth lo use correctamente
           return {
             id: existingUser.id.toString(),
             name: existingUser.name,
             email: existingUser.email,
             role: existingUser.role,
-            image: existingUser.profilePicture || user.image,
+            image: existingUser.profilePicture || null,
           };
         } catch (error) {
-          console.error("Error en signIn (Google):", error);
-          throw new Error("Error interno");
+          console.error("❌ Error en signIn (Google):", error);
+          return false;
         }
       }
       return true;
     },
     async jwt({ token, user, account }) {
-      token = token || {};
       if (account) {
         token.provider = account.provider;
-      } else if (!token.provider) {
-        token.provider = "credentials";
       }
       if (user) {
         token.id = user.id;
@@ -150,8 +135,9 @@ export const authOptions = {
           };
         }
       } catch (error) {
-        console.error("Error en session callback:", error);
+        console.error("❌ Error en session callback:", error);
       }
+
       return session;
     },
   },
