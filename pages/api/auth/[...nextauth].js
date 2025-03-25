@@ -95,9 +95,14 @@ export const authOptions = {
               },
             });
           }
-          user.id = existingUser.id.toString();
-          user.image = existingUser.profilePicture || user.image;
-          user.role = existingUser.role;
+          // Retornamos un nuevo objeto con los datos del usuario
+          return {
+            id: existingUser.id.toString(),
+            name: existingUser.name,
+            email: existingUser.email,
+            role: existingUser.role,
+            image: existingUser.profilePicture || user.image,
+          };
         } catch (error) {
           console.error("Error en signIn (Google):", error);
           throw new Error("Error interno");
@@ -133,7 +138,7 @@ export const authOptions = {
             profilePicture: true,
           },
         });
-    
+
         if (dbUser) {
           session.user = {
             id: dbUser.id.toString(),

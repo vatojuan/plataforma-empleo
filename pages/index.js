@@ -48,21 +48,23 @@ export default function Home() {
           left: 0,
           width: "100%",
           height: "100%",
-          // En móviles, se usa "contain" para ver el video completo; en desktop "cover"
           objectFit: { xs: "contain", sm: "cover" },
-          objectPosition: { xs: "center 36%", sm: "center" }, // Alinea el video hacia arriba
+          objectPosition: { xs: "center 20%", sm: "center" },
           backgroundColor: "#103B40",
           zIndex: -2
         }}
       />
 
-      {/* APPBAR transparente o con fondo #103B40 en móviles */}
+      {/* APPBAR con fondo condicional */}
       <AppBar
         position="static"
-        sx={{
-          backgroundColor: { xs: "rgba(16,59,64,0.9)", sm: "transparent" },
-          boxShadow: "none"
-        }}
+        sx={(theme) => ({
+          backgroundColor: "transparent",
+          boxShadow: "none",
+          [theme.breakpoints.down("sm")]: {
+            backgroundColor: "rgba(16,59,64,0.9)"
+          }
+        })}
       >
         <Toolbar
           sx={{
@@ -122,10 +124,10 @@ export default function Home() {
         </Toolbar>
       </AppBar>
 
-      {/* Espacio flexible para empujar el Footer hacia abajo */}
+      {/* Espacio flexible para empujar el Footer */}
       <Box sx={{ flexGrow: 1 }} />
 
-      {/* FOOTER (se recomienda que Footer tenga estilos adecuados) */}
+      {/* FOOTER */}
       <Footer />
 
       {/* BOTÓN FLOTANTE DE WHATSAPP */}
