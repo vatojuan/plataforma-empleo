@@ -55,14 +55,14 @@ export default function Home() {
         }}
       />
 
-      {/* APPBAR con fondo condicional */}
+      {/* APPBAR con fondo forzado en móviles */}
       <AppBar
         position="static"
         sx={(theme) => ({
-          backgroundColor: "transparent",
+          backgroundColor: "transparent !important",
           boxShadow: "none",
           [theme.breakpoints.down("sm")]: {
-            backgroundColor: "rgba(16,59,64,0.9)"
+            backgroundColor: "rgba(16,59,64,0.9) !important"
           }
         })}
       >
@@ -124,7 +124,7 @@ export default function Home() {
         </Toolbar>
       </AppBar>
 
-      {/* Espacio flexible para empujar el Footer */}
+      {/* Espacio flexible para empujar el Footer hacia abajo */}
       <Box sx={{ flexGrow: 1 }} />
 
       {/* FOOTER */}
