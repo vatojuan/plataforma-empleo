@@ -1,18 +1,12 @@
+// pages/index.js
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import {
-  Box,
-  Button,
-  AppBar,
-  Toolbar,
-  IconButton,
-  Fab,
-  SvgIcon
-} from "@mui/material";
+import { Box, Typography, Button, AppBar, Toolbar, Container, IconButton, Fab, SvgIcon } from "@mui/material";
 import Footer from "../components/Footer";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
 
+// Componente para el ícono de Instagram personalizado
 function InstagramIcon(props) {
   return (
     <SvgIcon {...props}>
@@ -25,54 +19,55 @@ export default function Home() {
   const { data: session, status } = useSession();
 
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        position: "relative",
-        overflow: "hidden"
-      }}
-    >
+    <Box sx={{ position: "relative", minHeight: "100vh", overflow: "hidden", display: "flex", flexDirection: "column" }}>
       {/* VIDEO DE FONDO */}
       <Box
         component="video"
-        src="/videos/nuevo-fondo.mp4"
         autoPlay
         muted
         loop
         playsInline
+        src="/videos/nuevo-fondo.mp4"
         sx={{
           position: "absolute",
           top: 0,
           left: 0,
           width: "100%",
           height: "100%",
-          objectFit: { xs: "contain", sm: "cover" },
-          objectPosition: { xs: "center 35%", sm: "center" },
-          backgroundColor: "#103B40",
-          zIndex: -2
+          objectFit: "cover",
+          zIndex: -2,
         }}
       />
 
-      {/* APPBAR con fondo forzado en móviles */}
+      {/* OVERLAY OSCURO SEMI-TRANSPARENTE */}
+      <Box
+        sx={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          bgcolor: "rgba(0, 0, 0, 0.4)",
+          zIndex: -1,
+        }}
+      />
+
+      {/* APPBAR TRANSPARENTE */}
       <AppBar
-        position="static"
-        sx={(theme) => ({
-          backgroundColor: "transparent !important",
+        position="relative"
+        sx={{
+          backgroundColor: "rgba(0,0,0,0.5)",
           boxShadow: "none",
-          [theme.breakpoints.down("sm")]: {
-            backgroundColor: "rgba(16,59,64,0.9) !important"
-          }
-        })}
+        }}
       >
         <Toolbar
           sx={{
-            flexWrap: "wrap",
-            gap: 1
+            flexDirection: { xs: "column", sm: "row" },
+            alignItems: "center",
+            justifyContent: { xs: "center", sm: "start" },
+            gap: { xs: 1, sm: 2 },
           }}
         >
-          {/* Botones a la izquierda */}
           <Button component={Link} href="/nosotros" color="inherit">
             Nosotros
           </Button>
@@ -85,10 +80,7 @@ export default function Home() {
           <Button
             variant="outlined"
             color="inherit"
-            onClick={() =>
-              (window.location.href =
-                "https://fapmendoza.online/cv/upload")
-            }
+            onClick={() => window.location.href = "https://fapmendoza.online/cv/upload"}
           >
             Subir CV
           </Button>
@@ -98,24 +90,19 @@ export default function Home() {
             </Button>
           ) : (
             <Button component={Link} href="/login" color="inherit">
-              Ingresar
+              Ingresar Al Portal
             </Button>
           )}
-
-          {/* Redes sociales a la derecha */}
-          <Box sx={{ ml: "auto", display: "flex", gap: 1 }}>
+          {/* Íconos de redes, alineados a la derecha en pantallas grandes */}
+          <Box sx={{ ml: { xs: 0, sm: "auto" }, display: "flex" }}>
             <IconButton
-              onClick={() =>
-                window.open("https://www.instagram.com/faprrhh", "_blank")
-              }
+              onClick={() => window.open("https://www.instagram.com/faprrhh", "_blank")}
               color="inherit"
             >
               <InstagramIcon />
             </IconButton>
             <IconButton
-              onClick={() =>
-                window.open("https://www.linkedin.com/in/florenciaalvarezfap", "_blank")
-              }
+              onClick={() => window.open("https://www.linkedin.com/in/florenciaalvarezfap", "_blank")}
               color="inherit"
             >
               <LinkedInIcon />
@@ -124,27 +111,19 @@ export default function Home() {
         </Toolbar>
       </AppBar>
 
-      {/* Espacio flexible para empujar el Footer hacia abajo */}
-      <Box sx={{ flexGrow: 1 }} />
-
       {/* FOOTER */}
-      <Footer />
+      <Box sx={{ mt: "auto" }}>
+        <Footer />
+      </Box>
 
       {/* BOTÓN FLOTANTE DE WHATSAPP */}
-      <Box
-        sx={{
-          position: "fixed",
-          bottom: 16,
-          right: 16,
-          zIndex: (theme) => theme.zIndex.drawer + 1
-        }}
-      >
+      <Box sx={{ position: "fixed", bottom: 16, right: 16, zIndex: 2 }}>
         <Fab
           color="success"
           aria-label="WhatsApp"
           onClick={() =>
             window.open(
-              "http://api.whatsapp.com/send?phone=542622542125&text=Me+interesa+el+Servicio+de+Recursos+Humanos!",
+              "http://api.whatsapp.com/send?phone=542622542125&text=Me+interesa+el+Servicio+de+Recursos+Humanos",
               "_blank"
             )
           }

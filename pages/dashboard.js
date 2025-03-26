@@ -1,4 +1,4 @@
-import { useSession, signOut } from "next-auth/react";
+import { useSession, signOut, getSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -28,26 +28,31 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
   const router = useRouter();
   const [applications, setApplications] = useState([]);
 
-  // Inicializa la URL de la imagen una sola vez
-  const initialImageUrl = session?.user?.image || "/images/default-user.png";
-  const [profileImageUrl, setProfileImageUrl] = useState(initialImageUrl);
+  // Inicializamos con la imagen que viene en la sesión o fallback (asegurate que esta ruta exista en /public)
+  const [profileImageUrl, setProfileImageUrl] = useState("/images/default-user.png");
 
-  // Eliminamos este useEffect para no reinicializar profileImageUrl al cambiar la sesión
-  // useEffect(() => {
-  //   if (session?.user?.image) {
-  //     setProfileImageUrl(session.user.image);
-  //   }
-  // }, [session]);
+  // Forzamos la revalidación de la sesión al montar el Dashboard
+  useEffect(() => {
+    async function refreshSession() {
+      await getSession();
+    }
+    refreshSession();
+  }, []);
 
-  // Handler para renovar la URL si la imagen falla al cargar
+  // UseEffect para actualizar la imagen cuando la sesión se actualiza
+  useEffect(() => {
+    if (session?.user?.image) {
+      setProfileImageUrl(session.user.image);
+    }
+  }, [session]);
+
+  // Si falla la carga de la imagen, se llama al endpoint para renovarla
   const handleImageError = async () => {
     try {
-      let endpoint = "";
-      if (session.user.role === "empleado") {
-        endpoint = "/api/employee/renew-profile-picture";
-      } else {
-        endpoint = "/api/employer/renew-profile-picture";
-      }
+      const endpoint =
+        session.user.role === "empleado"
+          ? "/api/employee/renew-profile-picture"
+          : "/api/employer/renew-profile-picture";
       const res = await fetch(endpoint);
       const data = await res.json();
       if (data.url) {
@@ -58,11 +63,9 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
     }
   };
 
-  // Estado para el diálogo de confirmación de cancelación de postulación
+  // Estados para el diálogo de cancelación y notificaciones
   const [openCancelDialog, setOpenCancelDialog] = useState(false);
   const [selectedCancelJobId, setSelectedCancelJobId] = useState(null);
-
-  // Snackbar para notificaciones
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
   useEffect(() => {
@@ -80,7 +83,6 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
           const res = await fetch("/api/job/my-applications");
           if (res.ok) {
             const data = await res.json();
-            console.log("Aplicaciones recibidas:", data);
             setApplications(data.applications);
           }
         } catch (error) {
@@ -137,7 +139,7 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
     setTimeout(() => router.push("/login"), 1500);
   };
 
-  // Función para determinar si el empleado ya ha postulado a una oferta
+  // Determina si el empleado ya ha postulado a una oferta
   const isApplied = (jobId) => {
     return applications.some((app) => app.job.id === jobId);
   };
@@ -212,7 +214,7 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
                               {app.job.createdAt ? new Date(app.job.createdAt).toLocaleDateString() : "Sin fecha"}
                             </span>
                             <span style={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                              {/* Puedes agregar íconos adicionales aquí */}
+                              {/* Íconos adicionales */}
                             </span>
                           </Typography>
                           <Typography

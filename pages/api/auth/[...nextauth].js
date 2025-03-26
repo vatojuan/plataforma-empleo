@@ -1,3 +1,4 @@
+// pages/api/auth/[...nextauth].js
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
@@ -62,9 +63,16 @@ export const authOptions = {
                 profilePicture: user.image || profile.picture,
               },
             });
+          } else {
+            // Si el usuario ya existe pero no tiene imagen registrada, se actualiza
+            if (!existingUser.profilePicture) {
+              existingUser = await prisma.user.update({
+                where: { id: existingUser.id },
+                data: { profilePicture: user.image || profile.picture },
+              });
+            }
           }
           user.id = existingUser.id.toString();
-          // Si ya existe, no forzamos el cambio de nombre para preservar la edición manual
           user.image = existingUser.profilePicture || user.image;
           user.role = existingUser.role;
         } catch (error) {
@@ -75,7 +83,6 @@ export const authOptions = {
       return true;
     },
     async jwt({ token, user, account }) {
-      // Asegurarse de que token sea siempre un objeto.
       token = token || {};
       if (account) {
         token.provider = account.provider;
@@ -103,7 +110,7 @@ export const authOptions = {
             email: dbUser.email,
             role: dbUser.role || "",
             image: dbUser.profilePicture || "/images/default-user.png",
-            provider: token.provider, // Agregamos el proveedor aquí
+            provider: token.provider,
           };
         }
       } catch (error) {

@@ -9,7 +9,7 @@ export default async function handler(req, res) {
   const session = await getServerSession(req, res, authOptions);
   if (!session) return res.status(401).json({ error: 'No autorizado' });
 
-  // Recuperar el usuario y obtener la referencia del archivo
+  // Obtener el usuario y su referencia del archivo
   const userId = Number(session.user.id);
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user || !user.profilePictureFileName) {
