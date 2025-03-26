@@ -7,12 +7,17 @@ import {
   Toolbar,
   IconButton,
   Fab,
-  SvgIcon
+  SvgIcon,
+  Menu,
+  MenuItem
 } from "@mui/material";
 import Footer from "../components/Footer";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
+import { useState } from "react";
+import { useRouter } from "next/router";
 
+// Componente para el ícono de Instagram personalizado
 function InstagramIcon(props) {
   return (
     <SvgIcon {...props}>
@@ -21,7 +26,7 @@ function InstagramIcon(props) {
   );
 }
 
-export default function Home() {
+export function Home() {
   const { data: session, status } = useSession();
 
   return (
@@ -48,14 +53,14 @@ export default function Home() {
           left: 0,
           width: "100%",
           height: "100%",
-          objectFit: { xs: "contain", sm: "cover" },
-          objectPosition: { xs: "center 35%", sm: "center" },
+          objectFit: "cover",
+          objectPosition: "center",
           backgroundColor: "#103B40",
           zIndex: -2
         }}
       />
 
-      {/* APPBAR con fondo forzado en móviles */}
+      {/* APPBAR con fondo adaptado para móviles */}
       <AppBar
         position="static"
         sx={(theme) => ({
@@ -69,7 +74,8 @@ export default function Home() {
         <Toolbar
           sx={{
             flexWrap: "wrap",
-            gap: 1
+            gap: 1,
+            justifyContent: { xs: "center", sm: "flex-start" }
           }}
         >
           {/* Botones a la izquierda */}
@@ -139,6 +145,117 @@ export default function Home() {
           zIndex: (theme) => theme.zIndex.drawer + 1
         }}
       >
+        <Fab
+          color="success"
+          aria-label="WhatsApp"
+          onClick={() =>
+            window.open(
+              "http://api.whatsapp.com/send?phone=542622542125&text=Me+interesa+el+Servicio+de+Recursos+Humanos",
+              "_blank"
+            )
+          }
+        >
+          <WhatsAppIcon />
+        </Fab>
+      </Box>
+    </Box>
+  );
+}
+
+export function MainLayout({ children }) {
+  const router = useRouter();
+  const [solucionesAnchor, setSolucionesAnchor] = useState(null);
+
+  const handleSolucionesOpen = (event) => {
+    setSolucionesAnchor(event.currentTarget);
+  };
+
+  const handleSolucionesClose = () => {
+    setSolucionesAnchor(null);
+  };
+
+  const handleSolucionesNavigate = (path) => {
+    handleSolucionesClose();
+    router.push(path);
+  };
+
+  return (
+    // Contenedor principal con flexbox en columna y minHeight para ocupar toda la pantalla
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      {/* AppBar fijo */}
+      <AppBar
+        position="fixed"
+        sx={(theme) => ({
+          backgroundColor: 'rgba(16,59,64,0.8)',
+          boxShadow: 'none',
+          zIndex: 1100,
+          justifyContent: { xs: 'center', sm: 'flex-start' }
+        })}
+      >
+        <Toolbar sx={{ width: '100%', flexDirection: { xs: 'column', sm: 'row' }, alignItems: 'center' }}>
+          <Button component={Link} href="/nosotros" color="inherit">
+            Nosotros
+          </Button>
+          {/* Botón con menú desplegable para "Soluciones" */}
+          <Button color="inherit" onClick={handleSolucionesOpen}>
+            Soluciones
+          </Button>
+          <Menu
+            id="soluciones-menu"
+            anchorEl={solucionesAnchor}
+            open={Boolean(solucionesAnchor)}
+            onClose={handleSolucionesClose}
+            MenuListProps={{
+              'aria-labelledby': 'soluciones-button',
+            }}
+          >
+            <MenuItem onClick={() => handleSolucionesNavigate('/soluciones/recruitment')}>
+              Recruitment Process
+            </MenuItem>
+            <MenuItem onClick={() => handleSolucionesNavigate('/soluciones/capacitacion')}>
+              Capacitación y Desarrollo
+            </MenuItem>
+            <MenuItem onClick={() => handleSolucionesNavigate('/soluciones/branding')}>
+              Employer Branding & Engagement
+            </MenuItem>
+            <MenuItem onClick={() => handleSolucionesNavigate('/soluciones/outsourcing')}>
+              Outsourcing
+            </MenuItem>
+          </Menu>
+          <Button component={Link} href="/contacto" color="inherit">
+            Contacto
+          </Button>
+          <Button
+            variant="outlined"
+            color="inherit"
+            sx={{ ml: 2 }}
+            onClick={() =>
+              window.location.href = "https://fapmendoza.online/cv/upload"
+            }
+          >
+            Subir CV
+          </Button>
+          <Box sx={{ ml: 'auto', display: 'flex', gap: 1 }}>
+            <IconButton onClick={() => window.open("https://www.instagram.com/faprrhh", "_blank")} color="inherit">
+              <InstagramIcon />
+            </IconButton>
+            <IconButton onClick={() => window.open("https://www.linkedin.com/in/florenciaalvarezfap", "_blank")} color="inherit">
+              <LinkedInIcon />
+            </IconButton>
+          </Box>
+        </Toolbar>
+      </AppBar>
+
+      {/* Contenido principal con flexGrow para ocupar el espacio disponible */}
+      <Box sx={{ flexGrow: 1, pt: { xs: '80px', sm: '100px' } }}>
+        {children}
+      </Box>
+
+      {/* Footer que se ubicará al final */}
+      <Footer />
+
+      {/* Botón flotante de WhatsApp */}
+      <Box sx={{ position: 'fixed', bottom: 16, right: 16, zIndex: 1200 }}>
         <Fab
           color="success"
           aria-label="WhatsApp"

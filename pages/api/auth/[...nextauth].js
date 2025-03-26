@@ -1,8 +1,9 @@
+// pages/api/auth/[...nextauth].js
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import prisma from "../../../lib/prisma";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 
 export const authOptions = {
   secret: process.env.NEXTAUTH_SECRET,
@@ -18,24 +19,14 @@ export const authOptions = {
         try {
           const user = await prisma.user.findUnique({
             where: { email: credentials.email },
-            select: {
-              id: true,
-              email: true,
-              name: true,
-              password: true,
-              role: true,
-              confirmed: true,
-              profilePicture: true,
-            },
           });
-
           if (!user) throw new Error("Usuario no encontrado");
-          if (!user.password) throw new Error("Este usuario se registró con Google, usa Google");
-          if (!user.confirmed) throw new Error("Confirma tu correo antes de iniciar sesión");
-
+          if (!user.password)
+            throw new Error("Este usuario se registró con Google, usa Google");
           const isValid = await bcrypt.compare(credentials.password, user.password);
           if (!isValid) throw new Error("Contraseña incorrecta");
-
+          if (!user.confirmed)
+            throw new Error("Confirma tu correo antes de iniciar sesión");
           return {
             id: user.id.toString(),
             name: user.name,
@@ -44,98 +35,74 @@ export const authOptions = {
             image: user.profilePicture || "/images/default-user.png",
           };
         } catch (error) {
-          console.error("❌ Error en authorize:", error.message);
-          throw new Error(error.message || "Error en la autenticación");
+          console.error("Error in Credentials authorize:", error);
+          throw new Error("Error en la autenticación");
         }
       },
     }),
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      // Puedes usar 'profile' si deseas un flujo distinto:
-      // https://next-auth.js.org/configuration/providers/oauth#using-a-custom-profile
     }),
   ],
   callbacks: {
     async signIn({ user, account, profile }) {
-      // Si el provider es Google, actualizamos/creamos el usuario en la base de datos
       if (account.provider === "google") {
         try {
           let existingUser = await prisma.user.findUnique({
             where: { email: user.email },
-            select: {
-              id: true,
-              email: true,
-              name: true,
-              role: true,
-              confirmed: true,
-              profilePicture: true,
-            },
           });
-
           if (!existingUser) {
             existingUser = await prisma.user.create({
               data: {
                 email: user.email,
                 name: user.name,
-                role: null, // El usuario definirá su rol después
+                role: null, // El usuario deberá seleccionar su rol posteriormente
                 confirmed: true,
-                googleId: profile?.sub || null,
-                profilePicture: user.image || profile?.picture || null,
+                googleId: profile.sub,
+                profilePicture: user.image || profile.picture,
               },
             });
+          } else {
+            // Si el usuario ya existe pero no tiene imagen registrada, se actualiza
+            if (!existingUser.profilePicture) {
+              existingUser = await prisma.user.update({
+                where: { id: existingUser.id },
+                data: { profilePicture: user.image || profile.picture },
+              });
+            }
           }
-
-          // Devolvemos un user "sintético" para NextAuth
-          return {
-            id: existingUser.id.toString(),
-            name: existingUser.name,
-            email: existingUser.email,
-            role: existingUser.role,
-            image: existingUser.profilePicture || null,
-          };
+          user.id = existingUser.id.toString();
+          user.image = existingUser.profilePicture || user.image;
+          user.role = existingUser.role;
         } catch (error) {
-          console.error("❌ Error en signIn (Google):", error);
-          return false;
+          console.error("Error en signIn (Google):", error);
+          throw new Error("Error interno");
         }
       }
       return true;
     },
-
     async jwt({ token, user, account }) {
-      try {
-        if (account) {
-          token.provider = account.provider;
-        }
-        if (user) {
-          token.id = user.id;
-          token.name = user.name;
-          token.email = user.email;
-          token.role = user.role;
-          token.image = user.image;
-        }
-        return token;
-      } catch (err) {
-        console.error("❌ Error en jwt callback:", err);
-        return token;
+      token = token || {};
+      if (account) {
+        token.provider = account.provider;
+      } else if (!token.provider) {
+        token.provider = "credentials";
       }
+      if (user) {
+        token.id = user.id;
+        token.name = user.name;
+        token.email = user.email;
+        token.role = user.role;
+        token.image = user.image;
+      }
+      return token;
     },
-
     async session({ session, token }) {
       try {
-        if (!token?.email) return session;
-
         const dbUser = await prisma.user.findUnique({
           where: { email: token.email },
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            role: true,
-            profilePicture: true,
-          },
         });
-
         if (dbUser) {
           session.user = {
             id: dbUser.id.toString(),
@@ -145,14 +112,10 @@ export const authOptions = {
             image: dbUser.profilePicture || "/images/default-user.png",
             provider: token.provider,
           };
-        } else {
-          session.user = null;
         }
       } catch (error) {
-        console.error("❌ Error en session callback:", error);
-        session.user = null;
+        console.error("Error en session callback:", error);
       }
-
       return session;
     },
   },

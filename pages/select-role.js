@@ -1,8 +1,6 @@
-// pages/select-role.js
-
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { useSession, signOut } from "next-auth/react";
+import { useSession, signOut, signIn } from "next-auth/react";
 import {
   Box,
   Container,
@@ -32,11 +30,7 @@ export default function SelectRole() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!session?.user?.email) {
-      return setSnackbar({ open: true, message: "No se encontró sesión válida", severity: "error" });
-    }
-
-    const res = await fetch("/api/user/select-role", {
+    const res = await fetch("/api/auth/select-role", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email: session.user.email, role: selectedRole }),
@@ -44,8 +38,8 @@ export default function SelectRole() {
 
     if (res.ok) {
       setSnackbar({ open: true, message: "Rol seleccionado con éxito", severity: "success" });
-      setTimeout(() => {
-        router.push("/dashboard"); // redirigimos sin forzar signIn()
+      setTimeout(async () => {
+        await signIn(undefined, { callbackUrl: "/dashboard" });
       }, 2000);
     } else {
       setSnackbar({ open: true, message: "Error al actualizar el rol", severity: "error" });
@@ -67,7 +61,7 @@ export default function SelectRole() {
         sx={{
           textAlign: "center",
           p: 4,
-          pt: 6,
+          pt: 6, // Aumentamos el padding top para dar más espacio al título
           boxShadow: 3,
           borderRadius: 2,
           bgcolor: "background.paper",

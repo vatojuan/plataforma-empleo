@@ -1,7 +1,7 @@
 // pages/api/auth/register.js
 import { PrismaClient } from '@prisma/client';
 import { generarCodigo } from '../../../lib/generateCode';
-import { hash } from 'bcrypt';
+import { hash } from 'bcryptjs';
 import nodemailer from 'nodemailer';
 
 const prisma = new PrismaClient();
@@ -18,10 +18,10 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Si el email ya existe y está confirmado, no se permite
+    // Si el email ya existe y está verificado, no se permite
     const usuarioExistente = await prisma.user.findUnique({ where: { email } });
-    if (usuarioExistente && usuarioExistente.confirmed) {
-      return res.status(400).json({ error: "El email ya está registrado y confirmado" });
+    if (usuarioExistente && usuarioExistente.verified) {
+      return res.status(400).json({ error: "El email ya está registrado y verificado" });
     }
 
     // Genera el código de verificación (6 caracteres) y establece su expiración a 15 minutos
@@ -31,7 +31,7 @@ export default async function handler(req, res) {
     // Hashea la contraseña
     const hashedPassword = await hash(password, 12);
 
-    // Si el usuario existe pero no está confirmado, actualiza su registro.
+    // Si el usuario existe pero no está verificado, actualiza su registro.
     // Si no existe, lo crea.
     if (usuarioExistente) {
       await prisma.user.update({
@@ -45,7 +45,6 @@ export default async function handler(req, res) {
           verificationAttempts: 0,
           resendCount: 0,
           lastResend: new Date(),
-          confirmed: false
         },
       });
     } else {
@@ -57,7 +56,7 @@ export default async function handler(req, res) {
           role,
           verificationCode,
           codeExpiration,
-          confirmed: false,
+          verified: false,
           verificationAttempts: 0,
           resendCount: 0,
           lastResend: new Date(),
