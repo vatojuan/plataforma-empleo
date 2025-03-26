@@ -36,20 +36,27 @@ export default function MainLayout({ children }) {
   return (
     // Contenedor principal con flexbox en columna y minHeight para ocupar toda la pantalla
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      {/* AppBar fijo */}
+      {/* AppBar modificado */}
       <AppBar
         position="fixed"
-        sx={{
-          backgroundColor: 'rgba(16,59,64,0.8)',
-          boxShadow: 'none',
+        sx={(theme) => ({
+          backgroundColor: "transparent !important",
+          boxShadow: "none",
           zIndex: 1100,
-        }}
+          [theme.breakpoints.down("sm")]: {
+            backgroundColor: "rgba(16,59,64,0.9) !important"
+          }
+        })}
       >
-        <Toolbar sx={{ flexDirection: { xs: 'column', sm: 'row' }, alignItems: 'center' }}>
+        <Toolbar
+          sx={{
+            flexWrap: "wrap",
+            gap: 1
+          }}
+        >
           <Button component={Link} href="/nosotros" color="inherit">
             Nosotros
           </Button>
-          {/* Botón con menú desplegable para "Soluciones" */}
           <Button color="inherit" onClick={handleSolucionesOpen}>
             Soluciones
           </Button>
@@ -81,12 +88,11 @@ export default function MainLayout({ children }) {
           <Button
             variant="outlined"
             color="inherit"
-            sx={{ ml: 2 }}
             onClick={() => window.location.href = "https://fapmendoza.online/cv/upload"}
           >
             Subir CV
           </Button>
-          <Box sx={{ ml: 'auto', display: 'flex' }}>
+          <Box sx={{ ml: "auto", display: "flex", gap: 1 }}>
             <IconButton onClick={() => window.open("https://www.instagram.com/faprrhh", "_blank")} color="inherit">
               <InstagramIcon />
             </IconButton>
