@@ -39,8 +39,11 @@ export default function Nosotros() {
         />
 
         {/* Header: Logo y flecha */}
-        <Box sx={{ position: 'relative', zIndex: 1, pt: 2 }}>
-          <Container maxWidth="lg" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Box sx={{ position: 'relative', zIndex: 1, pt: { xs: 1, md: 2 } }}>
+          <Container 
+            maxWidth="lg" 
+            sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+          >
             {/* Logo a la izquierda */}
             <Box>
               <img src="/images/fap-logo.png" alt="FAP Logo" style={{ width: '120px' }} />
@@ -53,8 +56,16 @@ export default function Nosotros() {
         </Box>
 
         {/* Contenido principal */}
-        <Container maxWidth="md" sx={{ position: 'relative', zIndex: 1, mt: 4, pb: 4 }}>
-          <Grid container spacing={4} alignItems="center">
+        <Container 
+          maxWidth="md" 
+          sx={{ 
+            position: 'relative', 
+            zIndex: 1, 
+            mt: { xs: 2, md: 4 }, 
+            pb: { xs: 2, md: 4 } 
+          }}
+        >
+          <Grid container spacing={{ xs: 2, md: 4 }} alignItems="center">
             {/* Sección "Nosotros" */}
             <Grid item xs={12} md={4}>
               <Typography
@@ -64,8 +75,8 @@ export default function Nosotros() {
                   fontFamily: "'Open Sans', sans-serif",
                   fontWeight: 700,
                   color: '#fff',
-                  mb: 1,
-                  fontSize: '3.6rem',
+                  mb: { xs: 1, md: 1 },
+                  fontSize: { xs: '2.2rem', md: '3.6rem' },
                 }}
               >
                 Nosotros
@@ -76,12 +87,12 @@ export default function Nosotros() {
                 variant="body1"
                 align="justify"
                 sx={{
-                  mt: 3,
+                  mt: { xs: 1, md: 3 },
                   fontFamily: "'Open Sans', sans-serif",
-                  fontSize: '1.2rem',
+                  fontSize: { xs: '1rem', md: '1.2rem' },
                   color: '#fff',
                   lineHeight: 1.5,
-                  mb: 3,
+                  mb: { xs: 1, md: 3 },
                 }}
               >
                 En FAP Consultora, nos especializamos en la gestión de recursos humanos, brindando soluciones personalizadas que potencian el talento y optimizan el rendimiento organizacional. Trabajamos con un enfoque confiable, flexible y colaborativo, promoviendo relaciones laborales basadas en la transparencia y la empatía.
@@ -97,8 +108,8 @@ export default function Nosotros() {
                   fontFamily: "'Open Sans', sans-serif",
                   fontWeight: 700,
                   color: '#fff',
-                  mb: 0.5,
-                  fontSize: '3.6rem',
+                  mb: { xs: 0.5, md: 0.5 },
+                  fontSize: { xs: '2.2rem', md: '3.6rem' },
                 }}
               >
                 Misión y
@@ -110,8 +121,8 @@ export default function Nosotros() {
                   fontFamily: "'Open Sans', sans-serif",
                   fontWeight: 700,
                   color: '#fff',
-                  mb: 3,
-                  fontSize: '3.6rem',
+                  mb: { xs: 1, md: 3 },
+                  fontSize: { xs: '2.2rem', md: '3.6rem' },
                 }}
               >
                 objetivo
@@ -122,12 +133,12 @@ export default function Nosotros() {
                 variant="body1"
                 align="justify"
                 sx={{
-                  mt: 3,
+                  mt: { xs: 1, md: 3 },
                   fontFamily: "'Open Sans', sans-serif",
-                  fontSize: '1.2rem',
+                  fontSize: { xs: '1rem', md: '1.2rem' },
                   color: '#fff',
                   lineHeight: 1.5,
-                  mb: 3,
+                  mb: { xs: 1, md: 3 },
                 }}
               >
                 Colaborar con empresas para mejorar la gestión de sus recursos humanos, ofreciendo estrategias a medida que impulsen un ambiente de trabajo motivador y productivo. Optimizar la gestión del capital humano para mejorar el rendimiento organizacional y el bienestar de los empleados, generando entornos laborales más eficientes y armoniosos.
@@ -143,8 +154,8 @@ export default function Nosotros() {
                   fontFamily: "'Open Sans', sans-serif",
                   fontWeight: 700,
                   color: '#fff',
-                  mb: 0.5,
-                  fontSize: '3.6rem',
+                  mb: { xs: 0.5, md: 0.5 },
+                  fontSize: { xs: '2.2rem', md: '3.6rem' },
                 }}
               >
                 Visión y
@@ -156,8 +167,8 @@ export default function Nosotros() {
                   fontFamily: "'Open Sans', sans-serif",
                   fontWeight: 700,
                   color: '#fff',
-                  mb: 3,
-                  fontSize: '3.6rem',
+                  mb: { xs: 1, md: 3 },
+                  fontSize: { xs: '2.2rem', md: '3.6rem' },
                 }}
               >
                 valores
@@ -168,12 +179,12 @@ export default function Nosotros() {
                 variant="body1"
                 align="justify"
                 sx={{
-                  mt: 3,
+                  mt: { xs: 1, md: 3 },
                   fontFamily: "'Open Sans', sans-serif",
-                  fontSize: '1.2rem',
+                  fontSize: { xs: '1rem', md: '1.2rem' },
                   color: '#fff',
                   lineHeight: 1.5,
-                  mb: 3,
+                  mb: { xs: 1, md: 3 },
                 }}
               >
                 Ser la consultora de referencia en Valle de Uco y Mendoza, reconocida por nuestra excelencia, experiencia y capacidad para contribuir al crecimiento profesional y personal de individuos y organizaciones. Nos guiamos por la solidaridad, la fidelidad y la unión, comprometiéndonos con el bienestar de las personas y el éxito de cada empresa con la que trabajamos.
@@ -182,7 +193,7 @@ export default function Nosotros() {
 
             {/* Botón "Volver al Inicio" centrado */}
             <Grid item xs={12}>
-              <Box sx={{ textAlign: 'center', mt: 6 }}>
+              <Box sx={{ textAlign: 'center', mt: { xs: 2, md: 6 } }}>
                 <Button component={Link} href="/" variant="contained" color="primary">
                   Volver al Inicio
                 </Button>

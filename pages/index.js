@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { useState } from "react";
+import { useRouter } from "next/router";
 import {
   Box,
   Button,
@@ -7,7 +9,9 @@ import {
   Toolbar,
   IconButton,
   Fab,
-  SvgIcon
+  SvgIcon,
+  Menu,
+  MenuItem
 } from "@mui/material";
 import Footer from "../components/Footer";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
@@ -23,6 +27,21 @@ function InstagramIcon(props) {
 
 export default function Home() {
   const { data: session, status } = useSession();
+  const router = useRouter();
+  const [solucionesAnchor, setSolucionesAnchor] = useState(null);
+
+  const handleSolucionesOpen = (event) => {
+    setSolucionesAnchor(event.currentTarget);
+  };
+
+  const handleSolucionesClose = () => {
+    setSolucionesAnchor(null);
+  };
+
+  const handleSolucionesNavigate = (path) => {
+    handleSolucionesClose();
+    router.push(path);
+  };
 
   return (
     <Box
@@ -76,9 +95,31 @@ export default function Home() {
           <Button component={Link} href="/nosotros" color="inherit">
             Nosotros
           </Button>
-          <Button component={Link} href="/soluciones" color="inherit">
+          <Button color="inherit" onClick={handleSolucionesOpen}>
             Soluciones
           </Button>
+          <Menu
+            id="soluciones-menu"
+            anchorEl={solucionesAnchor}
+            open={Boolean(solucionesAnchor)}
+            onClose={handleSolucionesClose}
+            MenuListProps={{
+              "aria-labelledby": "soluciones-button"
+            }}
+          >
+            <MenuItem onClick={() => handleSolucionesNavigate("/soluciones/recruitment")}>
+              Recruitment Process
+            </MenuItem>
+            <MenuItem onClick={() => handleSolucionesNavigate("/soluciones/capacitacion")}>
+              Capacitación y Desarrollo
+            </MenuItem>
+            <MenuItem onClick={() => handleSolucionesNavigate("/soluciones/branding")}>
+              Employer Branding & Engagement
+            </MenuItem>
+            <MenuItem onClick={() => handleSolucionesNavigate("/soluciones/outsourcing")}>
+              Outsourcing
+            </MenuItem>
+          </Menu>
           <Button component={Link} href="/contacto" color="inherit">
             Contacto
           </Button>
