@@ -37,19 +37,17 @@ model Application {
 }
 
 model Job {
-  id           Int           @id @default(autoincrement())
-  title        String
-  description  String
-  requirements String?       
-  createdAt    DateTime      @default(now())
-  expirationDate DateTime?   // Nuevo campo para la fecha de expiración (opcional)
-  userId       Int
-  applications Application[]
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  embedding    Float[]     // Campo existente
+  id             Int       @id @default(autoincrement())
+  title          String
+  description    String
+  requirements   String?       
+  createdAt      DateTime  @default(now())
+  expirationDate DateTime? // Nuevo campo para la fecha de expiración (opcional)
+  userId         Int
+  applications   Application[]
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  embedding      Float[]   // Campo existente
 }
-
 
 model User {
   id                      Int                @id @default(autoincrement())
@@ -87,5 +85,3 @@ model FileEmbedding {
   embedding  Float[]
   createdAt  DateTime @default(now())
 }
-
-
