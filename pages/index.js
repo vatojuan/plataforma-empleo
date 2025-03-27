@@ -53,7 +53,7 @@ export default function Home() {
         overflow: "hidden"
       }}
     >
-      {/* VIDEO DE FONDO */}
+      {/* VIDEO DE FONDO PARA ESCRITORIO */}
       <Box
         component="video"
         src="/videos/nuevo-fondo.mp4"
@@ -62,13 +62,36 @@ export default function Home() {
         loop
         playsInline
         sx={{
+          display: { xs: "none", sm: "block" },
           position: "absolute",
           top: 0,
           left: 0,
           width: "100%",
           height: "100%",
-          objectFit: { xs: "contain", sm: "cover" },
-          objectPosition: { xs: "center 35%", sm: "center" },
+          objectFit: "cover",
+          objectPosition: "center",
+          backgroundColor: "#103B40",
+          zIndex: -2
+        }}
+      />
+
+      {/* VIDEO DE FONDO PARA MÓVILES */}
+      <Box
+        component="video"
+        src="/videos/video-movil.mp4"
+        autoPlay
+        muted
+        loop
+        playsInline
+        sx={{
+          display: { xs: "block", sm: "none" },
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: "contain",
+          objectPosition: "center",
           backgroundColor: "#103B40",
           zIndex: -2
         }}
