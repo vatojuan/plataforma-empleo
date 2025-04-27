@@ -1,3 +1,5 @@
+// pages/job-list.js
+
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
@@ -32,6 +34,9 @@ export default function JobList() {
   const [selectedCancelJobId, setSelectedCancelJobId] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
+  // URL base de tu API FastAPI
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://api.fapmendoza.online";
+
   useEffect(() => {
     async function fetchJobs() {
       let url = "/api/job/list";
@@ -42,12 +47,12 @@ export default function JobList() {
         const res = await fetch(url);
         if (res.ok) {
           const data = await res.json();
-          // Filtrar ofertas que no hayan expirado
-          const currentDate = new Date();
-          const validJobs = data.jobs.filter(job =>
-            !job.expirationDate || new Date(job.expirationDate) > currentDate
+          const now = new Date();
+          setJobs(
+            data.jobs.filter(
+              (job) => !job.expirationDate || new Date(job.expirationDate) > now
+            )
           );
-          setJobs(validJobs);
         } else {
           console.error("Error al obtener las ofertas");
         }
@@ -78,54 +83,70 @@ export default function JobList() {
     }
   }, [session, status]);
 
-  // Determina si el empleado ya ha postulado a la oferta
-  const isApplied = (jobId) => {
-    return applications.some((app) => app.jobId === jobId);
-  };
+  const isApplied = (jobId) =>
+    applications.some((app) => app.jobId === jobId);
 
-  // Actualiza localmente el conteo de candidatos
   const updateJobCandidatesCount = (jobId, change) => {
     setJobs((prevJobs) =>
       prevJobs.map((job) =>
-        job.id === jobId ? { ...job, candidatesCount: (job.candidatesCount || 0) + change } : job
+        job.id === jobId
+          ? { ...job, candidatesCount: (job.candidatesCount || 0) + change }
+          : job
       )
     );
   };
 
-  // Función para postularse a una oferta
   const handleApply = async (jobId) => {
     try {
+      // 1) Postulación en Next API
       const res = await fetch("/api/job/apply", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ jobId }),
       });
-      if (res.ok) {
-        updateJobCandidatesCount(jobId, 1);
-        setSnackbar({ open: true, message: "Has postulado exitosamente", severity: "success" });
-        // Actualiza la lista de postulaciones
-        const appRes = await fetch("/api/job/my-applications");
-        if (appRes.ok) {
-          const data = await appRes.json();
-          setApplications(data.applications);
-        }
-      } else {
+      if (!res.ok) {
         const errorData = await res.json();
-        setSnackbar({ open: true, message: "Error: " + errorData.error, severity: "error" });
+        throw new Error(errorData.error || res.statusText);
+      }
+
+      updateJobCandidatesCount(jobId, 1);
+      setSnackbar({ open: true, message: "Has postulado exitosamente", severity: "success" });
+
+      // 2) Crear propuesta en FastAPI
+      await fetch(`${API_BASE}/api/proposals/create`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+        },
+        body: JSON.stringify({
+          job_id: jobId,
+          applicant_id: session.user.id,
+          label: "automatic",
+        }),
+      });
+
+      // 3) Refrescar mis postulaciones
+      const appRes = await fetch("/api/job/my-applications");
+      if (appRes.ok) {
+        const data = await appRes.json();
+        setApplications(data.applications);
       }
     } catch (error) {
       console.error("Error al postular:", error);
-      setSnackbar({ open: true, message: "Error al postular", severity: "error" });
+      setSnackbar({
+        open: true,
+        message: `Error al postular: ${error.message}`,
+        severity: "error",
+      });
     }
   };
 
-  // Función para solicitar la cancelación de la postulación
   const handleRequestCancelApplication = (jobId) => {
     setSelectedCancelJobId(jobId);
     setOpenCancelDialog(true);
   };
 
-  // Función para confirmar la cancelación de la postulación
   const confirmCancelApplication = async () => {
     try {
       const res = await fetch("/api/job/cancel-application", {
@@ -153,7 +174,6 @@ export default function JobList() {
     }
   };
 
-  // Función para eliminar una oferta (solo para empleador)
   const handleDeleteJob = (jobId) => {
     setSelectedJobId(jobId);
     setOpenDeleteDialog(true);
@@ -195,9 +215,9 @@ export default function JobList() {
         {jobs.length === 0 ? (
           <Typography variant="body1">No hay ofertas publicadas.</Typography>
         ) : (
-          <Grid 
-            container 
-            spacing={3} 
+          <Grid
+            container
+            spacing={3}
             sx={{ width: { xs: "100%", sm: "95%", md: "900px" }, mx: "auto" }}
           >
             {jobs.map((job) => (
@@ -213,22 +233,11 @@ export default function JobList() {
                         ? new Date(job.expirationDate).toLocaleDateString()
                         : "Sin expiración"}
                     </Typography>
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        mt: 1
-                      }}
-                    >
-                      <span>
-                        Publicado el: {job.postedAt ? new Date(job.postedAt).toLocaleDateString() : "Sin fecha"}
-                      </span>
-                      <span style={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                        {/* Otros elementos si se requieren */}
-                      </span>
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                      Publicado el:{" "}
+                      {job.postedAt
+                        ? new Date(job.postedAt).toLocaleDateString()
+                        : "Sin fecha"}
                     </Typography>
                     <Typography
                       variant="body2"
@@ -258,28 +267,24 @@ export default function JobList() {
                       >
                         Eliminar
                       </Button>
+                    ) : isApplied(job.id) ? (
+                      <Button
+                        onClick={() => handleRequestCancelApplication(job.id)}
+                        size="small"
+                        variant="contained"
+                        color="secondary"
+                      >
+                        Cancelar Postulación
+                      </Button>
                     ) : (
-                      <>
-                        {isApplied(job.id) ? (
-                          <Button
-                            onClick={() => handleRequestCancelApplication(job.id)}
-                            size="small"
-                            variant="contained"
-                            color="secondary"
-                          >
-                            Cancelar Postulación
-                          </Button>
-                        ) : (
-                          <Button
-                            onClick={() => handleApply(job.id)}
-                            size="small"
-                            variant="contained"
-                            color="primary"
-                          >
-                            Postularme
-                          </Button>
-                        )}
-                      </>
+                      <Button
+                        onClick={() => handleApply(job.id)}
+                        size="small"
+                        variant="contained"
+                        color="primary"
+                      >
+                        Postularme
+                      </Button>
                     )}
                   </CardActions>
                 </Card>
@@ -328,11 +333,11 @@ export default function JobList() {
       <Snackbar
         open={snackbar.open}
         autoHideDuration={4000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
         <Alert
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
           severity={snackbar.severity}
           variant="filled"
           sx={{
@@ -340,9 +345,7 @@ export default function JobList() {
             bgcolor: (theme) =>
               snackbar.severity === "success"
                 ? theme.palette.secondary.main
-                : snackbar.severity === "error"
-                ? theme.palette.error.main
-                : theme.palette.info.main,
+                : theme.palette.error.main,
             color: "#fff"
           }}
         >

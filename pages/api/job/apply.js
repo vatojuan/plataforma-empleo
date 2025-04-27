@@ -23,10 +23,36 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Ya has postulado a este empleo' });
     }
 
+    // Crear la aplicación en la base de datos
     const application = await prisma.application.create({
       data: { userId, jobId: Number(jobId) },
     });
-    return res.status(200).json({ message: 'Postulación exitosa', application });
+
+    // Llamar al endpoint de FastAPI para crear la propuesta
+    // Se asume que la propuesta es automática y se crea con status "waiting"
+    const fastapiUrl = process.env.FASTAPI_URL; // Asegurate de definir esta variable
+    const proposalResponse = await fetch(`${fastapiUrl}/api/proposals/create`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        job_id: Number(jobId),
+        applicant_id: userId,
+        label: 'automatic'
+      })
+    });
+    if (!proposalResponse.ok) {
+      console.error('Error al crear propuesta en FastAPI');
+      // Podés decidir qué hacer en caso de error, por ejemplo, cancelar la aplicación
+    }
+    const proposalData = await proposalResponse.json();
+
+    return res.status(200).json({
+      message: 'Postulación exitosa',
+      application,
+      proposal: proposalData,
+    });
   } catch (error) {
     console.error('Error al postular:', error);
     return res.status(500).json({ error: 'Error al postular' });
