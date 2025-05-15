@@ -22,7 +22,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Falta el ID del empleo' });
     }
 
-    // Verificar si ya existe una postulación
+    // 1) Verificar si ya existe una postulación
     const existingApp = await prisma.application.findFirst({
       where: { userId, jobId: Number(jobId) },
     });
@@ -30,16 +30,14 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Ya has postulado a este empleo' });
     }
 
-    // Crear la aplicación en la base de datos
+    // 2) Crear la aplicación en la base de datos local
     const application = await prisma.application.create({
       data: { userId, jobId: Number(jobId) },
     });
 
-    // Llamar al endpoint de FastAPI para crear la propuesta
-    const fastapiUrl = process.env.FASTAPI_URL || process.env.NEXT_PUBLIC_API_URL;
-    if (!fastapiUrl) {
-      console.warn('⚠️ FASTAPI_URL no está definido en tus env vars');
-    }
+    // 3) Llamar al endpoint de FastAPI para crear la propuesta
+    const fastapiUrl = process.env.NEXT_PUBLIC_API_URL || process.env.FASTAPI_URL;
+    const adminToken = req.cookies.adminToken; // o ajusta según donde lo guardes
 
     const proposalResponse = await fetch(
       `${fastapiUrl}/api/proposals/create`,
@@ -47,6 +45,7 @@ export default async function handler(req, res) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(adminToken ? { Authorization: `Bearer ${adminToken}` } : {}),
         },
         body: JSON.stringify({
           job_id: Number(jobId),
@@ -62,9 +61,7 @@ export default async function handler(req, res) {
         await proposalResponse.text()
       );
     }
-    const proposalData = proposalResponse.ok
-      ? await proposalResponse.json()
-      : null;
+    const proposalData = await proposalResponse.json().catch(() => null);
 
     return res.status(200).json({
       message: 'Postulación exitosa',
