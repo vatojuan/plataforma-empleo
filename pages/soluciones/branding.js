@@ -63,10 +63,17 @@ export default function Branding() {
         </Container>
       </Box>
 
-      {/* Contenido */}
+      {/* Contenido con “lienzo” verde */}
       <Container maxWidth="lg" sx={{ py: 6 }}>
-        {/* Descripción + CTA */}
-        <Paper elevation={1} sx={{ p: 4, mb: 6 }}>
+        <Paper
+          elevation={1}
+          sx={{
+            p: 4,
+            mb: 6,
+            backgroundColor: "secondary.main",
+            color: "secondary.contrastText"
+          }}
+        >
           <Typography variant="body1" paragraph>
             En FAP, ayudamos a las empresas a fortalecer su marca empleadora y potenciar el
             compromiso de sus empleados, creando un entorno de trabajo atractivo y motivador.
