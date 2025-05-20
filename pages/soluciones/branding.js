@@ -1,77 +1,117 @@
 // pages/soluciones/branding.js
-import { Container, Typography, IconButton, Grid, Card, CardContent, Box } from '@mui/material';
-import MainLayout from '../../components/MainLayout';
-import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import { useRouter } from 'next/router';
+import {
+  Container,
+  Typography,
+  IconButton,
+  Grid,
+  Card,
+  CardContent,
+  Box,
+  Button,
+  Paper,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText
+} from "@mui/material";
+import MainLayout from "../../components/MainLayout";
+import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import { useRouter } from "next/router";
 
 export default function Branding() {
   const router = useRouter();
+  const handleArrowClick = () => router.push("/soluciones/outsourcing");
+  const handleContact = () => router.push("/contacto");
 
-  const handleArrowClick = () => {
-    router.push('/soluciones/outsourcing');
-  };
+  const servicios = [
+    "Diagnóstico y desarrollo de estrategias de Employer Branding",
+    "Comunicación interna y programas de reconocimiento",
+    "Cultura organizacional y experiencia del empleado"
+  ];
 
   const beneficios = [
     "Atracción de talento calificado",
     "Mayor compromiso y productividad",
     "Menor rotación de personal",
-    "Mejor reputación empresarial",
-  ];
-
-  const servicios = [
-    "Diagnóstico y desarrollo de estrategias de Employer Branding",
-    "Comunicación interna y programas de reconocimiento",
-    "Cultura organizacional y experiencia del empleado",
+    "Mejor reputación empresarial"
   ];
 
   return (
     <MainLayout>
-      {/* Header con título y flecha de avance */}
-      <Container 
-        maxWidth="lg" 
-        sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 2 }}
+      {/* Hero */}
+      <Box
+        sx={{
+          backgroundColor: "primary.main",
+          color: "primary.contrastText",
+          py: 6
+        }}
       >
-        <Typography variant="h5" sx={{ color: 'primary.main' }}>
-          Employer Branding & Engagement
-        </Typography>
-        <IconButton onClick={handleArrowClick}>
-          <ArrowForwardIosIcon fontSize="large" />
-        </IconButton>
-      </Container>
+        <Container
+          maxWidth="lg"
+          sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}
+        >
+          <Box>
+            <Typography variant="h5">Employer Branding y Engagement</Typography>
+            <Typography variant="h2" sx={{ fontWeight: "bold", mt: 1 }}>
+              Construí tu marca empleadora
+            </Typography>
+          </Box>
+          <IconButton onClick={handleArrowClick} sx={{ color: "primary.contrastText" }}>
+            <ArrowForwardIosIcon fontSize="large" />
+          </IconButton>
+        </Container>
+      </Box>
 
-      {/* Contenido principal */}
-      <Container sx={{ mt: 4 }}>
-        <Typography variant="h3" gutterBottom>
-          Construí tu marca empleadora
-        </Typography>
-        <Typography variant="body1" paragraph>
-          En FAP, ayudamos a las empresas a fortalecer su marca empleadora y potenciar el compromiso
-          de sus empleados, creando un entorno de trabajo atractivo y motivador.
-        </Typography>
+      {/* Contenido */}
+      <Container maxWidth="lg" sx={{ py: 6 }}>
+        {/* Descripción + CTA */}
+        <Paper elevation={1} sx={{ p: 4, mb: 6 }}>
+          <Typography variant="body1" paragraph>
+            En FAP, ayudamos a las empresas a fortalecer su marca empleadora y potenciar el
+            compromiso de sus empleados, creando un entorno de trabajo atractivo y motivador.
+          </Typography>
+          <Button variant="contained" size="large" onClick={handleContact}>
+            Contáctanos
+          </Button>
+        </Paper>
 
         {/* ¿Por qué es importante? */}
-        <Box sx={{ my: 4 }}>
-          <Typography variant="h5" gutterBottom>
+        <Box sx={{ mb: 8 }}>
+          <Typography variant="h4" gutterBottom>
             ¿Por qué es importante?
           </Typography>
-          <Typography variant="body1" paragraph>
-            Una marca empleadora sólida permite atraer talento calificado, fomentar el compromiso y satisfacción del equipo,
-            aumentar la productividad y reducir la rotación. ¡Tu reputación como empleador es clave!
-          </Typography>
+          <List>
+            <ListItem>
+              <ListItemIcon>
+                <CheckCircleIcon color="primary" />
+              </ListItemIcon>
+              <ListItemText
+                primary="Employer Branding: Construye y proyecta una imagen sólida como empleador para atraer y retener talento."
+              />
+            </ListItem>
+            <ListItem>
+              <ListItemIcon>
+                <CheckCircleIcon color="primary" />
+              </ListItemIcon>
+              <ListItemText
+                primary="Employee Engagement: Fomenta el compromiso y la satisfacción de los empleados, impulsando la productividad y reduciendo la rotación."
+              />
+            </ListItem>
+          </List>
         </Box>
 
         {/* Nuestros Servicios */}
-        <Box sx={{ my: 4 }}>
-          <Typography variant="h5" gutterBottom>
-            Nuestros Servicios
+        <Box sx={{ mb: 8 }}>
+          <Typography variant="h4" gutterBottom>
+            Nuestro servicio
           </Typography>
-          <Grid container spacing={2}>
-            {servicios.map((servicio, index) => (
-              <Grid item xs={12} md={4} key={index}>
-                <Card elevation={3}>
+          <Grid container spacing={4}>
+            {servicios.map((texto, i) => (
+              <Grid item xs={12} md={4} key={i}>
+                <Card elevation={2} sx={{ height: "100%" }}>
                   <CardContent>
-                    <Typography variant="body1">{servicio}</Typography>
+                    <Typography variant="body1">{texto}</Typography>
                   </CardContent>
                 </Card>
               </Grid>
@@ -80,14 +120,14 @@ export default function Branding() {
         </Box>
 
         {/* Beneficios */}
-        <Box sx={{ my: 4 }}>
-          <Typography variant="h5" gutterBottom>
-            Beneficios para tu empresa
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="h4" gutterBottom>
+            Beneficios
           </Typography>
           <Grid container spacing={2}>
-            {beneficios.map((item, index) => (
-              <Grid item xs={12} md={6} key={index}>
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            {beneficios.map((item, i) => (
+              <Grid item xs={12} md={6} key={i}>
+                <Box sx={{ display: "flex", alignItems: "center" }}>
                   <CheckCircleIcon color="primary" sx={{ mr: 1 }} />
                   <Typography variant="body1">{item}</Typography>
                 </Box>
