@@ -13,6 +13,7 @@ import {
   ListItemText,
   Paper,
   Button,
+  Divider,
 } from "@mui/material";
 import MainLayout from "../../components/MainLayout";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
@@ -24,26 +25,53 @@ export default function Outsourcing() {
   const handleNext = () => router.push("/contacto");
   const handleContact = () => router.push("/contacto");
 
+  /* Servicios con detalle completo */
   const servicios = [
     {
-      titulo: "Payroll Specialist",
-      descripcion:
-        "Gestión integral de nóminas: cálculos, beneficios, retenciones, reportes y control de ausencias.",
+      titulo: "Payroll Specialist (Responsable de Nóminas)",
+      resumen:
+        "Gestión integral y conforme a normativas para asegurar procesos precisos y oportunos.",
+      bullets: [
+        "Elaboración de nóminas y pagos",
+        "Cálculo y gestión de beneficios laborales",
+        "Asesoría en retenciones fiscales y seguridad social",
+        "Reportes de pagos y deducciones",
+        "Gestión de vacaciones, licencias y ausencias",
+      ],
     },
     {
       titulo: "Community Manager",
-      descripcion:
-        "Gestión de redes sociales: estrategia, contenido visual y escrito, atención a la comunidad y campañas.",
+      resumen:
+        "Construye una comunidad digital activa y comprometida alrededor de tu marca.",
+      bullets: [
+        "Creación y ejecución de estrategias de redes sociales",
+        "Desarrollo de contenido visual y escrito (imágenes, videos, textos)",
+        "Gestión de la comunidad y atención a usuarios",
+        "Gestión de campañas publicitarias",
+      ],
     },
     {
       titulo: "Psicología y Desarrollo Organizacional",
-      descripcion:
-        "Programas de bienestar, prevención de agotamiento, liderazgo consciente y productividad basada en neurociencia.",
+      resumen:
+        "Programas de bienestar y desarrollo para un ambiente de trabajo saludable y productivo.",
+      bullets: [
+        "Prevención de agotamiento laboral y equilibrio emocional",
+        "Estrategias basadas en neurociencia para maximizar productividad",
+        "Implementación de programas de bienestar y salud mental",
+        "Liderazgo consciente para mejores decisiones",
+        "Programas de integración de equipos y liderazgo",
+      ],
     },
     {
       titulo: "Catering Corporativo",
-      descripcion:
-        "Servicios de catering para eventos, menús personalizados, snacks, bebidas y montaje in-situ.",
+      resumen:
+        "Soluciones gastronómicas adaptadas a eventos, reuniones y capacitaciones.",
+      bullets: [
+        "Catering para eventos corporativos y reuniones",
+        "Menús saludables y personalizados",
+        "Provisión de bebidas y snacks",
+        "Servicios de entrega y montaje in-situ",
+      ],
     },
   ];
 
@@ -67,7 +95,11 @@ export default function Outsourcing() {
       >
         <Container
           maxWidth="lg"
-          sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
         >
           <Box>
             <Typography variant="h5">Outsourcing</Typography>
@@ -97,11 +129,12 @@ export default function Outsourcing() {
           }}
         >
           <Typography variant="body1" paragraph>
-            Entendemos que las empresas necesitan expertos en áreas clave para
-            maximizar su eficiencia operativa sin sobrecargar a sus equipos
-            internos. Con nuestros servicios de outsourcing tu organización se
-            enfoca en lo que mejor hace, mientras nosotros nos encargamos de
-            tareas especializadas.
+            Entendemos que las empresas necesitan contar con expertos en áreas
+            clave para maximizar su eficiencia operativa sin sobrecargar a sus
+            equipos internos. Por eso, ofrecemos servicios de outsourcing
+            personalizados que permiten a tu organización enfocarse en lo que
+            mejor hace, mientras nosotros nos encargamos de tareas
+            especializadas.
           </Typography>
           <Button variant="contained" size="large" onClick={handleContact}>
             Contáctanos
@@ -129,7 +162,20 @@ export default function Outsourcing() {
                     <Typography variant="h6" gutterBottom>
                       {s.titulo}
                     </Typography>
-                    <Typography variant="body2">{s.descripcion}</Typography>
+                    <Typography variant="body2" sx={{ mb: 1.5 }}>
+                      {s.resumen}
+                    </Typography>
+                    <Divider sx={{ mb: 1, backgroundColor: "rgba(255,255,255,0.2)" }} />
+                    <List dense>
+                      {s.bullets.map((b, idx) => (
+                        <ListItem key={idx} sx={{ pl: 0 }}>
+                          <ListItemIcon sx={{ minWidth: 28 }}>
+                            <CheckCircleIcon color="primary" fontSize="small" />
+                          </ListItemIcon>
+                          <ListItemText primary={b} />
+                        </ListItem>
+                      ))}
+                    </List>
                   </CardContent>
                 </Card>
               </Grid>
