@@ -51,7 +51,7 @@ export default function Outsourcing() {
       ],
     },
     {
-      titulo: "Psicología y Desarrollo Organizacional",
+      titulo: "Programacion y Desarrollo Organizacional",
       resumen:
         "Programas de bienestar y desarrollo para un ambiente de trabajo saludable y productivo.",
       bullets: [
