@@ -18,6 +18,10 @@ import {
 import MainLayout from "../../components/MainLayout";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import LaptopMacIcon from "@mui/icons-material/LaptopMac";
+import StorageIcon from "@mui/icons-material/Storage";
+import PhoneIphoneIcon from "@mui/icons-material/PhoneIphone";
+import BuildIcon from "@mui/icons-material/Build";
 import { useRouter } from "next/router";
 
 export default function Outsourcing() {
@@ -25,12 +29,11 @@ export default function Outsourcing() {
   const handleNext = () => router.push("/contacto");
   const handleContact = () => router.push("/contacto");
 
-  /* Servicios con detalle completo */
+  /* Servicios de outsourcing */
   const servicios = [
     {
       titulo: "Payroll Specialist (Responsable de Nóminas)",
-      resumen:
-        "Gestión integral y conforme a normativas para asegurar procesos precisos y oportunos.",
+      resumen: "Gestión integral y conforme a normativas para asegurar procesos precisos y oportunos.",
       bullets: [
         "Elaboración de nóminas y pagos",
         "Cálculo y gestión de beneficios laborales",
@@ -41,24 +44,22 @@ export default function Outsourcing() {
     },
     {
       titulo: "Community Manager",
-      resumen:
-        "Construye una comunidad digital activa y comprometida alrededor de tu marca.",
+      resumen: "Construye una comunidad digital activa y comprometida alrededor de tu marca.",
       bullets: [
-        "Creación y ejecución de estrategias de redes sociales",
-        "Desarrollo de contenido visual y escrito (imágenes, videos, textos)",
+        "Estrategia y calendarios de contenido",
+        "Diseño de piezas visuales y copywriting",
         "Gestión de la comunidad y atención a usuarios",
-        "Gestión de campañas publicitarias",
+        "Campañas publicitarias en redes",
       ],
     },
     {
       titulo: "Catering Corporativo",
-      resumen:
-        "Soluciones gastronómicas adaptadas a eventos, reuniones y capacitaciones.",
+      resumen: "Soluciones gastronómicas adaptadas a eventos, reuniones y capacitaciones.",
       bullets: [
         "Catering para eventos corporativos y reuniones",
         "Menús saludables y personalizados",
         "Provisión de bebidas y snacks",
-        "Servicios de entrega y montaje in-situ",
+        "Servicio de montaje y logística in-situ",
       ],
     },
   ];
@@ -70,31 +71,47 @@ export default function Outsourcing() {
     "Flexibilidad y escalabilidad del servicio",
   ];
 
+  /* Etapas clave para Software Factory */
+  const softwareSteps = [
+    {
+      icon: <StorageIcon />,
+      title: "Análisis y Diseño",
+      desc: "Relevamos requisitos y definimos la arquitectura de la solución.",
+    },
+    {
+      icon: <LaptopMacIcon />,
+      title: "Desarrollo Web / Desktop",
+      desc: "Aplicaciones robustas y escalables adaptadas a tu operación.",
+    },
+    {
+      icon: <PhoneIphoneIcon />,
+      title: "Apps Móviles",
+      desc: "Experiencias nativas o híbridas que acercan tu servicio a tus clientes.",
+    },
+    {
+      icon: <BuildIcon />,
+      title: "Soporte & Evolución",
+      desc: "Mantenimiento continuo, integraciones y nuevas funcionalidades.",
+    },
+  ];
+
   return (
     <MainLayout>
       {/* Hero */}
       <Box
         sx={{
-          background:
-            "linear-gradient(135deg,#0B2A2D 0%, #103B40 50%, #155158 100%)",
+          background: "linear-gradient(135deg,#0B2A2D 0%, #103B40 50%, #155158 100%)",
           color: "#FFF",
           py: { xs: 6, md: 8 },
         }}
       >
         <Container
           maxWidth="lg"
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
+          sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}
         >
           <Box>
             <Typography variant="h5">Outsourcing</Typography>
-            <Typography
-              variant="h2"
-              sx={{ fontWeight: 700, mt: 1, lineHeight: 1.2 }}
-            >
+            <Typography variant="h2" sx={{ fontWeight: 700, mt: 1, lineHeight: 1.2 }}>
               Expertos externos<br />para tu eficiencia
             </Typography>
           </Box>
@@ -104,7 +121,6 @@ export default function Outsourcing() {
         </Container>
       </Box>
 
-      {/* Contenido principal */}
       <Container maxWidth="lg" sx={{ py: 8 }}>
         {/* Intro + CTA */}
         <Paper
@@ -117,18 +133,15 @@ export default function Outsourcing() {
           }}
         >
           <Typography variant="body1" paragraph>
-            Entendemos que las empresas necesitan contar con expertos en áreas
-            clave para maximizar su eficiencia operativa sin sobrecargar a sus
-            equipos internos. Con nuestros servicios de outsourcing tu
-            organización se enfoca en lo que mejor hace, mientras nosotros nos
-            encargamos de tareas especializadas.
+            Externalizá procesos clave con profesionales de confianza y enfocá tus recursos en
+            hacer crecer tu negocio.
           </Typography>
           <Button variant="contained" size="large" onClick={handleContact}>
             Contáctanos
           </Button>
         </Paper>
 
-        {/* Nuestros servicios */}
+        {/* Servicios */}
         <Box sx={{ mb: 10 }}>
           <Typography variant="h4" gutterBottom>
             Nuestros servicios
@@ -189,26 +202,37 @@ export default function Outsourcing() {
           </Grid>
         </Box>
 
-        {/* Desarrollo de Software */}
+        {/* Software Factory */}
         <Box sx={{ mb: 12 }}>
           <Typography variant="h4" gutterBottom>
-            Desarrollo de Software
+            Software Factory
           </Typography>
           <Typography variant="body1" paragraph>
-            Creamos soluciones tecnológicas a medida que impulsan el crecimiento y la eficiencia de tu empresa.
+            Desarrollamos productos digitales end-to-end para acelerar la innovación en tu
+            organización.
           </Typography>
-          <Grid container spacing={2}>
-            {[
-              "Análisis de requerimientos y diseño de soluciones personalizadas",
-              "Desarrollo de aplicaciones móviles, web o de escritorio",
-              "Integración de sistemas y plataformas",
-              "Mantenimiento, soporte y actualizaciones continuas",
-            ].map((linea, i) => (
-              <Grid item xs={12} md={6} key={i}>
-                <Box sx={{ display: "flex", alignItems: "center" }}>
-                  <CheckCircleIcon color="primary" sx={{ mr: 1 }} />
-                  <Typography variant="body1">{linea}</Typography>
-                </Box>
+
+          <Grid container spacing={4}>
+            {softwareSteps.map((step, i) => (
+              <Grid item xs={12} sm={6} md={3} key={i}>
+                <Card
+                  elevation={3}
+                  sx={{
+                    height: "100%",
+                    backgroundColor: "#0E3236",
+                    color: "#FFF",
+                    textAlign: "center",
+                    py: 3,
+                  }}
+                >
+                  <Box sx={{ fontSize: 40, mb: 1 }}>{step.icon}</Box>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
+                    {step.title}
+                  </Typography>
+                  <Typography variant="body2" sx={{ px: 2 }}>
+                    {step.desc}
+                  </Typography>
+                </Card>
               </Grid>
             ))}
           </Grid>
@@ -224,7 +248,7 @@ export default function Outsourcing() {
           }}
         >
           <Typography variant="h5" sx={{ mb: 2, color: "#FFF" }}>
-            ¿Listo para delegar y crecer?
+            ¡Comencemos a trabajar juntos!
           </Typography>
           <Button variant="contained" size="large" onClick={handleContact}>
             Hablemos
