@@ -18,10 +18,6 @@ import {
 import MainLayout from "../../components/MainLayout";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import LaptopMacIcon from "@mui/icons-material/LaptopMac";
-import StorageIcon from "@mui/icons-material/Storage";
-import PhoneIphoneIcon from "@mui/icons-material/PhoneIphone";
-import BuildIcon from "@mui/icons-material/Build";
 import { useRouter } from "next/router";
 
 export default function Outsourcing() {
@@ -33,7 +29,8 @@ export default function Outsourcing() {
   const servicios = [
     {
       titulo: "Payroll Specialist (Responsable de Nóminas)",
-      resumen: "Gestión integral y conforme a normativas para asegurar procesos precisos y oportunos.",
+      resumen:
+        "Gestión integral y conforme a normativas para asegurar procesos precisos y oportunos.",
       bullets: [
         "Elaboración de nóminas y pagos",
         "Cálculo y gestión de beneficios laborales",
@@ -44,7 +41,8 @@ export default function Outsourcing() {
     },
     {
       titulo: "Community Manager",
-      resumen: "Construye una comunidad digital activa y comprometida alrededor de tu marca.",
+      resumen:
+        "Construye una comunidad digital activa y comprometida alrededor de tu marca.",
       bullets: [
         "Estrategia y calendarios de contenido",
         "Diseño de piezas visuales y copywriting",
@@ -54,12 +52,25 @@ export default function Outsourcing() {
     },
     {
       titulo: "Catering Corporativo",
-      resumen: "Soluciones gastronómicas adaptadas a eventos, reuniones y capacitaciones.",
+      resumen:
+        "Soluciones gastronómicas adaptadas a eventos, reuniones y capacitaciones.",
       bullets: [
         "Catering para eventos corporativos y reuniones",
         "Menús saludables y personalizados",
         "Provisión de bebidas y snacks",
         "Servicio de montaje y logística in-situ",
+      ],
+    },
+    {
+      titulo: "Software Factory",
+      resumen:
+        "Productos digitales end-to-end para acelerar la innovación en tu organización.",
+      bullets: [
+        "Análisis y diseño de soluciones a medida",
+        "Desarrollo web y desktop robusto",
+        "Aplicaciones móviles nativas o híbridas",
+        "Integración de sistemas y plataformas",
+        "Mantenimiento, soporte y evolución continua",
       ],
     },
   ];
@@ -71,36 +82,13 @@ export default function Outsourcing() {
     "Flexibilidad y escalabilidad del servicio",
   ];
 
-  /* Etapas clave para Software Factory */
-  const softwareSteps = [
-    {
-      icon: <StorageIcon />,
-      title: "Análisis y Diseño",
-      desc: "Relevamos requisitos y definimos la arquitectura de la solución.",
-    },
-    {
-      icon: <LaptopMacIcon />,
-      title: "Desarrollo Web / Desktop",
-      desc: "Aplicaciones robustas y escalables adaptadas a tu operación.",
-    },
-    {
-      icon: <PhoneIphoneIcon />,
-      title: "Apps Móviles",
-      desc: "Experiencias nativas o híbridas que acercan tu servicio a tus clientes.",
-    },
-    {
-      icon: <BuildIcon />,
-      title: "Soporte & Evolución",
-      desc: "Mantenimiento continuo, integraciones y nuevas funcionalidades.",
-    },
-  ];
-
   return (
     <MainLayout>
       {/* Hero */}
       <Box
         sx={{
-          background: "linear-gradient(135deg,#0B2A2D 0%, #103B40 50%, #155158 100%)",
+          background:
+            "linear-gradient(135deg,#0B2A2D 0%, #103B40 50%, #155158 100%)",
           color: "#FFF",
           py: { xs: 6, md: 8 },
         }}
@@ -133,8 +121,8 @@ export default function Outsourcing() {
           }}
         >
           <Typography variant="body1" paragraph>
-            Externalizá procesos clave con profesionales de confianza y enfocá tus recursos en
-            hacer crecer tu negocio.
+            Externalizá procesos clave con profesionales de confianza y enfocá tus recursos
+            en hacer crecer tu negocio.
           </Typography>
           <Button variant="contained" size="large" onClick={handleContact}>
             Contáctanos
@@ -197,42 +185,6 @@ export default function Outsourcing() {
                     {b}
                   </Typography>
                 </Box>
-              </Grid>
-            ))}
-          </Grid>
-        </Box>
-
-        {/* Software Factory */}
-        <Box sx={{ mb: 12 }}>
-          <Typography variant="h4" gutterBottom>
-            Software Factory
-          </Typography>
-          <Typography variant="body1" paragraph>
-            Desarrollamos productos digitales end-to-end para acelerar la innovación en tu
-            organización.
-          </Typography>
-
-          <Grid container spacing={4}>
-            {softwareSteps.map((step, i) => (
-              <Grid item xs={12} sm={6} md={3} key={i}>
-                <Card
-                  elevation={3}
-                  sx={{
-                    height: "100%",
-                    backgroundColor: "#0E3236",
-                    color: "#FFF",
-                    textAlign: "center",
-                    py: 3,
-                  }}
-                >
-                  <Box sx={{ fontSize: 40, mb: 1 }}>{step.icon}</Box>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
-                    {step.title}
-                  </Typography>
-                  <Typography variant="body2" sx={{ px: 2 }}>
-                    {step.desc}
-                  </Typography>
-                </Card>
               </Grid>
             ))}
           </Grid>
