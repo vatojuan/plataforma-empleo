@@ -1,4 +1,4 @@
-// pages/soluciones/capacitacion.js
+// pages/soluciones/learning_and_development.js
 import {
   Container,
   Typography,
@@ -7,10 +7,6 @@ import {
   Grid,
   Card,
   CardContent,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
   Paper,
   Button,
 } from "@mui/material";
@@ -19,29 +15,28 @@ import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { useRouter } from "next/router";
 
-export default function Capacitacion() {
+export default function LearningAndDevelopment() {
   const router = useRouter();
   const handleNext = () => router.push("/soluciones/branding");
   const handleContact = () => router.push("/contacto");
 
-  const areas = [
+  const capacitaciones = [
     "Cultura Organizacional Resiliente",
     "Comunicación Transformadora",
     "Tecnología y Competencias Digitales",
-    "Liderazgo Consciente",
-    "Gestión del Cambio Emocional",
+    "Liderar para conectar: Equipos que transforman",
+    "Desarrollo de Capacidades para el Alto Desempeño",
     "Bienestar Integral y Mindfulness",
     "Nutrición en el Trabajo",
-    "Marketing Digital",
-    "Contabilidad Laboral",
+    "Coaching y Mentoring Empresarial",
+    "Arte de generar Ambientes Laborales Saludables y Atractivos",
   ];
 
-  const beneficios = [
-    "Desarrollo integral",
-    "Mejora del rendimiento organizacional",
-    "Adaptación al cambio",
-    "Liderazgo efectivo",
-    "Retención de talento",
+  const desarrolloSoftware = [
+    "Análisis de requerimientos y diseño de soluciones personalizadas",
+    "Desarrollo de aplicaciones móviles, web o de escritorio",
+    "Integración de sistemas y plataformas",
+    "Mantenimiento, soporte y actualizaciones continuas",
   ];
 
   return (
@@ -64,12 +59,12 @@ export default function Capacitacion() {
           }}
         >
           <Box>
-            <Typography variant="h5">Capacitación y Desarrollo</Typography>
+            <Typography variant="h5">Learning and Development</Typography>
             <Typography
               variant="h2"
               sx={{ fontWeight: 700, mt: 1, lineHeight: 1.2 }}
             >
-              Programas que potencian<br />el crecimiento de tu equipo
+              Formación que transforma<br />personas y organizaciones
             </Typography>
           </Box>
           <IconButton onClick={handleNext} sx={{ color: "#FFF" }}>
@@ -78,7 +73,7 @@ export default function Capacitacion() {
         </Container>
       </Box>
 
-      {/* Contenido principal */}
+      {/* Contenido */}
       <Container maxWidth="lg" sx={{ py: 8 }}>
         {/* Intro + CTA */}
         <Paper
@@ -91,24 +86,22 @@ export default function Capacitacion() {
           }}
         >
           <Typography variant="body1" paragraph>
-            En FAP sabemos que el aprendizaje continuo es clave para el
-            crecimiento empresarial y el fortalecimiento de la cultura
-            organizacional. Nuestros programas de capacitación están diseñados
-            para potenciar habilidades y alinear el desarrollo con los objetivos
-            de tu empresa.
+            En FAP diseñamos experiencias de aprendizaje que impulsan el cambio real.
+            Formamos equipos preparados para afrontar los desafíos actuales y futuros
+            desde el bienestar, la innovación y el propósito compartido.
           </Typography>
           <Button variant="contained" size="large" onClick={handleContact}>
             Contáctanos
           </Button>
         </Paper>
 
-        {/* Áreas de capacitación */}
+        {/* Capacitaciones */}
         <Box sx={{ mb: 10 }}>
           <Typography variant="h4" gutterBottom>
-            Áreas de capacitación
+            Capacitaciones pensadas para transformar
           </Typography>
           <Grid container spacing={4}>
-            {areas.map((area, i) => (
+            {capacitaciones.map((item, i) => (
               <Grid item xs={12} md={4} key={i}>
                 <Card
                   elevation={3}
@@ -122,7 +115,7 @@ export default function Capacitacion() {
                   }}
                 >
                   <CardContent>
-                    <Typography variant="body1">{area}</Typography>
+                    <Typography variant="body1">{item}</Typography>
                   </CardContent>
                 </Card>
               </Grid>
@@ -130,30 +123,20 @@ export default function Capacitacion() {
           </Grid>
         </Box>
 
-        {/* Metodología */}
-        <Box sx={{ mb: 10 }}>
-          <Typography variant="h4" gutterBottom>
-            Metodología
-          </Typography>
-          <Typography variant="body1">
-            Nuestros programas combinan clases teóricas, ejercicios prácticos y
-            estudios de caso para garantizar un aprendizaje aplicado.
-          </Typography>
-        </Box>
-
-        {/* Beneficios */}
+        {/* Desarrollo de software */}
         <Box sx={{ mb: 12 }}>
           <Typography variant="h4" gutterBottom>
-            Beneficios
+            Desarrollo de Software
+          </Typography>
+          <Typography variant="body1" paragraph>
+            Creamos soluciones tecnológicas a medida que impulsan el crecimiento y la eficiencia de tu empresa.
           </Typography>
           <Grid container spacing={2}>
-            {beneficios.map((b, i) => (
+            {desarrolloSoftware.map((linea, i) => (
               <Grid item xs={12} md={6} key={i}>
                 <Box sx={{ display: "flex", alignItems: "center" }}>
                   <CheckCircleIcon color="primary" sx={{ mr: 1 }} />
-                  <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                    {b}
-                  </Typography>
+                  <Typography variant="body1">{linea}</Typography>
                 </Box>
               </Grid>
             ))}
@@ -170,7 +153,7 @@ export default function Capacitacion() {
           }}
         >
           <Typography variant="h5" sx={{ mb: 2, color: "#FFF" }}>
-            ¿Listo para impulsar el desarrollo de tu equipo?
+            ¿Querés capacitar a tu equipo o impulsar tu solución digital?
           </Typography>
           <Button variant="contained" size="large" onClick={handleContact}>
             Hablemos
