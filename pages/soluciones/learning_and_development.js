@@ -123,26 +123,6 @@ export default function LearningAndDevelopment() {
           </Grid>
         </Box>
 
-        {/* Desarrollo de software */}
-        <Box sx={{ mb: 12 }}>
-          <Typography variant="h4" gutterBottom>
-            Desarrollo de Software
-          </Typography>
-          <Typography variant="body1" paragraph>
-            Creamos soluciones tecnológicas a medida que impulsan el crecimiento y la eficiencia de tu empresa.
-          </Typography>
-          <Grid container spacing={2}>
-            {desarrolloSoftware.map((linea, i) => (
-              <Grid item xs={12} md={6} key={i}>
-                <Box sx={{ display: "flex", alignItems: "center" }}>
-                  <CheckCircleIcon color="primary" sx={{ mr: 1 }} />
-                  <Typography variant="body1">{linea}</Typography>
-                </Box>
-              </Grid>
-            ))}
-          </Grid>
-        </Box>
-
         {/* CTA final */}
         <Box
           sx={{

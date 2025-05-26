@@ -51,18 +51,6 @@ export default function Outsourcing() {
       ],
     },
     {
-      titulo: "Programacion y Desarrollo Organizacional",
-      resumen:
-        "Programas de bienestar y desarrollo para un ambiente de trabajo saludable y productivo.",
-      bullets: [
-        "Prevención de agotamiento laboral y equilibrio emocional",
-        "Estrategias basadas en neurociencia para maximizar productividad",
-        "Implementación de programas de bienestar y salud mental",
-        "Liderazgo consciente para mejores decisiones",
-        "Programas de integración de equipos y liderazgo",
-      ],
-    },
-    {
       titulo: "Catering Corporativo",
       resumen:
         "Soluciones gastronómicas adaptadas a eventos, reuniones y capacitaciones.",
@@ -131,10 +119,9 @@ export default function Outsourcing() {
           <Typography variant="body1" paragraph>
             Entendemos que las empresas necesitan contar con expertos en áreas
             clave para maximizar su eficiencia operativa sin sobrecargar a sus
-            equipos internos. Por eso, ofrecemos servicios de outsourcing
-            personalizados que permiten a tu organización enfocarse en lo que
-            mejor hace, mientras nosotros nos encargamos de tareas
-            especializadas.
+            equipos internos. Con nuestros servicios de outsourcing tu
+            organización se enfoca en lo que mejor hace, mientras nosotros nos
+            encargamos de tareas especializadas.
           </Typography>
           <Button variant="contained" size="large" onClick={handleContact}>
             Contáctanos
@@ -196,6 +183,31 @@ export default function Outsourcing() {
                   <Typography variant="body1" sx={{ fontWeight: 500 }}>
                     {b}
                   </Typography>
+                </Box>
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+
+        {/* Desarrollo de Software */}
+        <Box sx={{ mb: 12 }}>
+          <Typography variant="h4" gutterBottom>
+            Desarrollo de Software
+          </Typography>
+          <Typography variant="body1" paragraph>
+            Creamos soluciones tecnológicas a medida que impulsan el crecimiento y la eficiencia de tu empresa.
+          </Typography>
+          <Grid container spacing={2}>
+            {[
+              "Análisis de requerimientos y diseño de soluciones personalizadas",
+              "Desarrollo de aplicaciones móviles, web o de escritorio",
+              "Integración de sistemas y plataformas",
+              "Mantenimiento, soporte y actualizaciones continuas",
+            ].map((linea, i) => (
+              <Grid item xs={12} md={6} key={i}>
+                <Box sx={{ display: "flex", alignItems: "center" }}>
+                  <CheckCircleIcon color="primary" sx={{ mr: 1 }} />
+                  <Typography variant="body1">{linea}</Typography>
                 </Box>
               </Grid>
             ))}
