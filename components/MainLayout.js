@@ -79,8 +79,8 @@ export default function MainLayout({ children }) {
             <MenuItem onClick={() => handleSolucionesNavigate("/soluciones/recruitment")}>
               Recruitment Process
             </MenuItem>
-            <MenuItem onClick={() => handleSolucionesNavigate("/soluciones/capacitacion")}>
-              Capacitación y Desarrollo
+            <MenuItem onClick={() => handleSolucionesNavigate('/soluciones/learning_and_development')}>
+              Learning and Development
             </MenuItem>
             <MenuItem onClick={() => handleSolucionesNavigate("/soluciones/branding")}>
               Employer Branding & Engagement
