@@ -1,4 +1,4 @@
-// pages/soluciones/outsourcing.js
+// pages/soluciones/talent_management.js
 import {
   Container,
   Typography,
@@ -20,66 +20,40 @@ import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { useRouter } from "next/router";
 
-export default function Outsourcing() {
+export default function TalentManagement() {
   const router = useRouter();
-  const handleNext = () => router.push("/soluciones/talent_management");
+  const handleNext = () => router.push("/contacto");
   const handleContact = () => router.push("/contacto");
 
-  /* Servicios de outsourcing */
+  /* Servicios principales */
   const servicios = [
     {
-      titulo: "Payroll Specialist (Responsable de Nóminas)",
+      titulo: "Gestión de Nómina (Payroll)",
       resumen:
-        "Gestión integral y conforme a normativas para asegurar procesos precisos y oportunos.",
-      bullets: [
-        "Elaboración de nóminas y pagos",
-        "Cálculo y gestión de beneficios laborales",
-        "Asesoría en retenciones fiscales y seguridad social",
-        "Reportes de pagos y deducciones",
-        "Gestión de vacaciones, licencias y ausencias",
-      ],
+        "Cálculo, procesamiento y pago de sueldos, beneficios y retenciones con total cumplimiento fiscal y laboral.",
     },
     {
-      titulo: "Community Manager",
+      titulo: "Beneficios y Compensaciones",
       resumen:
-        "Construye una comunidad digital activa y comprometida alrededor de tu marca.",
-      bullets: [
-        "Estrategia y calendarios de contenido",
-        "Diseño de piezas visuales y copywriting",
-        "Gestión de la comunidad y atención a usuarios",
-        "Campañas publicitarias en redes",
-      ],
+        "Administración de planes de salud, bonos, incentivos y otros beneficios que fortalecen tu propuesta de valor.",
     },
     {
-      titulo: "Catering Corporativo",
+      titulo: "Altas, Bajas y Movimientos",
       resumen:
-        "Soluciones gastronómicas adaptadas a eventos, reuniones y capacitaciones.",
-      bullets: [
-        "Catering para eventos corporativos y reuniones",
-        "Menús saludables y personalizados",
-        "Provisión de bebidas y snacks",
-        "Servicio de montaje y logística in-situ",
-      ],
+        "Tramitamos de forma ágil los ingresos, egresos y modificaciones contractuales ante las entidades laborales.",
     },
     {
-      titulo: "Software Factory",
+      titulo: "Asesoría Legal Laboral",
       resumen:
-        "Productos digitales end-to-end para acelerar la innovación en tu organización.",
-      bullets: [
-        "Análisis y diseño de soluciones a medida",
-        "Desarrollo web y desktop robusto",
-        "Aplicaciones móviles nativas o híbridas",
-        "Integración de sistemas y plataformas",
-        "Mantenimiento, soporte y evolución continua",
-      ],
+        "Redacción y actualización de contratos, más acompañamiento en el cumplimiento de la normativa vigente.",
     },
   ];
 
   const beneficios = [
-    "Enfoque en el core de tu negocio",
-    "Expertos especializados sin sobrecargar tu staff",
-    "Eficiencia operativa y ahorro de costos",
-    "Flexibilidad y escalabilidad del servicio",
+    "Reducción de riesgos legales y administrativos",
+    "Mayor eficiencia en la gestión del personal",
+    "Confidencialidad y precisión en el manejo de la información",
+    "Cumplimiento pleno con normativas laborales y fiscales",
   ];
 
   return (
@@ -98,9 +72,9 @@ export default function Outsourcing() {
           sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}
         >
           <Box>
-            <Typography variant="h5">Outsourcing</Typography>
+            <Typography variant="h5">Talent Management</Typography>
             <Typography variant="h2" sx={{ fontWeight: 700, mt: 1, lineHeight: 1.2 }}>
-              Expertos externos<br />para tu eficiencia
+              Administración de<br />Personal Estratégica
             </Typography>
           </Box>
           <IconButton onClick={handleNext} sx={{ color: "#FFF" }}>
@@ -121,8 +95,9 @@ export default function Outsourcing() {
           }}
         >
           <Typography variant="body1" paragraph>
-            Externalizá procesos clave con profesionales de confianza y enfocá tus recursos
-            en hacer crecer tu negocio.
+            Nos ocupamos de todo el ciclo de vida administrativo del empleado,
+            asegurando el cumplimiento normativo y liberando a tu organización
+            para que pueda enfocarse en el crecimiento estratégico.
           </Typography>
           <Button variant="contained" size="large" onClick={handleContact}>
             Contáctanos
@@ -150,20 +125,10 @@ export default function Outsourcing() {
                     <Typography variant="h6" gutterBottom>
                       {s.titulo}
                     </Typography>
-                    <Typography variant="body2" sx={{ mb: 1.5 }}>
-                      {s.resumen}
-                    </Typography>
-                    <Divider sx={{ mb: 1, backgroundColor: "rgba(255,255,255,0.2)" }} />
-                    <List dense>
-                      {s.bullets.map((b, idx) => (
-                        <ListItem key={idx} sx={{ pl: 0 }}>
-                          <ListItemIcon sx={{ minWidth: 28 }}>
-                            <CheckCircleIcon color="primary" fontSize="small" />
-                          </ListItemIcon>
-                          <ListItemText primary={b} />
-                        </ListItem>
-                      ))}
-                    </List>
+                    <Divider
+                      sx={{ mb: 1, width: 40, backgroundColor: "rgba(255,255,255,0.3)" }}
+                    />
+                    <Typography variant="body2">{s.resumen}</Typography>
                   </CardContent>
                 </Card>
               </Grid>
@@ -200,7 +165,7 @@ export default function Outsourcing() {
           }}
         >
           <Typography variant="h5" sx={{ mb: 2, color: "#FFF" }}>
-            ¡Comencemos a trabajar juntos!
+            ¿Necesitás optimizar tu administración de personal?
           </Typography>
           <Button variant="contained" size="large" onClick={handleContact}>
             Hablemos

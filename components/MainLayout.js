@@ -79,7 +79,7 @@ export default function MainLayout({ children }) {
             <MenuItem onClick={() => handleSolucionesNavigate("/soluciones/recruitment")}>
               Recruitment Process
             </MenuItem>
-            <MenuItem onClick={() => handleSolucionesNavigate('/soluciones/learning_and_development')}>
+            <MenuItem onClick={() => handleSolucionesNavigate("/soluciones/learning_and_development")}>
               Learning and Development
             </MenuItem>
             <MenuItem onClick={() => handleSolucionesNavigate("/soluciones/branding")}>
@@ -87,6 +87,9 @@ export default function MainLayout({ children }) {
             </MenuItem>
             <MenuItem onClick={() => handleSolucionesNavigate("/soluciones/outsourcing")}>
               Outsourcing
+            </MenuItem>
+            <MenuItem onClick={() => handleSolucionesNavigate("/soluciones/talent_management")}>
+              Talent Management
             </MenuItem>
           </Menu>
 
