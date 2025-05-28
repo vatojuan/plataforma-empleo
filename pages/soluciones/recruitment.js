@@ -21,7 +21,7 @@ import { useRouter } from "next/router";
 
 export default function Recruitment() {
   const router = useRouter();
-  const handleNext = () => router.push("/soluciones/capacitacion");
+  const handleNext = () => router.push("/soluciones/learning_and_development");
   const handleContact = () => router.push("/contacto");
 
   const diferenciadores = [
