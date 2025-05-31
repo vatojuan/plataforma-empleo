@@ -32,7 +32,7 @@ export default async function handler(req, res) {
     /* ── 2. Serializamos ─────────────────────────────────────────── */
     const formatted = applications.map((app) => ({
       id: app.id,
-      status: app.status,
+      jobId: app.jobId,
       createdAt: app.createdAt.toISOString(),
       job: {
         id: app.job.id,
