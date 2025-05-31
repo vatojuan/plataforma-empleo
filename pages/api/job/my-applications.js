@@ -4,20 +4,19 @@ import { authOptions } from "../auth/[...nextauth]";
 
 export default async function handler(req, res) {
   try {
+    // ───── Autenticación ─────
     const session = await getServerSession(req, res, authOptions);
     if (!session) {
       return res.status(401).json({ error: "No autorizado" });
     }
 
-    console.log("📌 Postulaciones de usuario ID:", session.user.id);
-
-    /* ── 1. Query con select mínimo ───────────────────────────────── */
+    // ───── Consultar postulaciones ─────
     const applications = await prisma.application.findMany({
       where: { userId: Number(session.user.id) },
       orderBy: { createdAt: "desc" },
       select: {
         id: true,
-        status: true,
+        jobId: true,
         createdAt: true,
         job: {
           select: {
@@ -29,7 +28,7 @@ export default async function handler(req, res) {
       },
     });
 
-    /* ── 2. Serializamos ─────────────────────────────────────────── */
+    // ───── Formatear fechas para JSON ─────
     const formatted = applications.map((app) => ({
       id: app.id,
       jobId: app.jobId,
