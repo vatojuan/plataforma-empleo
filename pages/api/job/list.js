@@ -1,24 +1,67 @@
-import prisma from "../../../lib/prisma";
+// pages/api/job/list.js
+
+import { PrismaClient } from "@prisma/client";
+import { parse } from "url";
+
+const prisma = new PrismaClient();
 
 export default async function handler(req, res) {
   try {
-    const userId = req.query.userId ? Number(req.query.userId) : null;
-    // Si se pasa userId en la query, se filtran las ofertas del usuario
+    // Parseamos userId de la querystring (si se envía)
+    const { query } = parse(req.url, true);
+    const userIdParam = query.userId ? Number(query.userId) : null;
+
+    // Construimos el filtro “where”:
+    //  • Si userIdParam tiene valor, filtramos por ese userId
+    //  • Si no, devolvemos todas las ofertas
+    const whereFilter = userIdParam !== null && !isNaN(userIdParam)
+      ? { userId: userIdParam }
+      : {};
+
+    // Hacemos la consulta a la tabla `job`, EXCLUYENDO cualquier columna vectorial.
+    // Con `select` pedimos SOLO los campos que necesitamos y 
+    // con `_count: { select: { applications: true } }` obtenemos la
+    // cantidad de postulaciones sin traer todo el objeto “applications”.
     const jobs = await prisma.job.findMany({
-      where: userId ? { userId } : {},
+      where: whereFilter,
       orderBy: { createdAt: "desc" },
-      include: { applications: true },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        requirements: true,
+        createdAt: true,
+        expirationDate: true,
+        // NO seleccionamos `embedding` (vector)
+        // NO seleccionamos `embedding: true`
+        // Solo pedimos los campos que el frontend necesita:
+        userId: true,
+        source: true,
+        label: true,
+
+        // Obtenemos el conteo de postulaciones sin traer todo el array
+        _count: {
+          select: { applications: true }
+        }
+      },
     });
 
-    // Formateamos cada oferta para enviar datos serializables
+    // Mapeamos a la forma que tu frontend espera:
     const formattedJobs = jobs.map((job) => ({
       id: job.id,
       title: job.title,
       description: job.description,
-      requirements: job.requirements || null,
-      postedAt: job.createdAt ? new Date(job.createdAt).toISOString() : "",
-      expirationDate: job.expirationDate ? new Date(job.expirationDate).toISOString() : null,
-      candidatesCount: job.applications ? job.applications.length : 0,
+      requirements: job.requirements ?? null,
+      postedAt: job.createdAt ? job.createdAt.toISOString() : "",
+      expirationDate: job.expirationDate
+        ? job.expirationDate.toISOString()
+        : null,
+      candidatesCount: job._count.applications,
+      // Si el front espera otros campos como userId/source/label, 
+      // puedes agregarlos aquí. Ej:
+      // userId: job.userId,
+      // source: job.source,
+      // label: job.label,
     }));
 
     return res.status(200).json({ jobs: formattedJobs });
@@ -26,7 +69,7 @@ export default async function handler(req, res) {
     console.error("Error fetching jobs:", error);
     return res.status(500).json({
       error: "Error interno del servidor",
-      details: error.message || "Sin detalles",
+      details: error.message ?? "Sin detalles",
     });
   }
 }
