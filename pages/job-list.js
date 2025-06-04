@@ -28,22 +28,22 @@ export default function JobList() {
       1. Autenticación centralizada
   ──────────────────────────────────*/
   const { user, role: userRole, authHeader, ready } = useAuthUser();
-  const userId = user?.id ?? null;
+  const userId = user?.id || null;
 
   /* ────────────────────────────────
       2. Estado local
   ──────────────────────────────────*/
-  const [jobs, setJobs] = useState<any[]>([]);
-  const [applications, setApplications] = useState<any[]>([]);
+  const [jobs, setJobs] = useState([]);
+  const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
-    severity: "success" as "success" | "error",
+    severity: "success",
   });
   const [dialogs, setDialogs] = useState({
-    delete: { open: false, jobId: null as number | null },
-    cancel: { open: false, jobId: null as number | null },
+    delete: { open: false, jobId: null },
+    cancel: { open: false, jobId: null },
   });
 
   /* ────────────────────────────────
@@ -69,7 +69,7 @@ export default function JobList() {
           const now = new Date();
           setJobs(
             offers.filter(
-              (j: any) => !j.expirationDate || new Date(j.expirationDate) > now
+              (j) => !j.expirationDate || new Date(j.expirationDate) > now
             )
           );
         }
@@ -107,10 +107,10 @@ export default function JobList() {
   /* ────────────────────────────────
       4. Helpers
   ──────────────────────────────────*/
-  const isApplied = (jobId: number) =>
+  const isApplied = (jobId) =>
     applications.some((a) => a.jobId === jobId);
 
-  const bumpCount = (jobId: number, delta: number) =>
+  const bumpCount = (jobId, delta) =>
     setJobs((prev) =>
       prev.map((j) =>
         j.id === jobId
@@ -122,7 +122,7 @@ export default function JobList() {
   /* ────────────────────────────────
       5. Postular
   ──────────────────────────────────*/
-  const handleApply = async (jobId: number) => {
+  const handleApply = async (jobId) => {
     try {
       const res = await fetch("/api/job/apply", {
         method: "POST",
@@ -157,7 +157,7 @@ export default function JobList() {
         const { applications: apps } = await resApps.json();
         setApplications(apps);
       }
-    } catch (e: any) {
+    } catch (e) {
       setSnackbar({
         open: true,
         message: `Error al postular: ${e.message}`,
@@ -170,7 +170,7 @@ export default function JobList() {
       6. Cancelar postulación
   ──────────────────────────────────*/
   const confirmCancel = async () => {
-    const id = dialogs.cancel.jobId!;
+    const id = dialogs.cancel.jobId;
     try {
       const res = await fetch(`${API_BASE}/api/job/cancel-application`, {
         method: "DELETE",
@@ -193,8 +193,7 @@ export default function JobList() {
           severity: "error",
         });
       }
-    } catch (e) {
-      console.error("Error al cancelar:", e);
+    } catch {
       setSnackbar({
         open: true,
         message: "Error al cancelar la postulación",
@@ -209,7 +208,7 @@ export default function JobList() {
       7. Eliminar oferta (empleador)
   ──────────────────────────────────*/
   const confirmDelete = async () => {
-    const id = dialogs.delete.jobId!;
+    const id = dialogs.delete.jobId;
     try {
       const res = await fetch(`${API_BASE}/api/job/delete`, {
         method: "DELETE",
@@ -234,8 +233,7 @@ export default function JobList() {
           severity: "error",
         });
       }
-    } catch (e) {
-      console.error("Error al eliminar oferta:", e);
+    } catch {
       setSnackbar({
         open: true,
         message: "Error al eliminar la oferta",
