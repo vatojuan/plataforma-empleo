@@ -34,12 +34,17 @@ export default function JobList() {
   const [selectedCancelJobId, setSelectedCancelJobId] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
-  // URL base de tu API FastAPI
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://api.fapmendoza.online";
+  // ─── Construimos API_BASE y nos aseguramos de que arranque con "https://"
+  let rawBase = process.env.NEXT_PUBLIC_API_URL || "api.fapmendoza.online";
+  if (!/^https?:\/\//.test(rawBase)) {
+    rawBase = "https://" + rawBase;
+  }
+  const API_BASE = rawBase;
 
-  // Helper para obtener el header con el JWT de usuario
+  // Helper para leer el JWT de usuario desde localStorage
   const getAuthHeader = () => {
-    const token = typeof window !== "undefined" ? localStorage.getItem("userToken") : null;
+    if (typeof window === "undefined") return {};
+    const token = localStorage.getItem("userToken");
     return token ? { Authorization: `Bearer ${token}` } : {};
   };
 
@@ -47,18 +52,18 @@ export default function JobList() {
     async function fetchJobs() {
       try {
         let url = `${API_BASE}/api/job`;
-        // Si es empleador, pasar el userId para filtrar sólo sus ofertas
+        // Si es empleador, filtramos por su userId
         if (session && session.user.role === "empleador") {
           url += `?userId=${session.user.id}`;
         }
         const res = await fetch(url, {
           headers: {
             "Content-Type": "application/json",
-            ...getAuthHeader()
-          }
+            ...getAuthHeader(),
+          },
         });
         if (!res.ok) {
-          console.error("Error al obtener las ofertas");
+          console.error("Error al obtener las ofertas", res.status);
           return;
         }
         const data = await res.json();
@@ -74,16 +79,22 @@ export default function JobList() {
     }
 
     async function fetchApplications() {
-      if (session && session.user.role === "empleado") {
+      // Solo llamamos si el usuario tiene userToken en localStorage
+      if (
+        session &&
+        session.user.role === "empleado" &&
+        typeof window !== "undefined" &&
+        localStorage.getItem("userToken")
+      ) {
         try {
           const res = await fetch(`${API_BASE}/api/job/my-applications`, {
             headers: {
               "Content-Type": "application/json",
-              ...getAuthHeader()
-            }
+              ...getAuthHeader(),
+            },
           });
           if (!res.ok) {
-            console.error("Error al obtener tus postulaciones");
+            console.error("Error al obtener tus postulaciones", res.status);
             return;
           }
           const data = await res.json();
@@ -100,8 +111,7 @@ export default function JobList() {
     }
   }, [session, status]);
 
-  const isApplied = (jobId) =>
-    applications.some((app) => app.jobId === jobId);
+  const isApplied = (jobId) => applications.some((app) => app.jobId === jobId);
 
   const updateJobCandidatesCount = (jobId, change) => {
     setJobs((prevJobs) =>
@@ -115,30 +125,30 @@ export default function JobList() {
 
   const handleApply = async (jobId) => {
     try {
-      // 1) Llamar a FastAPI para generar la aplicación
+      // 1) Llamada a FastAPI para postular
       const res = await fetch(`${API_BASE}/api/job/apply`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...getAuthHeader()
+          ...getAuthHeader(),
         },
-        body: JSON.stringify({ jobId })
+        body: JSON.stringify({ jobId }),
       });
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.detail || res.statusText);
       }
 
-      // 2) Incrementar contador local
+      // 2) Actualizamos contador local
       updateJobCandidatesCount(jobId, 1);
       setSnackbar({ open: true, message: "Has postulado exitosamente", severity: "success" });
 
-      // 3) Refrescar lista de postulaciones para que isApplied() cambie
+      // 3) Refrescamos postulaciones
       const appRes = await fetch(`${API_BASE}/api/job/my-applications`, {
         headers: {
           "Content-Type": "application/json",
-          ...getAuthHeader()
-        }
+          ...getAuthHeader(),
+        },
       });
       if (appRes.ok) {
         const data = await appRes.json();
@@ -149,7 +159,7 @@ export default function JobList() {
       setSnackbar({
         open: true,
         message: `Error al postular: ${error.message}`,
-        severity: "error"
+        severity: "error",
       });
     }
   };
@@ -165,19 +175,19 @@ export default function JobList() {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
-          ...getAuthHeader()
+          ...getAuthHeader(),
         },
-        body: JSON.stringify({ jobId: selectedCancelJobId })
+        body: JSON.stringify({ jobId: selectedCancelJobId }),
       });
       if (res.ok) {
         updateJobCandidatesCount(selectedCancelJobId, -1);
         setSnackbar({ open: true, message: "Postulación cancelada", severity: "success" });
-        // Refrescar postulaciones
+        // Volvemos a traer postulaciones
         const appRes = await fetch(`${API_BASE}/api/job/my-applications`, {
           headers: {
             "Content-Type": "application/json",
-            ...getAuthHeader()
-          }
+            ...getAuthHeader(),
+          },
         });
         if (appRes.ok) {
           const data = await appRes.json();
@@ -206,9 +216,9 @@ export default function JobList() {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
-          ...getAuthHeader()
+          ...getAuthHeader(),
         },
-        body: JSON.stringify({ jobId: selectedJobId })
+        body: JSON.stringify({ jobId: selectedJobId }),
       });
       if (res.ok) {
         setSnackbar({ open: true, message: "Oferta eliminada correctamente.", severity: "success" });
@@ -324,6 +334,7 @@ export default function JobList() {
         </Box>
       </Box>
 
+      {/* Diálogo de cancelación de postulación */}
       <Dialog open={openCancelDialog} onClose={() => setOpenCancelDialog(false)}>
         <DialogTitle>Confirmar Cancelación</DialogTitle>
         <DialogContent>
@@ -339,6 +350,7 @@ export default function JobList() {
         </DialogActions>
       </Dialog>
 
+      {/* Diálogo de eliminación de oferta */}
       <Dialog open={openDeleteDialog} onClose={cancelDelete}>
         <DialogTitle>Confirmar Eliminación</DialogTitle>
         <DialogContent>
@@ -354,6 +366,7 @@ export default function JobList() {
         </DialogActions>
       </Dialog>
 
+      {/* Snackbar global */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={4000}
