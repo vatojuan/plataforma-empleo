@@ -1,7 +1,7 @@
 // pages/api/job/apply.js
 
 import prisma from '../../../lib/prisma';
-import { SignJWT } from 'jose/jwt/sign';
+import { SignJWT } from 'jose';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '../auth/[...nextauth]';
 
@@ -41,21 +41,18 @@ export default async function handler(req, res) {
     // 5) Llamar al endpoint de FastAPI para crear la propuesta remota
     const fastapiUrl = process.env.NEXT_PUBLIC_API_URL || process.env.FASTAPI_URL;
     const adminToken = req.cookies.adminToken;
-    await fetch(
-      `${fastapiUrl}/api/proposals/create`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(adminToken ? { Authorization: `Bearer ${adminToken}` } : {}),
-        },
-        body: JSON.stringify({
-          job_id: Number(jobId),
-          applicant_id: userId,
-          label: 'automatic',
-        }),
-      }
-    ).catch((err) => {
+    await fetch(`${fastapiUrl}/api/proposals/create`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(adminToken ? { Authorization: `Bearer ${adminToken}` } : {}),
+      },
+      body: JSON.stringify({
+        job_id: Number(jobId),
+        applicant_id: userId,
+        label: 'automatic',
+      }),
+    }).catch((err) => {
       console.error('Error al crear propuesta en FastAPI:', err);
     });
 
