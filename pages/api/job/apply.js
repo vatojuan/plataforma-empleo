@@ -1,6 +1,7 @@
 // pages/api/job/apply.js
 
 import prisma from '../../../lib/prisma';
+import { SignJWT } from 'jose/jwt/sign';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '../auth/[...nextauth]';
 
@@ -39,9 +40,8 @@ export default async function handler(req, res) {
 
     // 5) Llamar al endpoint de FastAPI para crear la propuesta remota
     const fastapiUrl = process.env.NEXT_PUBLIC_API_URL || process.env.FASTAPI_URL;
-    // Para FastAPI, usamos el mismo token de NextAuth (requiere que hayas guardado adminToken en cookies)
     const adminToken = req.cookies.adminToken;
-    const proposalResponse = await fetch(
+    await fetch(
       `${fastapiUrl}/api/proposals/create`,
       {
         method: 'POST',
@@ -55,22 +55,23 @@ export default async function handler(req, res) {
           label: 'automatic',
         }),
       }
-    );
+    ).catch((err) => {
+      console.error('Error al crear propuesta en FastAPI:', err);
+    });
 
-    let proposalData = null;
-    if (proposalResponse.ok) {
-      proposalData = await proposalResponse.json().catch(() => null);
-    } else {
-      console.error(
-        'Error al crear propuesta en FastAPI:',
-        await proposalResponse.text()
-      );
-    }
+    // 6) Generar JWT de usuario para guardar en localStorage usando 'jose'
+    const secretKey = new TextEncoder().encode(process.env.SECRET_KEY);
+    const userToken = await new SignJWT({ sub: String(userId), role: 'empleado' })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setIssuedAt()
+      .setExpirationTime('30d')
+      .sign(secretKey);
 
+    // 7) Responder con token para que el frontend lo guarde
     return res.status(200).json({
       message: 'Postulación exitosa',
       application,
-      proposal: proposalData,
+      token: userToken,
     });
   } catch (error) {
     console.error('Error al postular:', error);

@@ -127,7 +127,10 @@ export default function JobList() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("userToken")}`,
+          // No enviamos Authorization si no hay userToken aún
+          ...(localStorage.getItem("userToken")
+            ? { Authorization: `Bearer ${localStorage.getItem("userToken")}` }
+            : {}),
         },
         body: JSON.stringify({ jobId }),
       });
@@ -136,7 +139,13 @@ export default function JobList() {
         throw new Error(err.error || res.statusText);
       }
 
-      // 2) Cambio optimista en UI: aumentar contador y marcar como aplicado
+      // 2) Leer la respuesta (incluye token)
+      const data = await res.json();
+      if (data.token) {
+        localStorage.setItem("userToken", data.token);
+      }
+
+      // 3) Cambio optimista en UI: aumentar contador y marcar como aplicado
       bumpCount(jobId, 1);
       setApplications((prev) => [
         ...prev,
@@ -144,7 +153,7 @@ export default function JobList() {
       ]);
       setSnackbar({ open: true, message: "Has postulado exitosamente", severity: "success" });
 
-      // 3) Refrescar con datos reales del backend
+      // 4) Refrescar con datos reales del backend
       const resApps = await fetch(`${API_BASE}/api/job/my-applications`, {
         headers: { "Content-Type": "application/json", ...authHeader() },
       });
@@ -165,16 +174,20 @@ export default function JobList() {
   const confirmCancel = async () => {
     const jobId = dialogs.cancel.jobId;
     try {
+      const token = localStorage.getItem("userToken");
+      if (!token) {
+        throw new Error("No autorizado");
+      }
       const res = await fetch(`${API_BASE}/api/job/cancel-application`, {
         method: "DELETE",
-        headers: { "Content-Type": "application/json", ...authHeader() },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ jobId }),
       });
       if (res.ok) {
         bumpCount(jobId, -1);
         setSnackbar({ open: true, message: "Postulación cancelada", severity: "success" });
         const resApps = await fetch(`${API_BASE}/api/job/my-applications`, {
-          headers: { "Content-Type": "application/json", ...authHeader() },
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         });
         if (resApps.ok) {
           const dataApps = await resApps.json();
