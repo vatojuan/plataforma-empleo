@@ -84,10 +84,11 @@ export default function JobList() {
           console.error("Error al obtener las ofertas");
         }
 
-        // 2) Obtener postulaciones del usuario (solo si es empleado)
-        if (userRole === "empleado") {
+        // 2) Obtener postulaciones del usuario (solo si es empleado y tiene token)
+        const token = localStorage.getItem("userToken");
+        if (userRole === "empleado" && token) {
           const resApps = await fetch(`${API_BASE}/api/job/my-applications`, {
-            headers: { "Content-Type": "application/json", ...authHeader() },
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
           });
           if (resApps.ok) {
             const dataApps = await resApps.json();
