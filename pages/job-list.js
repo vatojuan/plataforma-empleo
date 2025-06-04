@@ -19,14 +19,12 @@ import {
   Alert,
   CircularProgress,
 } from "@mui/material";
-import { useSession } from "next-auth/react";
 import DashboardLayout from "../components/DashboardLayout";
 import PersonIcon from "@mui/icons-material/Person";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://api.fapmendoza.online";
 
 export default function JobList() {
-  const { data: session, status } = useSession();
   const [jobs, setJobs] = useState([]);
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -44,22 +42,11 @@ export default function JobList() {
   };
 
   useEffect(() => {
-    if (status === "loading") return;
-
     const fetchAll = async () => {
       setLoading(true);
       try {
-        // 1) Obtener ofertas vigentes
-        let jobsUrl = `${API_BASE}/api/job/`;
-        if (session?.user.role === "empleador") {
-          jobsUrl += `?userId=${session.user.id}`;
-        }
-        const resJobs = await fetch(jobsUrl, {
-          headers: {
-            "Content-Type": "application/json",
-            ...authHeader(),
-          },
-        });
+        // 1) Obtener ofertas vigentes (no requiere token)
+        const resJobs = await fetch(`${API_BASE}/api/job/`);
         if (resJobs.ok) {
           const dataJobs = await resJobs.json();
           const now = new Date();
@@ -72,8 +59,9 @@ export default function JobList() {
           console.error("Error al obtener las ofertas");
         }
 
-        // 2) Obtener postulaciones del usuario (solo si es empleado)
-        if (session?.user.role === "empleado") {
+        // 2) Si hay JWT, obtener postulaciones del usuario
+        const token = typeof window !== "undefined" ? localStorage.getItem("userToken") : null;
+        if (token) {
           const resApps = await fetch(`${API_BASE}/api/job/my-applications`, {
             headers: {
               "Content-Type": "application/json",
@@ -96,7 +84,7 @@ export default function JobList() {
     };
 
     fetchAll();
-  }, [session, status]);
+  }, []);
 
   const isApplied = (jobId) => applications.some((app) => app.jobId === jobId);
 
@@ -110,10 +98,13 @@ export default function JobList() {
 
   const handleApply = async (jobId) => {
     try {
-      // 1) Postulación en Next.js API (requiere que el usuario esté logueado en NextAuth)
-      const res = await fetch("/api/job/apply", {
+      // 1) Postulación en FastAPI vía JWT
+      const res = await fetch(`${API_BASE}/api/job/apply`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...authHeader(),
+        },
         body: JSON.stringify({ jobId }),
       });
       if (!res.ok) {
@@ -124,7 +115,7 @@ export default function JobList() {
       bumpCount(jobId, 1);
       setSnackbar({ open: true, message: "Has postulado exitosamente", severity: "success" });
 
-      // 2) Crear propuesta en FastAPI
+      // 2) Crear propuesta en FastAPI (requiere adminToken)
       await fetch(`${API_BASE}/api/proposals/create`, {
         method: "POST",
         headers: {
@@ -133,7 +124,7 @@ export default function JobList() {
         },
         body: JSON.stringify({
           job_id: jobId,
-          applicant_id: session.user.id,
+          applicant_id: null, // No necesario; FastAPI extrae user desde JWT
           label: "automatic",
         }),
       });
@@ -259,17 +250,34 @@ export default function JobList() {
                       Ver Detalles
                     </Button>
 
-                    {session?.user.role === "empleador" ? (
-                      <Button size="small" variant="contained" color="secondary" onClick={() => handleDelete(job.id)}>
-                        Eliminar
-                      </Button>
-                    ) : isApplied(job.id) ? (
-                      <Button size="small" variant="contained" color="secondary" onClick={() => handleRequestCancel(job.id)}>
-                        Cancelar Postulación
-                      </Button>
+                    {localStorage.getItem("userToken") ? (
+                      isApplied(job.id) ? (
+                        <Button
+                          size="small"
+                          variant="contained"
+                          color="secondary"
+                          onClick={() => handleRequestCancel(job.id)}
+                        >
+                          Cancelar Postulación
+                        </Button>
+                      ) : (
+                        <Button
+                          size="small"
+                          variant="contained"
+                          color="primary"
+                          onClick={() => handleApply(job.id)}
+                        >
+                          Postularme
+                        </Button>
+                      )
                     ) : (
-                      <Button size="small" variant="contained" color="primary" onClick={() => handleApply(job.id)}>
-                        Postularme
+                      <Button
+                        size="small"
+                        component={Link}
+                        href="/login"
+                        variant="outlined"
+                      >
+                        Iniciar Sesión para Postular
                       </Button>
                     )}
                   </CardActions>
@@ -288,13 +296,21 @@ export default function JobList() {
       </Box>
 
       {/* Diálogo Confirmar Cancelación */}
-      <Dialog open={dialogs.cancel.open} onClose={() => setDialogs((d) => ({ ...d, cancel: { open: false, jobId: null } }))}>
+      <Dialog
+        open={dialogs.cancel.open}
+        onClose={() => setDialogs((d) => ({ ...d, cancel: { open: false, jobId: null } }))}
+      >
         <DialogTitle>Confirmar Cancelación</DialogTitle>
         <DialogContent>
           <Typography>¿Deseas cancelar tu postulación a este empleo?</Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDialogs((d) => ({ ...d, cancel: { open: false, jobId: null } }))} color="primary">
+          <Button
+            onClick={() =>
+              setDialogs((d) => ({ ...d, cancel: { open: false, jobId: null } }))
+            }
+            color="primary"
+          >
             Cancelar
           </Button>
           <Button onClick={confirmCancel} color="secondary" variant="contained">
@@ -304,13 +320,21 @@ export default function JobList() {
       </Dialog>
 
       {/* Diálogo Confirmar Eliminación */}
-      <Dialog open={dialogs.delete.open} onClose={() => setDialogs((d) => ({ ...d, delete: { open: false, jobId: null } }))}>
+      <Dialog
+        open={dialogs.delete.open}
+        onClose={() => setDialogs((d) => ({ ...d, delete: { open: false, jobId: null } }))}
+      >
         <DialogTitle>Confirmar Eliminación</DialogTitle>
         <DialogContent>
           <Typography>¿Estás seguro de que deseas eliminar esta oferta?</Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDialogs((d) => ({ ...d, delete: { open: false, jobId: null } }))} color="primary">
+          <Button
+            onClick={() =>
+              setDialogs((d) => ({ ...d, delete: { open: false, jobId: null } }))
+            }
+            color="primary"
+          >
             Cancelar
           </Button>
           <Button onClick={confirmDelete} color="secondary" variant="contained">
