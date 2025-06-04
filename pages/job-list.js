@@ -16,7 +16,7 @@ import {
   Box,
   Divider,
   Snackbar,
-  Alert
+  Alert,
 } from "@mui/material";
 import { useSession } from "next-auth/react";
 import DashboardLayout from "../components/DashboardLayout";
@@ -27,14 +27,14 @@ export default function JobList() {
   const [jobs, setJobs] = useState([]);
   const [applications, setApplications] = useState([]);
 
-  // Estados para diálogos y notificaciones
+  // Diálogos y notificaciones
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [selectedJobId, setSelectedJobId] = useState(null);
   const [openCancelDialog, setOpenCancelDialog] = useState(false);
   const [selectedCancelJobId, setSelectedCancelJobId] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
-  // ─── Construimos API_BASE y nos aseguramos de que arranque con "https://"
+  // ───────── Construir API_BASE con "https://"
   let rawBase = process.env.NEXT_PUBLIC_API_URL || "api.fapmendoza.online";
   if (!/^https?:\/\//.test(rawBase)) {
     rawBase = "https://" + rawBase;
@@ -51,8 +51,8 @@ export default function JobList() {
   useEffect(() => {
     async function fetchJobs() {
       try {
-        let url = `${API_BASE}/api/job`;
-        // Si es empleador, filtramos por su userId
+        // 1) Llamamos a FastAPI en https://api.fapmendoza.online/api/job/
+        let url = `${API_BASE}/api/job/`;
         if (session && session.user.role === "empleador") {
           url += `?userId=${session.user.id}`;
         }
@@ -68,6 +68,7 @@ export default function JobList() {
         }
         const data = await res.json();
         const now = new Date();
+        // Filtramos expiradas
         setJobs(
           data.offers.filter(
             (job) => !job.expirationDate || new Date(job.expirationDate) > now
@@ -79,7 +80,7 @@ export default function JobList() {
     }
 
     async function fetchApplications() {
-      // Solo llamamos si el usuario tiene userToken en localStorage
+      // Solo si es "empleado" y tiene userToken
       if (
         session &&
         session.user.role === "empleado" &&
@@ -125,7 +126,7 @@ export default function JobList() {
 
   const handleApply = async (jobId) => {
     try {
-      // 1) Llamada a FastAPI para postular
+      // 1) POST a FastAPI: /api/job/apply
       const res = await fetch(`${API_BASE}/api/job/apply`, {
         method: "POST",
         headers: {
@@ -139,11 +140,11 @@ export default function JobList() {
         throw new Error(errorData.detail || res.statusText);
       }
 
-      // 2) Actualizamos contador local
+      // 2) Aumentamos contador localmente
       updateJobCandidatesCount(jobId, 1);
       setSnackbar({ open: true, message: "Has postulado exitosamente", severity: "success" });
 
-      // 3) Refrescamos postulaciones
+      // 3) Recargamos postulaciones reales
       const appRes = await fetch(`${API_BASE}/api/job/my-applications`, {
         headers: {
           "Content-Type": "application/json",
@@ -182,7 +183,7 @@ export default function JobList() {
       if (res.ok) {
         updateJobCandidatesCount(selectedCancelJobId, -1);
         setSnackbar({ open: true, message: "Postulación cancelada", severity: "success" });
-        // Volvemos a traer postulaciones
+        // Refrescamos postulaciones reales
         const appRes = await fetch(`${API_BASE}/api/job/my-applications`, {
           headers: {
             "Content-Type": "application/json",
@@ -334,7 +335,7 @@ export default function JobList() {
         </Box>
       </Box>
 
-      {/* Diálogo de cancelación de postulación */}
+      {/* Diálogo de cancelación */}
       <Dialog open={openCancelDialog} onClose={() => setOpenCancelDialog(false)}>
         <DialogTitle>Confirmar Cancelación</DialogTitle>
         <DialogContent>
@@ -350,7 +351,7 @@ export default function JobList() {
         </DialogActions>
       </Dialog>
 
-      {/* Diálogo de eliminación de oferta */}
+      {/* Diálogo de eliminación */}
       <Dialog open={openDeleteDialog} onClose={cancelDelete}>
         <DialogTitle>Confirmar Eliminación</DialogTitle>
         <DialogContent>
@@ -366,7 +367,7 @@ export default function JobList() {
         </DialogActions>
       </Dialog>
 
-      {/* Snackbar global */}
+      {/* Snackbar */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={4000}
@@ -383,7 +384,7 @@ export default function JobList() {
               snackbar.severity === "success"
                 ? theme.palette.secondary.main
                 : theme.palette.error.main,
-            color: "#fff"
+            color: "#fff",
           }}
         >
           {snackbar.message}
