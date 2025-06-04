@@ -17,108 +17,80 @@ import {
   Alert,
   CircularProgress,
 } from "@mui/material";
-import { useSession } from "next-auth/react";
+import useAuthUser from "../hooks/useAuthUser";
 import DashboardLayout from "../components/DashboardLayout";
 import PersonIcon from "@mui/icons-material/Person";
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL || "https://api.fapmendoza.online";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://api.fapmendoza.online";
 
 export default function JobList() {
   /* ────────────────────────────────
-      1. Autenticación y estado
+      1. Autenticación centralizada
   ──────────────────────────────────*/
-  const { data: session, status } = useSession();
-  const [jobs, setJobs] = useState([]);
-  const [applications, setApplications] = useState([]);
+  const { user, role: userRole, authHeader, ready } = useAuthUser();
+  const userId = user?.id ?? null;
+
+  /* ────────────────────────────────
+      2. Estado local
+  ──────────────────────────────────*/
+  const [jobs, setJobs] = useState<any[]>([]);
+  const [applications, setApplications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
-    severity: "success",
+    severity: "success" as "success" | "error",
   });
   const [dialogs, setDialogs] = useState({
-    delete: { open: false, jobId: null },
-    cancel: { open: false, jobId: null },
+    delete: { open: false, jobId: null as number | null },
+    cancel: { open: false, jobId: null as number | null },
   });
 
   /* ────────────────────────────────
-      1-A  Fallback a JWT propio
-  ──────────────────────────────────*/
-  let fallbackUserId: string | null = null;
-  if (typeof window !== "undefined") {
-    const token = localStorage.getItem("userToken");
-    if (token) {
-      try {
-        const payload = JSON.parse(atob(token.split(".")[1]));
-        fallbackUserId = payload.sub;
-      } catch {
-        /* token corrupto → lo limpiamos */
-        localStorage.removeItem("userToken");
-      }
-    }
-  }
-
-  const userId = session?.user?.id || fallbackUserId;
-  const userRole =
-    session?.user?.role || (fallbackUserId ? "empleado" : undefined);
-
-  const authHeader = () => {
-    if (typeof window === "undefined") return {};
-    const t = localStorage.getItem("userToken");
-    return t ? { Authorization: `Bearer ${t}` } : {};
-  };
-
-  /* ────────────────────────────────
-      2. Cargar ofertas y postulaciones
+      3. Cargar ofertas y postulaciones
   ──────────────────────────────────*/
   useEffect(() => {
-    if (status === "loading") return;
+    if (!ready) return;
 
     const fetchAll = async () => {
       setLoading(true);
       try {
-        /* Ofertas vigentes */
+        // 3.1) Ofertas vigentes
         let url = `${API_BASE}/api/job/`;
-        if (userRole === "empleador") url += `?userId=${userId}`;
+        if (userRole === "empleador" && userId) {
+          url += `?userId=${userId}`;
+        }
 
         const resJobs = await fetch(url, {
-          headers: { "Content-Type": "application/json", ...authHeader() },
+          headers: { "Content-Type": "application/json", ...authHeader },
         });
         if (resJobs.ok) {
           const { offers } = await resJobs.json();
           const now = new Date();
           setJobs(
             offers.filter(
-              (j: any) =>
-                !j.expirationDate || new Date(j.expirationDate) > now
+              (j: any) => !j.expirationDate || new Date(j.expirationDate) > now
             )
           );
         }
 
-        /* Postulaciones (solo empleado con token válido) */
-        if (userRole === "empleado" && localStorage.getItem("userToken")) {
-          const resApps = await fetch(
-            `${API_BASE}/api/job/my-applications`,
-            {
-              headers: {
-                "Content-Type": "application/json",
-                ...authHeader(),
-              },
-            }
-          );
+        // 3.2) Postulaciones (solo empleado con token válido)
+        if (userRole === "empleado" && authHeader.Authorization) {
+          const resApps = await fetch(`${API_BASE}/api/job/my-applications`, {
+            headers: { "Content-Type": "application/json", ...authHeader },
+          });
 
           if (resApps.status === 401) {
-            // JWT expirado → limpiamos y forzamos reload
+            // JWT expirado → limpiamos localmente
             localStorage.removeItem("userToken");
             setApplications([]);
           } else if (resApps.ok) {
-            const { applications } = await resApps.json();
-            setApplications(applications);
+            const { applications: apps } = await resApps.json();
+            setApplications(apps);
           }
         }
       } catch (e) {
-        console.error(e);
+        console.error("Error fetchAll:", e);
         setSnackbar({
           open: true,
           message: "Error cargando datos",
@@ -130,25 +102,25 @@ export default function JobList() {
     };
 
     fetchAll();
-  }, [status, userRole, userId]);
+  }, [ready, userRole, userId]);
 
   /* ────────────────────────────────
-      3. Helpers
+      4. Helpers
   ──────────────────────────────────*/
-  const isApplied = (id: number) =>
-    applications.some((a) => a.jobId === id);
+  const isApplied = (jobId: number) =>
+    applications.some((a) => a.jobId === jobId);
 
-  const bumpCount = (id: number, delta: number) =>
+  const bumpCount = (jobId: number, delta: number) =>
     setJobs((prev) =>
       prev.map((j) =>
-        j.id === id
+        j.id === jobId
           ? { ...j, candidatesCount: (j.candidatesCount || 0) + delta }
           : j
       )
     );
 
   /* ────────────────────────────────
-      4. Postular
+      5. Postular
   ──────────────────────────────────*/
   const handleApply = async (jobId: number) => {
     try {
@@ -156,15 +128,16 @@ export default function JobList() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("userToken")}`,
+          ...authHeader,
         },
         body: JSON.stringify({ jobId }),
       });
       if (!res.ok) {
-        throw new Error((await res.json()).error || res.statusText);
+        const err = await res.json();
+        throw new Error(err.error || res.statusText);
       }
 
-      /* Optimista */
+      // Optimista
       bumpCount(jobId, 1);
       setApplications((prev) => [
         ...prev,
@@ -176,13 +149,13 @@ export default function JobList() {
         severity: "success",
       });
 
-      /* Confirmar estado real */
+      // Confirmar estado real
       const resApps = await fetch(`${API_BASE}/api/job/my-applications`, {
-        headers: { "Content-Type": "application/json", ...authHeader() },
+        headers: { "Content-Type": "application/json", ...authHeader },
       });
       if (resApps.ok) {
-        const { applications } = await resApps.json();
-        setApplications(applications);
+        const { applications: apps } = await resApps.json();
+        setApplications(apps);
       }
     } catch (e: any) {
       setSnackbar({
@@ -194,19 +167,16 @@ export default function JobList() {
   };
 
   /* ────────────────────────────────
-      5. Cancelar postulación
+      6. Cancelar postulación
   ──────────────────────────────────*/
   const confirmCancel = async () => {
-    const id = dialogs.cancel.jobId;
+    const id = dialogs.cancel.jobId!;
     try {
-      const res = await fetch(
-        `${API_BASE}/api/job/cancel-application`,
-        {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json", ...authHeader() },
-          body: JSON.stringify({ jobId: id }),
-        }
-      );
+      const res = await fetch(`${API_BASE}/api/job/cancel-application`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json", ...authHeader },
+        body: JSON.stringify({ jobId: id }),
+      });
 
       if (res.ok) {
         bumpCount(id, -1);
@@ -223,7 +193,8 @@ export default function JobList() {
           severity: "error",
         });
       }
-    } catch {
+    } catch (e) {
+      console.error("Error al cancelar:", e);
       setSnackbar({
         open: true,
         message: "Error al cancelar la postulación",
@@ -235,10 +206,10 @@ export default function JobList() {
   };
 
   /* ────────────────────────────────
-      6. Eliminar oferta (empleador)
+      7. Eliminar oferta (empleador)
   ──────────────────────────────────*/
   const confirmDelete = async () => {
-    const id = dialogs.delete.jobId;
+    const id = dialogs.delete.jobId!;
     try {
       const res = await fetch(`${API_BASE}/api/job/delete`, {
         method: "DELETE",
@@ -248,6 +219,7 @@ export default function JobList() {
         },
         body: JSON.stringify({ jobId: id }),
       });
+
       if (res.ok) {
         setJobs((prev) => prev.filter((j) => j.id !== id));
         setSnackbar({
@@ -262,13 +234,20 @@ export default function JobList() {
           severity: "error",
         });
       }
+    } catch (e) {
+      console.error("Error al eliminar oferta:", e);
+      setSnackbar({
+        open: true,
+        message: "Error al eliminar la oferta",
+        severity: "error",
+      });
     } finally {
       setDialogs((d) => ({ ...d, delete: { open: false, jobId: null } }));
     }
   };
 
   /* ────────────────────────────────
-      7. Render
+      8. Render
   ──────────────────────────────────*/
   return (
     <DashboardLayout>
@@ -357,7 +336,7 @@ export default function JobList() {
         </Box>
       </Box>
 
-      {/* ── Dialog cancelación ─────────────────────────────── */}
+      {/* Diálogo Confirmar Cancelación */}
       <Dialog
         open={dialogs.cancel.open}
         onClose={() =>
@@ -382,7 +361,7 @@ export default function JobList() {
         </DialogActions>
       </Dialog>
 
-      {/* ── Dialog eliminar ────────────────────────────────── */}
+      {/* Diálogo Confirmar Eliminación */}
       <Dialog
         open={dialogs.delete.open}
         onClose={() =>
@@ -407,7 +386,7 @@ export default function JobList() {
         </DialogActions>
       </Dialog>
 
-      {/* ── Snackbar global ────────────────────────────────── */}
+      {/* Snackbar */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={4000}
