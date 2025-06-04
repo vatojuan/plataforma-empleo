@@ -1,7 +1,8 @@
 // pages/api/job/apply.js
 
 import prisma from '../../../lib/prisma';
-import jwt from 'jsonwebtoken';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '../auth/[...nextauth]';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -10,20 +11,12 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 1) Extraer y verificar JWT del header Authorization
-    const authHeader = req.headers.authorization || '';
-    const token = authHeader.replace('Bearer ', '').trim();
-    if (!token) {
-      return res.status(401).json({ error: 'No autorizado: falta token' });
+    // 1) Obtener sesión NextAuth para saber quién es el userId
+    const session = await getServerSession(req, res, authOptions);
+    if (!session) {
+      return res.status(401).json({ error: 'No autorizado' });
     }
-
-    let payload;
-    try {
-      payload = jwt.verify(token, process.env.NEXT_PUBLIC_JWT_SECRET);
-    } catch (e) {
-      return res.status(401).json({ error: 'Token inválido o expirado' });
-    }
-    const userId = Number(payload.sub);
+    const userId = Number(session.user.id);
 
     // 2) Extraer jobId del body
     const { jobId } = req.body;
@@ -46,14 +39,15 @@ export default async function handler(req, res) {
 
     // 5) Llamar al endpoint de FastAPI para crear la propuesta remota
     const fastapiUrl = process.env.NEXT_PUBLIC_API_URL || process.env.FASTAPI_URL;
-    // Reutilizamos el mismo token de usuario para autorizar FastAPI
+    // Para FastAPI, usamos el mismo token de NextAuth (requiere que hayas guardado adminToken en cookies)
+    const adminToken = req.cookies.adminToken;
     const proposalResponse = await fetch(
       `${fastapiUrl}/api/proposals/create`,
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          ...(adminToken ? { Authorization: `Bearer ${adminToken}` } : {}),
         },
         body: JSON.stringify({
           job_id: Number(jobId),
