@@ -44,8 +44,9 @@ export default function JobList() {
   useEffect(() => {
     const fetchAll = async () => {
       setLoading(true);
+
       try {
-        // 1) Obtener ofertas vigentes (no requiere token)
+        // 1) Obtener ofertas vigentes (público)
         const resJobs = await fetch(`${API_BASE}/api/job/`);
         if (resJobs.ok) {
           const dataJobs = await resJobs.json();
@@ -59,7 +60,7 @@ export default function JobList() {
           console.error("Error al obtener las ofertas");
         }
 
-        // 2) Si hay JWT, obtener postulaciones del usuario
+        // 2) Intentar obtener postulaciones de usuario solo si hay JWT en localStorage
         const token = typeof window !== "undefined" ? localStorage.getItem("userToken") : null;
         if (token) {
           const resApps = await fetch(`${API_BASE}/api/job/my-applications`, {
@@ -68,9 +69,14 @@ export default function JobList() {
               ...authHeader(),
             },
           });
+
           if (resApps.ok) {
             const dataApps = await resApps.json();
             setApplications(dataApps.applications);
+          } else if (resApps.status === 401) {
+            // 401: token inválido o vencido → simplemente dejamos applications = []
+            console.warn("FastAPI JWT inválido o expirado. Ignorando aplicaciones.");
+            setApplications([]);
           } else {
             console.error("Error al obtener tus postulaciones");
           }
@@ -98,7 +104,7 @@ export default function JobList() {
 
   const handleApply = async (jobId) => {
     try {
-      // 1) Postulación en FastAPI vía JWT
+      // 1) Postulación en FastAPI vía JWT (debe existir userToken)
       const res = await fetch(`${API_BASE}/api/job/apply`, {
         method: "POST",
         headers: {
@@ -124,7 +130,7 @@ export default function JobList() {
         },
         body: JSON.stringify({
           job_id: jobId,
-          applicant_id: null, // No necesario; FastAPI extrae user desde JWT
+          // applicant_id ya lo toma FastAPI desde el JWT
           label: "automatic",
         }),
       });
@@ -271,12 +277,7 @@ export default function JobList() {
                         </Button>
                       )
                     ) : (
-                      <Button
-                        size="small"
-                        component={Link}
-                        href="/login"
-                        variant="outlined"
-                      >
+                      <Button size="small" component={Link} href="/login" variant="outlined">
                         Iniciar Sesión para Postular
                       </Button>
                     )}
@@ -298,7 +299,9 @@ export default function JobList() {
       {/* Diálogo Confirmar Cancelación */}
       <Dialog
         open={dialogs.cancel.open}
-        onClose={() => setDialogs((d) => ({ ...d, cancel: { open: false, jobId: null } }))}
+        onClose={() =>
+          setDialogs((d) => ({ ...d, cancel: { open: false, jobId: null } }))
+        }
       >
         <DialogTitle>Confirmar Cancelación</DialogTitle>
         <DialogContent>
@@ -322,7 +325,9 @@ export default function JobList() {
       {/* Diálogo Confirmar Eliminación */}
       <Dialog
         open={dialogs.delete.open}
-        onClose={() => setDialogs((d) => ({ ...d, delete: { open: false, jobId: null } }))}
+        onClose={() =>
+          setDialogs((d) => ({ ...d, delete: { open: false, jobId: null } }))
+        }
       >
         <DialogTitle>Confirmar Eliminación</DialogTitle>
         <DialogContent>
@@ -356,7 +361,9 @@ export default function JobList() {
           sx={{
             width: "100%",
             bgcolor: (theme) =>
-              snackbar.severity === "success" ? theme.palette.secondary.main : theme.palette.error.main,
+              snackbar.severity === "success"
+                ? theme.palette.secondary.main
+                : theme.palette.error.main,
             color: "#fff",
           }}
         >
