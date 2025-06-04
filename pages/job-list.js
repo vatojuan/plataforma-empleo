@@ -17,25 +17,24 @@ import {
   Divider,
   Snackbar,
   Alert,
+  CircularProgress,
 } from "@mui/material";
 import { useSession } from "next-auth/react";
 import DashboardLayout from "../components/DashboardLayout";
 import PersonIcon from "@mui/icons-material/Person";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://api.fapmendoza.online";
+
 export default function JobList() {
   const { data: session, status } = useSession();
   const [jobs, setJobs] = useState([]);
   const [applications, setApplications] = useState([]);
-
-  // Estados para diálogos y notificaciones
-  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
-  const [selectedJobId, setSelectedJobId] = useState(null);
-  const [openCancelDialog, setOpenCancelDialog] = useState(false);
-  const [selectedCancelJobId, setSelectedCancelJobId] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
-
-  // URL base de tu API FastAPI
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://api.fapmendoza.online";
+  const [dialogs, setDialogs] = useState({
+    delete: { open: false, jobId: null },
+    cancel: { open: false, jobId: null },
+  });
 
   // Construye el header de autorización con el JWT guardado en localStorage
   const authHeader = () => {
@@ -45,87 +44,84 @@ export default function JobList() {
   };
 
   useEffect(() => {
-    async function fetchJobs() {
-      let url = `${API_BASE}/api/job/`;
-      if (session && session.user.role === "empleador") {
-        url += `?userId=${session.user.id}`;
-      }
+    if (status === "loading") return;
+
+    const fetchAll = async () => {
+      setLoading(true);
       try {
-        const res = await fetch(url, {
+        // 1) Obtener ofertas vigentes
+        let jobsUrl = `${API_BASE}/api/job/`;
+        if (session?.user.role === "empleador") {
+          jobsUrl += `?userId=${session.user.id}`;
+        }
+        const resJobs = await fetch(jobsUrl, {
           headers: {
             "Content-Type": "application/json",
             ...authHeader(),
           },
         });
-        if (res.ok) {
-          const data = await res.json();
+        if (resJobs.ok) {
+          const dataJobs = await resJobs.json();
           const now = new Date();
           setJobs(
-            data.offers.filter(
+            dataJobs.offers.filter(
               (job) => !job.expirationDate || new Date(job.expirationDate) > now
             )
           );
         } else {
           console.error("Error al obtener las ofertas");
         }
-      } catch (error) {
-        console.error("Error fetching jobs:", error);
-      }
-    }
 
-    async function fetchApplications() {
-      if (session && session.user.role === "empleado") {
-        try {
-          const res = await fetch(`${API_BASE}/api/job/my-applications`, {
+        // 2) Obtener postulaciones del usuario (solo si es empleado)
+        if (session?.user.role === "empleado") {
+          const resApps = await fetch(`${API_BASE}/api/job/my-applications`, {
             headers: {
               "Content-Type": "application/json",
               ...authHeader(),
             },
           });
-          if (res.ok) {
-            const data = await res.json();
-            setApplications(data.applications);
+          if (resApps.ok) {
+            const dataApps = await resApps.json();
+            setApplications(dataApps.applications);
           } else {
             console.error("Error al obtener tus postulaciones");
           }
-        } catch (error) {
-          console.error("Error fetching applications:", error);
         }
+      } catch (err) {
+        console.error("Error fetchAll:", err);
+        setSnackbar({ open: true, message: "Error cargando datos", severity: "error" });
+      } finally {
+        setLoading(false);
       }
-    }
+    };
 
-    if (status !== "loading") {
-      fetchJobs();
-      fetchApplications();
-    }
+    fetchAll();
   }, [session, status]);
 
   const isApplied = (jobId) => applications.some((app) => app.jobId === jobId);
 
-  const updateJobCandidatesCount = (jobId, change) => {
-    setJobs((prevJobs) =>
-      prevJobs.map((job) =>
-        job.id === jobId
-          ? { ...job, candidatesCount: (job.candidatesCount || 0) + change }
-          : job
+  const bumpCount = (jobId, delta) => {
+    setJobs((prev) =>
+      prev.map((job) =>
+        job.id === jobId ? { ...job, candidatesCount: (job.candidatesCount || 0) + delta } : job
       )
     );
   };
 
   const handleApply = async (jobId) => {
     try {
-      // 1) Postulación en Next API (requiere sesión de NextAuth)
+      // 1) Postulación en Next.js API (requiere que el usuario esté logueado en NextAuth)
       const res = await fetch("/api/job/apply", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ jobId }),
       });
       if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || res.statusText);
+        const err = await res.json();
+        throw new Error(err.error || res.statusText);
       }
 
-      updateJobCandidatesCount(jobId, 1);
+      bumpCount(jobId, 1);
       setSnackbar({ open: true, message: "Has postulado exitosamente", severity: "success" });
 
       // 2) Crear propuesta en FastAPI
@@ -143,32 +139,28 @@ export default function JobList() {
       });
 
       // 3) Refrescar mis postulaciones
-      const appRes = await fetch(`${API_BASE}/api/job/my-applications`, {
+      const resApps = await fetch(`${API_BASE}/api/job/my-applications`, {
         headers: {
           "Content-Type": "application/json",
           ...authHeader(),
         },
       });
-      if (appRes.ok) {
-        const data = await appRes.json();
-        setApplications(data.applications);
+      if (resApps.ok) {
+        const dataApps = await resApps.json();
+        setApplications(dataApps.applications);
       }
-    } catch (error) {
-      console.error("Error al postular:", error);
-      setSnackbar({
-        open: true,
-        message: `Error al postular: ${error.message}`,
-        severity: "error",
-      });
+    } catch (err) {
+      console.error("Error al postular:", err);
+      setSnackbar({ open: true, message: `Error al postular: ${err.message}`, severity: "error" });
     }
   };
 
-  const handleRequestCancelApplication = (jobId) => {
-    setSelectedCancelJobId(jobId);
-    setOpenCancelDialog(true);
+  const handleRequestCancel = (jobId) => {
+    setDialogs((d) => ({ ...d, cancel: { open: true, jobId } }));
   };
 
-  const confirmCancelApplication = async () => {
+  const confirmCancel = async () => {
+    const jobId = dialogs.cancel.jobId;
     try {
       const res = await fetch(`${API_BASE}/api/job/cancel-application`, {
         method: "DELETE",
@@ -176,39 +168,38 @@ export default function JobList() {
           "Content-Type": "application/json",
           ...authHeader(),
         },
-        body: JSON.stringify({ jobId: selectedCancelJobId }),
+        body: JSON.stringify({ jobId }),
       });
       if (res.ok) {
-        updateJobCandidatesCount(selectedCancelJobId, -1);
+        bumpCount(jobId, -1);
         setSnackbar({ open: true, message: "Postulación cancelada", severity: "success" });
-        const appRes = await fetch(`${API_BASE}/api/job/my-applications`, {
+        const resApps = await fetch(`${API_BASE}/api/job/my-applications`, {
           headers: {
             "Content-Type": "application/json",
             ...authHeader(),
           },
         });
-        if (appRes.ok) {
-          const data = await appRes.json();
-          setApplications(data.applications);
+        if (resApps.ok) {
+          const dataApps = await resApps.json();
+          setApplications(dataApps.applications);
         }
       } else {
         setSnackbar({ open: true, message: "Error al cancelar la postulación", severity: "error" });
       }
-    } catch (error) {
-      console.error("Error al cancelar la postulación:", error);
+    } catch (err) {
+      console.error("Error al cancelar:", err);
       setSnackbar({ open: true, message: "Error al cancelar la postulación", severity: "error" });
     } finally {
-      setOpenCancelDialog(false);
-      setSelectedCancelJobId(null);
+      setDialogs((d) => ({ ...d, cancel: { open: false, jobId: null } }));
     }
   };
 
-  const handleDeleteJob = (jobId) => {
-    setSelectedJobId(jobId);
-    setOpenDeleteDialog(true);
+  const handleDelete = (jobId) => {
+    setDialogs((d) => ({ ...d, delete: { open: true, jobId } }));
   };
 
   const confirmDelete = async () => {
+    const jobId = dialogs.delete.jobId;
     try {
       const res = await fetch(`${API_BASE}/api/job/delete`, {
         method: "DELETE",
@@ -216,60 +207,43 @@ export default function JobList() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
         },
-        body: JSON.stringify({ jobId: selectedJobId }),
+        body: JSON.stringify({ jobId }),
       });
       if (res.ok) {
-        setSnackbar({ open: true, message: "Oferta eliminada correctamente.", severity: "success" });
-        setJobs((prevJobs) => prevJobs.filter((job) => job.id !== selectedJobId));
+        setSnackbar({ open: true, message: "Oferta eliminada correctamente", severity: "success" });
+        setJobs((prev) => prev.filter((j) => j.id !== jobId));
       } else {
-        setSnackbar({ open: true, message: "Error al eliminar la oferta.", severity: "error" });
+        setSnackbar({ open: true, message: "Error al eliminar la oferta", severity: "error" });
       }
-    } catch (error) {
-      console.error("Error eliminando la oferta:", error);
-      setSnackbar({ open: true, message: "Error al eliminar la oferta.", severity: "error" });
+    } catch (err) {
+      console.error("Error eliminando oferta:", err);
+      setSnackbar({ open: true, message: "Error al eliminar la oferta", severity: "error" });
     } finally {
-      setOpenDeleteDialog(false);
-      setSelectedJobId(null);
+      setDialogs((d) => ({ ...d, delete: { open: false, jobId: null } }));
     }
-  };
-
-  const cancelDelete = () => {
-    setOpenDeleteDialog(false);
-    setSelectedJobId(null);
   };
 
   return (
     <DashboardLayout>
       <Box sx={{ textAlign: "center", mt: 4, px: 2 }}>
         <Typography variant="h4" gutterBottom>
-          Mis Ofertas
+          Listado de Ofertas
         </Typography>
-        {jobs.length === 0 ? (
+
+        {loading ? (
+          <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+            <CircularProgress />
+          </Box>
+        ) : jobs.length === 0 ? (
           <Typography variant="body1">No hay ofertas publicadas.</Typography>
         ) : (
-          <Grid
-            container
-            spacing={3}
-            sx={{ width: { xs: "100%", sm: "95%", md: "900px" }, mx: "auto" }}
-          >
+          <Grid container spacing={3} sx={{ mx: "auto", width: { md: "900px" } }}>
             {jobs.map((job) => (
               <Grid item xs={12} sm={6} md={4} key={job.id}>
                 <Card sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
                   <CardContent sx={{ flexGrow: 1, p: 2 }}>
                     <Typography variant="h6" gutterBottom>
                       {job.title}
-                    </Typography>
-                    <Typography variant="body2" color="error">
-                      Expiración:{" "}
-                      {job.expirationDate
-                        ? new Date(job.expirationDate).toLocaleDateString()
-                        : "Sin expiración"}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                      Publicado el:{" "}
-                      {job.postedAt
-                        ? new Date(job.postedAt).toLocaleDateString()
-                        : "Sin fecha"}
                     </Typography>
                     <Typography
                       variant="body2"
@@ -281,40 +255,20 @@ export default function JobList() {
                     </Typography>
                   </CardContent>
                   <CardActions sx={{ justifyContent: "space-between", p: 2 }}>
-                    <Button
-                      component={Link}
-                      href={`/job-offer?id=${job.id}`}
-                      size="small"
-                      variant="outlined"
-                      color="primary"
-                    >
+                    <Button component={Link} href={`/job-offer?id=${job.id}`} size="small">
                       Ver Detalles
                     </Button>
+
                     {session?.user.role === "empleador" ? (
-                      <Button
-                        onClick={() => handleDeleteJob(job.id)}
-                        size="small"
-                        variant="contained"
-                        color="secondary"
-                      >
+                      <Button size="small" variant="contained" color="secondary" onClick={() => handleDelete(job.id)}>
                         Eliminar
                       </Button>
                     ) : isApplied(job.id) ? (
-                      <Button
-                        onClick={() => handleRequestCancelApplication(job.id)}
-                        size="small"
-                        variant="contained"
-                        color="secondary"
-                      >
+                      <Button size="small" variant="contained" color="secondary" onClick={() => handleRequestCancel(job.id)}>
                         Cancelar Postulación
                       </Button>
                     ) : (
-                      <Button
-                        onClick={() => handleApply(job.id)}
-                        size="small"
-                        variant="contained"
-                        color="primary"
-                      >
+                      <Button size="small" variant="contained" color="primary" onClick={() => handleApply(job.id)}>
                         Postularme
                       </Button>
                     )}
@@ -324,6 +278,7 @@ export default function JobList() {
             ))}
           </Grid>
         )}
+
         <Divider sx={{ my: 3 }} />
         <Box sx={{ textAlign: "center", mt: 2 }}>
           <Button component={Link} href="/dashboard" variant="contained" color="primary">
@@ -332,28 +287,30 @@ export default function JobList() {
         </Box>
       </Box>
 
-      <Dialog open={openCancelDialog} onClose={() => setOpenCancelDialog(false)}>
+      {/* Diálogo Confirmar Cancelación */}
+      <Dialog open={dialogs.cancel.open} onClose={() => setDialogs((d) => ({ ...d, cancel: { open: false, jobId: null } }))}>
         <DialogTitle>Confirmar Cancelación</DialogTitle>
         <DialogContent>
           <Typography>¿Deseas cancelar tu postulación a este empleo?</Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenCancelDialog(false)} color="primary">
+          <Button onClick={() => setDialogs((d) => ({ ...d, cancel: { open: false, jobId: null } }))} color="primary">
             Cancelar
           </Button>
-          <Button onClick={confirmCancelApplication} color="secondary" variant="contained">
+          <Button onClick={confirmCancel} color="secondary" variant="contained">
             Confirmar
           </Button>
         </DialogActions>
       </Dialog>
 
-      <Dialog open={openDeleteDialog} onClose={cancelDelete}>
+      {/* Diálogo Confirmar Eliminación */}
+      <Dialog open={dialogs.delete.open} onClose={() => setDialogs((d) => ({ ...d, delete: { open: false, jobId: null } }))}>
         <DialogTitle>Confirmar Eliminación</DialogTitle>
         <DialogContent>
           <Typography>¿Estás seguro de que deseas eliminar esta oferta?</Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={cancelDelete} color="primary">
+          <Button onClick={() => setDialogs((d) => ({ ...d, delete: { open: false, jobId: null } }))} color="primary">
             Cancelar
           </Button>
           <Button onClick={confirmDelete} color="secondary" variant="contained">
@@ -375,9 +332,7 @@ export default function JobList() {
           sx={{
             width: "100%",
             bgcolor: (theme) =>
-              snackbar.severity === "success"
-                ? theme.palette.secondary.main
-                : theme.palette.error.main,
+              snackbar.severity === "success" ? theme.palette.secondary.main : theme.palette.error.main,
             color: "#fff",
           }}
         >
