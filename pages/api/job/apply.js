@@ -1,8 +1,7 @@
 // pages/api/job/apply.js
 
 import prisma from '../../../lib/prisma';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '../auth/[...nextauth]';
+import jwt from 'jsonwebtoken';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -11,18 +10,28 @@ export default async function handler(req, res) {
   }
 
   try {
-    const session = await getServerSession(req, res, authOptions);
-    if (!session) {
-      return res.status(401).json({ error: 'No autorizado' });
+    // 1) Extraer y verificar JWT del header Authorization
+    const authHeader = req.headers.authorization || '';
+    const token = authHeader.replace('Bearer ', '').trim();
+    if (!token) {
+      return res.status(401).json({ error: 'No autorizado: falta token' });
     }
 
-    const userId = Number(session.user.id);
+    let payload;
+    try {
+      payload = jwt.verify(token, process.env.NEXT_PUBLIC_JWT_SECRET);
+    } catch (e) {
+      return res.status(401).json({ error: 'Token inválido o expirado' });
+    }
+    const userId = Number(payload.sub);
+
+    // 2) Extraer jobId del body
     const { jobId } = req.body;
     if (!jobId) {
       return res.status(400).json({ error: 'Falta el ID del empleo' });
     }
 
-    // 1) Verificar si ya existe una postulación
+    // 3) Verificar si ya existe una postulación local (Prisma)
     const existingApp = await prisma.application.findFirst({
       where: { userId, jobId: Number(jobId) },
     });
@@ -30,22 +39,21 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Ya has postulado a este empleo' });
     }
 
-    // 2) Crear la aplicación en la base de datos local
+    // 4) Crear la aplicación en la base de datos local con Prisma
     const application = await prisma.application.create({
       data: { userId, jobId: Number(jobId) },
     });
 
-    // 3) Llamar al endpoint de FastAPI para crear la propuesta
+    // 5) Llamar al endpoint de FastAPI para crear la propuesta remota
     const fastapiUrl = process.env.NEXT_PUBLIC_API_URL || process.env.FASTAPI_URL;
-    const adminToken = req.cookies.adminToken; // o ajusta según donde lo guardes
-
+    // Reutilizamos el mismo token de usuario para autorizar FastAPI
     const proposalResponse = await fetch(
       `${fastapiUrl}/api/proposals/create`,
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(adminToken ? { Authorization: `Bearer ${adminToken}` } : {}),
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           job_id: Number(jobId),
@@ -55,13 +63,15 @@ export default async function handler(req, res) {
       }
     );
 
-    if (!proposalResponse.ok) {
+    let proposalData = null;
+    if (proposalResponse.ok) {
+      proposalData = await proposalResponse.json().catch(() => null);
+    } else {
       console.error(
         'Error al crear propuesta en FastAPI:',
         await proposalResponse.text()
       );
     }
-    const proposalData = await proposalResponse.json().catch(() => null);
 
     return res.status(200).json({
       message: 'Postulación exitosa',

@@ -121,10 +121,13 @@ export default function JobList() {
 
   const handleApply = async (jobId) => {
     try {
-      // 1) Postulación en Next.js API (requiere que el usuario esté logueado en NextAuth)
+      // 1) Llamar a nuestro API interno de Next.js para crear postulación
       const res = await fetch("/api/job/apply", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("userToken")}`,
+        },
         body: JSON.stringify({ jobId }),
       });
       if (!res.ok) {
@@ -132,24 +135,12 @@ export default function JobList() {
         throw new Error(err.error || res.statusText);
       }
 
+      // 2) Cambio optimista en UI: aumentar contador y marcar como aplicado
       bumpCount(jobId, 1);
+      setApplications((prev) => [...prev, { jobId, status: "sent", createdAt: new Date().toISOString() }]);
       setSnackbar({ open: true, message: "Has postulado exitosamente", severity: "success" });
 
-      // 2) Crear propuesta en FastAPI
-      await fetch(`${API_BASE}/api/proposals/create`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
-        },
-        body: JSON.stringify({
-          job_id: jobId,
-          applicant_id: userId,
-          label: "automatic",
-        }),
-      });
-
-      // 3) Refrescar mis postulaciones
+      // 3) Refrescar con datos reales del backend
       const resApps = await fetch(`${API_BASE}/api/job/my-applications`, {
         headers: { "Content-Type": "application/json", ...authHeader() },
       });
