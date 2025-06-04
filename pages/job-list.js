@@ -137,7 +137,10 @@ export default function JobList() {
 
       // 2) Cambio optimista en UI: aumentar contador y marcar como aplicado
       bumpCount(jobId, 1);
-      setApplications((prev) => [...prev, { jobId, status: "sent", createdAt: new Date().toISOString() }]);
+      setApplications((prev) => [
+        ...prev,
+        { jobId, status: "sent", createdAt: new Date().toISOString() },
+      ]);
       setSnackbar({ open: true, message: "Has postulado exitosamente", severity: "success" });
 
       // 3) Refrescar con datos reales del backend
