@@ -1,7 +1,7 @@
 // pages/dashboard.js
 
 import { useRouter } from "next/router";
-import { signOut, getSession } from "next-auth/react";
+import { signOut, getSession, useSession } from "next-auth/react";
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import useAuthUser from "../hooks/useAuthUser";
@@ -30,9 +30,10 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://api.fapmendoza.onli
 
 export default function Dashboard({ toggleDarkMode, currentMode }) {
   /* ────────────────────────────────
-      1. Autenticación centralizada
+      1. Next-Auth & Hook centralizado
   ──────────────────────────────────*/
-  const { user, role: userRole, token, authHeader, ready, sessionStatus } = useAuthUser();
+  const { data: session, status: sessionStatus } = useSession();
+  const { user, role: userRole, token, authHeader, ready } = useAuthUser();
   const router = useRouter();
 
   /* ────────────────────────────────
@@ -58,10 +59,10 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
       4. Actualizar imagen de perfil
   ──────────────────────────────────*/
   useEffect(() => {
-    if (user?.image) {
-      setProfileImageUrl(user.image);
+    if (session?.user?.image) {
+      setProfileImageUrl(session.user.image);
     }
-  }, [user]);
+  }, [session]);
 
   const handleImageError = async () => {
     try {
@@ -80,19 +81,27 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
   };
 
   /* ────────────────────────────────
-      5. Redirecciones basicas
+      5. Redirecciones básicas
   ──────────────────────────────────*/
   useEffect(() => {
+    // Esperar a que el hook de auth indique ready
     if (!ready) return;
+
+    // Si no hay usuario autenticado, redirigir a /login
     if (!user) {
       router.replace("/login");
-    } else if (!userRole) {
+      return;
+    }
+
+    // Si el usuario existe pero no tiene rol asignado, redirigir a /select-role
+    if (userRole === null || userRole === undefined) {
       router.replace("/select-role");
+      return;
     }
   }, [ready, user, userRole, router]);
 
   /* ────────────────────────────────
-      6. Cargar postulaciones del empleado
+      6. Cargar postulaciones (empleado)
   ──────────────────────────────────*/
   useEffect(() => {
     if (!ready || userRole !== "empleado" || !token) {
@@ -108,11 +117,22 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
           const { applications: apps } = await res.json();
           setApplications(apps);
         } else if (res.status === 401) {
+          // JWT expirado o inválido: limpiamos y forzamos logout local
           localStorage.removeItem("userToken");
           setApplications([]);
+          setSnackbar({
+            open: true,
+            message: "Sesión expirada, inicia sesión nuevamente",
+            severity: "error",
+          });
         }
       } catch (error) {
         console.error("Error fetching applications:", error);
+        setSnackbar({
+          open: true,
+          message: "Error cargando tus postulaciones",
+          severity: "error",
+        });
       }
     };
     fetchApplications();
@@ -135,7 +155,7 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
       } else if (res.status === 401) {
         localStorage.removeItem("userToken");
         setApplications([]);
-        setSnackbar({ open: true, message: "Token expirado, inicia sesión nuevamente", severity: "error" });
+        setSnackbar({ open: true, message: "Sesión expirada, inicia sesión nuevamente", severity: "error" });
       } else {
         setSnackbar({ open: true, message: "Error al cancelar la postulación", severity: "error" });
       }
@@ -163,14 +183,14 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
   };
 
   /* ────────────────────────────────
-      9. Esperar auth listo
+      9. Esperar a que auth esté listo
   ──────────────────────────────────*/
   if (!ready || sessionStatus === "loading" || !userRole) {
     return <p>Cargando…</p>;
   }
 
   /* ────────────────────────────────
-      10. Render
+      10. Render principal
   ──────────────────────────────────*/
   return (
     <DashboardLayout userRole={userRole} toggleDarkMode={toggleDarkMode} currentMode={currentMode}>
@@ -180,7 +200,7 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
           onError={handleImageError}
           sx={{ width: 100, height: 100, border: "2px solid #ccc", mx: "auto", mb: 2 }}
         />
-        <Typography variant="h6">Bienvenido, {user?.name || "Usuario"}</Typography>
+        <Typography variant="h6">Bienvenido, {session?.user?.name || "Usuario"}</Typography>
         <Typography variant="body1" color="text.secondary">
           Tu rol: {userRole}
         </Typography>
@@ -215,13 +235,25 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
                 <Grid container spacing={3} justifyContent="center">
                   {applications.map((app) => (
                     <Grid item xs={12} sm={6} md={4} key={app.id}>
-                      <Card sx={{ display: "flex", flexDirection: "column", height: "100%", bgcolor: "rgba(217,98,54,0.15)" }}>
+                      <Card
+                        sx={{
+                          display: "flex",
+                          flexDirection: "column",
+                          height: "100%",
+                          bgcolor: "rgba(217,98,54,0.15)",
+                        }}
+                      >
                         <CardContent sx={{ flexGrow: 1 }}>
                           <Typography variant="h6">{app.job?.title}</Typography>
                           <Typography
                             variant="body2"
                             color="text.secondary"
-                            sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mt: 1 }}
+                            sx={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                              mt: 1,
+                            }}
                           >
                             <span>
                               Publicado el:{" "}
@@ -240,7 +272,12 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
                           </Typography>
                         </CardContent>
                         <CardActions sx={{ justifyContent: "space-between" }}>
-                          <Button component={Link} href={`/job-offer?id=${app.job?.id}`} size="small" variant="outlined">
+                          <Button
+                            component={Link}
+                            href={`/job-offer?id=${app.job?.id}`}
+                            size="small"
+                            variant="outlined"
+                          >
                             Ver Detalles
                           </Button>
                           <Button
