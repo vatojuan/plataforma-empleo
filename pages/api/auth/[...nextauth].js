@@ -11,9 +11,8 @@ export const authOptions = {
   secret : process.env.NEXTAUTH_SECRET,
   debug  : process.env.NODE_ENV !== "production",
 
-  /* ────────── PROVEEDORES ────────── */
+  /* ───────────────────── PROVEEDORES ───────────────────── */
   providers: [
-    /* —— Credenciales —— */
     CredentialsProvider({
       name: "Credenciales",
       credentials: {
@@ -36,10 +35,7 @@ export const authOptions = {
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body   : body.toString()
         });
-        if (!r.ok) {
-          console.error("FastAPI /auth/login:", await r.text());
-          throw new Error("Backend rechazó las credenciales");
-        }
+        if (!r.ok) throw new Error("Backend rechazó las credenciales");
         const { access_token } = await r.json();
 
         return {
@@ -48,25 +44,25 @@ export const authOptions = {
           email: u.email,
           role : u.role,
           image: u.profilePicture || "/images/default-user.png",
-          fastapiToken: access_token            // ← lo pasamos con ese nombre
+          fastapiToken: access_token                 // <── NOMBRE ÚNICO
         };
       }
     }),
 
-    /* —— Google —— */
     GoogleProvider({
       clientId    : process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET
     })
   ],
 
-  /* ────────── CALLBACKS ────────── */
+  /* ───────────────────── CALLBACKS ───────────────────── */
   callbacks: {
-    /* signIn -- sólo agregamos fastapiToken cuando viene de Google */
+
+    /* — signIn: flujo Google — */
     async signIn({ user, account, profile }) {
       if (account.provider !== "google") return true;
 
-      /* A) upsert en Prisma */
+      /* Upsert en Prisma */
       const dbUser = await prisma.user.upsert({
         where : { email: user.email },
         update: {
@@ -82,47 +78,49 @@ export const authOptions = {
         }
       });
 
-      /* B) token FastAPI */
+      /* Token FastAPI con id_token */
       if (account.id_token) {
         const r = await fetch(`${FASTAPI}/auth/login-google`, {
           method : "POST",
           headers: { "Content-Type": "application/json" },
           body   : JSON.stringify({ id_token: account.id_token })
         });
-        if (!r.ok) {
-          console.warn("FastAPI /auth/login-google:", await r.text());
-          return false;                           // aborta login
+        if (r.ok) {
+          const { access_token } = await r.json();
+          account.fastapiToken = access_token;     // <── se enviará a jwt()
+        } else {
+          console.warn("/auth/login-google →", await r.text());
+          return false;
         }
-        const { access_token } = await r.json();
-        account.fastapiToken = access_token;      // ★ meterlo en account
       }
 
-      /* C) propagar datos definitivos */
+      /* Propagar datos */
       user.id    = dbUser.id.toString();
       user.role  = dbUser.role;
       user.image = dbUser.profilePicture || user.image;
       return true;
     },
 
-    /* jwt -- consolidamos lo que venga de user ❬o❭ account */
+    /* — jwt: consolidamos datos — */
     async jwt({ token, user, account }) {
-      /* primera llamada luego del login */
+      // 1ª vez (credenciales):
+      if (user?.fastapiToken) token.fastapiToken = user.fastapiToken;
+
+      // 1ª vez (google):
+      if (account?.fastapiToken) token.fastapiToken = account.fastapiToken;
+
       if (user) {
         token.id    = user.id;
         token.name  = user.name;
         token.email = user.email;
         token.role  = user.role;
         token.image = user.image;
-        token.fastapiToken = user.fastapiToken ?? null;
       }
-      /* flujo Google: viene en account.fastapiToken */
-      if (account?.fastapiToken) token.fastapiToken = account.fastapiToken;
-
-      if (account && !token.provider) token.provider = account.provider;
+      if (account) token.provider = account.provider;
       return token;
     },
 
-    /* session -- lo que llega al cliente */
+    /* — session: lo que recibe el front — */
     async session({ session, token }) {
       session.user = {
         id      : token.id,
@@ -131,30 +129,13 @@ export const authOptions = {
         role    : token.role,
         image   : token.image,
         provider: token.provider,
-        token   : token.fastapiToken || null     // ★ visible en el front
+        token   : token.fastapiToken || null      // <── SI ESTÁ VACÍO ⇒ problema
       };
       return session;
     }
   },
 
-  pages: {
-    signIn: "/login",
-    error : "/auth/error"
-  },
-
-  cookies: {
-    sessionToken: {
-      name: process.env.NODE_ENV === "production"
-        ? "__Secure-next-auth.session-token"
-        : "next-auth.session-token",
-      options: {
-        httpOnly: true,
-        sameSite: "lax",
-        path    : "/",
-        secure  : process.env.NODE_ENV === "production"
-      }
-    }
-  }
+  pages: { signIn: "/login", error: "/auth/error" }
 };
 
 export default NextAuth(authOptions);
