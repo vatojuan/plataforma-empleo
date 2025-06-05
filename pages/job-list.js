@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import {
   Grid,
@@ -27,7 +27,7 @@ export default function JobList() {
   /* ────────────────────────────────
       1. Autenticación centralizada
   ──────────────────────────────────*/
-  const { user, role: userRole, authHeader, ready } = useAuthUser();
+  const { user, role: userRole, token, ready } = useAuthUser();
   const userId = user?.id || null;
 
   /* ────────────────────────────────
@@ -47,26 +47,37 @@ export default function JobList() {
   });
 
   /* ────────────────────────────────
-      3. Cargar ofertas y postulaciones
+      3. Encapsular authHeader en useCallback
+  ──────────────────────────────────*/
+  const authHeader = useCallback(() => {
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  }, [token]);
+
+  /* ────────────────────────────────
+      4. Cargar ofertas y postulaciones
   ──────────────────────────────────*/
   useEffect(() => {
-    if (!ready) return; // Esperar a que el hook confirme el token
+    if (!ready) return;
 
     const fetchAll = async () => {
       setLoading(true);
       try {
-        // 3.1) Ofertas vigentes
+        // 4.1) Ofertas vigentes (no requiere token)
         let url = `${API_BASE}/api/job/`;
         if (userRole === "empleador" && userId) {
           url += `?userId=${userId}`;
         }
         const resJobs = await fetch(url, {
-          headers: { "Content-Type": "application/json", ...authHeader },
+          headers: { "Content-Type": "application/json" },
         });
         if (resJobs.ok) {
           const { offers } = await resJobs.json();
           const now = new Date();
-          setJobs(offers.filter((j) => !j.expirationDate || new Date(j.expirationDate) > now));
+          setJobs(
+            offers.filter(
+              (j) => !j.expirationDate || new Date(j.expirationDate) > now
+            )
+          );
         } else {
           console.error("Error al obtener ofertas:", resJobs.status);
           setSnackbar({
@@ -76,14 +87,14 @@ export default function JobList() {
           });
         }
 
-        // 3.2) Postulaciones (solo empleado con token válido)
-        if (userRole === "empleado" && authHeader.Authorization) {
+        // 4.2) Postulaciones (solo empleado con token válido)
+        if (userRole === "empleado" && token) {
           const resApps = await fetch(`${API_BASE}/api/job/my-applications`, {
-            headers: { "Content-Type": "application/json", ...authHeader },
+            headers: { "Content-Type": "application/json", ...authHeader() },
           });
 
           if (resApps.status === 401) {
-            // JWT expirado o inválido → limpiamos local y forzamos reload
+            // JWT expirado o inválido → limpiamos local y estado
             localStorage.removeItem("userToken");
             setApplications([]);
           } else if (resApps.ok) {
@@ -106,25 +117,28 @@ export default function JobList() {
     };
 
     fetchAll();
-  }, [ready, userRole, userId, authHeader]);
+  }, [ready, userRole, userId, token, authHeader]);
 
   /* ────────────────────────────────
-      4. Helpers
+      5. Helpers
   ──────────────────────────────────*/
-  const isApplied = (jobId) => applications.some((a) => a.jobId === jobId);
+  const isApplied = (jobId) =>
+    applications.some((a) => a.jobId === jobId);
 
   const bumpCount = (jobId, delta) =>
     setJobs((prev) =>
       prev.map((j) =>
-        j.id === jobId ? { ...j, candidatesCount: (j.candidatesCount || 0) + delta } : j
+        j.id === jobId
+          ? { ...j, candidatesCount: (j.candidatesCount || 0) + delta }
+          : j
       )
     );
 
   /* ────────────────────────────────
-      5. Postular
+      6. Postular
   ──────────────────────────────────*/
   const handleApply = async (jobId) => {
-    if (!authHeader.Authorization) {
+    if (!token) {
       setSnackbar({
         open: true,
         message: "Debés iniciar sesión para postular",
@@ -137,7 +151,7 @@ export default function JobList() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...authHeader,
+          ...authHeader(),
         },
         body: JSON.stringify({ jobId }),
       });
@@ -160,7 +174,7 @@ export default function JobList() {
 
       // Confirmar estado real
       const resApps = await fetch(`${API_BASE}/api/job/my-applications`, {
-        headers: { "Content-Type": "application/json", ...authHeader },
+        headers: { "Content-Type": "application/json", ...authHeader() },
       });
       if (resApps.ok) {
         const { applications: apps } = await resApps.json();
@@ -180,11 +194,11 @@ export default function JobList() {
   };
 
   /* ────────────────────────────────
-      6. Cancelar postulación
+      7. Cancelar postulación
   ──────────────────────────────────*/
   const confirmCancel = async () => {
     const id = dialogs.cancel.jobId;
-    if (!authHeader.Authorization) {
+    if (!token) {
       setSnackbar({
         open: true,
         message: "Debés iniciar sesión para cancelar",
@@ -196,7 +210,7 @@ export default function JobList() {
     try {
       const res = await fetch(`${API_BASE}/api/job/cancel-application`, {
         method: "DELETE",
-        headers: { "Content-Type": "application/json", ...authHeader },
+        headers: { "Content-Type": "application/json", ...authHeader() },
         body: JSON.stringify({ jobId: id }),
       });
 
@@ -236,11 +250,12 @@ export default function JobList() {
   };
 
   /* ────────────────────────────────
-      7. Eliminar oferta (empleador)
+      8. Eliminar oferta (empleador)
   ──────────────────────────────────*/
   const confirmDelete = async () => {
     const id = dialogs.delete.jobId;
-    if (!localStorage.getItem("adminToken")) {
+    const adminToken = localStorage.getItem("adminToken");
+    if (!adminToken) {
       setSnackbar({
         open: true,
         message: "No autorizado para eliminar",
@@ -254,7 +269,7 @@ export default function JobList() {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+          Authorization: `Bearer ${adminToken}`,
         },
         body: JSON.stringify({ jobId: id }),
       });
@@ -286,7 +301,7 @@ export default function JobList() {
   };
 
   /* ────────────────────────────────
-      8. Bloquear render hasta ready
+      9. Bloquear render hasta ready
   ──────────────────────────────────*/
   if (!ready) {
     return (
@@ -297,7 +312,7 @@ export default function JobList() {
   }
 
   /* ────────────────────────────────
-      9. Render
+     10. Render
   ──────────────────────────────────*/
   return (
     <DashboardLayout>
