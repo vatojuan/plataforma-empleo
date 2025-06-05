@@ -8,28 +8,33 @@ export default function useAuthUser() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
+    // Sólo correr en cliente
     if (typeof window === "undefined") return;
 
-    const localToken = localStorage.getItem("userToken");
-    if (session?.user) {
-      // Usuario autenticado vía NextAuth
-      setUser(session.user);
+    // 1) Si NextAuth ya pasó su estado 'authenticated' y session.user.token existe:
+    if (status === "authenticated" && session?.user?.token) {
+      setUser({ id: session.user.id, role: session.user.role });
+      setToken(session.user.token);
       setReady(true);
-    } else if (localToken) {
-      // Usuario autenticado vía enlace (JWT en localStorage)
+      return;
+    }
+
+    // 2) Si NextAuth no está autenticado, revisamos localStorage (para enlaces)
+    const localToken = localStorage.getItem("userToken");
+    if (localToken) {
       try {
         const payload = JSON.parse(atob(localToken.split(".")[1]));
-        setUser({ id: payload.sub, role: "empleado" }); // Ajusta según tu payload
+        setUser({ id: payload.sub, role: payload.role || "empleado" });
         setToken(localToken);
-        setReady(true);
       } catch (e) {
-        console.warn("Token inválido", e);
-        setReady(true);
+        console.warn("Token inválido en localStorage:", e);
+        localStorage.removeItem("userToken");
       }
-    } else {
-      setReady(true);
     }
-  }, [session]);
+
+    // 3) Listo para uso (aunque user/token puedan ser null)
+    setReady(true);
+  }, [session, status]);
 
   const authHeader = token ? { Authorization: `Bearer ${token}` } : {};
 
