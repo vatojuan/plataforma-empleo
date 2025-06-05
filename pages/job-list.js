@@ -75,7 +75,9 @@ export default function JobList() {
           const now = new Date();
           setJobs(
             offers.filter((j) =>
-              !j.expirationDate ? true : new Date(j.expirationDate) > now
+              !j.expirationDate
+                ? true
+                : new Date(j.expirationDate) > now
             )
           );
         } else {
