@@ -10,10 +10,10 @@ export default function useAuthUser() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    // Este hook solo corre en cliente
+    // Solo corre en el cliente
     if (typeof window === "undefined") return;
 
-    // 1) Si NextAuth ha terminado y tenemos session.user.token (JWT de FastAPI)
+    // 1) Si NextAuth ya se autenticó y hay session.user.token
     if (sessionStatus === "authenticated" && session?.user?.token) {
       setUser({ id: session.user.id, role: session.user.role });
       setToken(session.user.token);
@@ -21,7 +21,7 @@ export default function useAuthUser() {
       return;
     }
 
-    // 2) Si NextAuth no está autenticado, intentar recuperar JWT de localStorage (enlaces de confirmación)
+    // 2) Si NextAuth no está autenticado, intentar recuperar de localStorage
     const localToken = localStorage.getItem("userToken");
     if (localToken) {
       try {
@@ -34,11 +34,11 @@ export default function useAuthUser() {
       }
     }
 
-    // 3) Marcamos ready (quizá el usuario no esté autenticado)
+    // 3) Marcamos ready (aunque user/token puedan ser null)
     setReady(true);
   }, [session, sessionStatus]);
 
-  // Memoizar cabecera de autenticación
+  // Cabecera de autenticación memoizada
   const authHeader = useCallback(() => {
     return token ? { Authorization: `Bearer ${token}` } : {};
   }, [token]);

@@ -24,10 +24,9 @@ export const authOptions = {
         password: { label: "Contraseña", type: "password" },
       },
       async authorize({ email, password }) {
-        // 1-A) Validar que exista el usuario en Prisma
+        // 1-A) Validar existencia de usuario en Prisma
         const u = await prisma.user.findUnique({ where: { email } });
         if (!u) {
-          // Si no existe, NextAuth retornará null y redireccionará a /login?error=
           throw new Error("Usuario no encontrado");
         }
         if (!u.password) {
@@ -41,7 +40,7 @@ export const authOptions = {
           throw new Error("Contraseña incorrecta");
         }
 
-        // 1-B) Solicitar el JWT de FastAPI usando form-urlencoded:
+        // 1-B) Solicitar JWT al backend FastAPI usando form-urlencoded
         const body = new URLSearchParams({ username: email, password });
         const res = await fetch(`${FASTAPI}/auth/login`, {
           method: "POST",
@@ -50,25 +49,24 @@ export const authOptions = {
         });
 
         if (!res.ok) {
+          // Si FastAPI responde 401 o similar, NextAuth lanzará error
           const text = await res.text();
-          console.error("FastAPI /auth/login respondió con error:", text);
+          console.error("FastAPI /auth/login falló:", text);
           throw new Error("No se pudo autenticar en el backend");
         }
-
         const { access_token } = await res.json();
         if (!access_token) {
-          console.error("FastAPI devolvió un JSON sin access_token:", await res.text());
-          throw new Error("No se generó el token de sesión");
+          throw new Error("No se recibió token desde FastAPI");
         }
 
-        // 1-C) Si todo OK, devolvemos el "user" para que nextAuth lo guarde en el JWT interno:
+        // 1-C) Devolver un objeto de usuario que NextAuth almacenará en el JWT interno
         return {
           id: u.id.toString(),
           name: u.name,
           email: u.email,
           role: u.role,
           image: u.profilePicture || "/images/default-user.png",
-          fastapiToken: access_token, // <- este campo será transferido al token JWT
+          fastapiToken: access_token,
         };
       },
     }),
@@ -84,9 +82,9 @@ export const authOptions = {
   // 2. CALLBACKS
   // ───────────────────────────────────────────────────────────────
   callbacks: {
-    /* — signIn: intercepta después de un login exitoso, antes de generar el JWT interno */
+    /* — signIn: intercepta posterior a login exitoso, antes de generar el JWT interno */
     async signIn({ user, account, profile }) {
-      // Si proviene de Google, hacemos upsert en Prisma y pedimos JWT al backend:
+      // Solo intervenir si viene de Google
       if (account.provider === "google") {
         // 2-A) Upsert en Prisma
         const dbUser = await prisma.user.upsert({
@@ -104,7 +102,7 @@ export const authOptions = {
           },
         });
 
-        // 2-B) Pedir JWT a FastAPI usando el id_token que entrega Google
+        // 2-B) Solicitar JWT a FastAPI usando el id_token de Google
         if (account.id_token) {
           const r = await fetch(`${FASTAPI}/auth/login-google`, {
             method: "POST",
@@ -113,33 +111,34 @@ export const authOptions = {
           });
           if (!r.ok) {
             console.warn("FastAPI /auth/login-google devolvió error:", await r.text());
-            // Si falla el backend, no permitimos el login:
-            return false;
+            return false; // Cancela el inicio de sesión si el backend falla
           }
           const { access_token } = await r.json();
-          account.fastapiToken = access_token; // lo guardamos en "account"
+          account.fastapiToken = access_token;
         }
 
-        // 2-C) Propagamos datos actualizados de la BD a `user`
+        // 2-C) Propagar datos de la BD al objeto `user`
         user.id = dbUser.id.toString();
         user.role = dbUser.role;
         user.image = dbUser.profilePicture || user.image;
       }
+
       return true;
     },
 
-    /* — jwt: construye el JWT que NextAuth guardará internamente */
+    /* — jwt: se ejecuta cada vez que se firma en o refresca sesión */
     async jwt({ token, user, account }) {
-      // 3-A) Si el login fue con Credenciales, `user.fastapiToken` existe:
+      // 3-A) Si vino de Credenciales, user.fastapiToken está definido
       if (user?.fastapiToken) {
         token.fastapiToken = user.fastapiToken;
       }
-      // 3-B) Si el login fue con Google, `account.fastapiToken` existe:
+
+      // 3-B) Si vino de Google, account.fastapiToken está definido
       if (account?.fastapiToken) {
         token.fastapiToken = account.fastapiToken;
       }
 
-      // 3-C) En la primera invocación, el objeto `user` existe:
+      // 3-C) Propagar info del usuario al token interno
       if (user) {
         token.id = user.id;
         token.name = user.name;
@@ -148,7 +147,7 @@ export const authOptions = {
         token.image = user.image;
       }
 
-      // 3-D) Siempre almacenamos el proveedor (credentials / google)
+      // 3-D) Guardar el proveedor (credentials / google)
       if (account) {
         token.provider = account.provider;
       }
@@ -156,7 +155,7 @@ export const authOptions = {
       return token;
     },
 
-    /* — session: aquí definimos qué ve el frontend en `session.user` */
+    /* — session: define qué ve el frontend en session.user */
     async session({ session, token }) {
       session.user = {
         id: token.id,
@@ -165,7 +164,7 @@ export const authOptions = {
         role: token.role,
         image: token.image,
         provider: token.provider,
-        // Este es el JWT que usarás para consultar tu API de FastAPI:
+        // Este es el JWT de FastAPI que vas a usar en tus fetchs:
         token: token.fastapiToken || null,
       };
       return session;

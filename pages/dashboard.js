@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/router";
 import { signOut, getSession, useSession } from "next-auth/react";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import useAuthUser from "../hooks/useAuthUser";
 import DashboardLayout from "../components/DashboardLayout";
@@ -23,86 +23,48 @@ import {
   DialogActions,
   Snackbar,
   Alert,
+  CircularProgress,
 } from "@mui/material";
 import PersonIcon from "@mui/icons-material/Person";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://api.fapmendoza.online";
 
 export default function Dashboard({ toggleDarkMode, currentMode }) {
-  /* ────────────────────────────────
-      1. Next-Auth & Hook centralizado
-  ──────────────────────────────────*/
-  const { data: session, status: sessionStatus } = useSession();
-  const { user, role: userRole, token, authHeader, ready } = useAuthUser();
+  // 1) Autenticación centralizada
+  const { user, role: userRole, token, authHeader, ready, sessionStatus } = useAuthUser();
+  const { data: session } = useSession();
   const router = useRouter();
 
-  /* ────────────────────────────────
-      2. Estado local
-  ──────────────────────────────────*/
+  // 2) Estado local
   const [applications, setApplications] = useState([]);
   const [profileImageUrl, setProfileImageUrl] = useState("/images/default-user.png");
   const [openCancelDialog, setOpenCancelDialog] = useState(false);
   const [selectedCancelJobId, setSelectedCancelJobId] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
-  /* ────────────────────────────────
-      3. Forzar revalidación de sesión
-  ──────────────────────────────────*/
+  // 3) Forzar revalidación de sesión al montar (por si cambió algo en NextAuth)
   useEffect(() => {
-    async function refresh() {
-      await getSession();
-    }
-    refresh();
+    getSession();
   }, []);
 
-  /* ────────────────────────────────
-      4. Actualizar imagen de perfil
-  ──────────────────────────────────*/
+  // 4) Actualizar la imagen de perfil cuando cambie session.user.image
   useEffect(() => {
     if (session?.user?.image) {
       setProfileImageUrl(session.user.image);
     }
   }, [session]);
 
-  const handleImageError = async () => {
-    try {
-      const endpoint =
-        userRole === "empleado"
-          ? "/api/employee/renew-profile-picture"
-          : "/api/employer/renew-profile-picture";
-      const res = await fetch(endpoint);
-      const data = await res.json();
-      if (data.url) {
-        setProfileImageUrl(data.url);
-      }
-    } catch (error) {
-      console.error("Error renovando la URL de la imagen:", error);
-    }
-  };
-
-  /* ────────────────────────────────
-      5. Redirecciones básicas
-  ──────────────────────────────────*/
+  // 5) Redirigir si no está listo o no hay usuario / rol
   useEffect(() => {
-    // Esperar a que el hook de auth indique ready
     if (!ready) return;
-
-    // Si no hay usuario autenticado, redirigir a /login
     if (!user) {
       router.replace("/login");
-      return;
-    }
-
-    // Si el usuario existe pero no tiene rol asignado, redirigir a /select-role
-    if (userRole === null || userRole === undefined) {
+    } else if (!userRole) {
       router.replace("/select-role");
-      return;
     }
   }, [ready, user, userRole, router]);
 
-  /* ────────────────────────────────
-      6. Cargar postulaciones (empleado)
-  ──────────────────────────────────*/
+  // 6) Cargar postulaciones (solo empleado, cuando ready && token esté presente)
   useEffect(() => {
     if (!ready || userRole !== "empleado" || !token) {
       setApplications([]);
@@ -111,42 +73,36 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
     const fetchApplications = async () => {
       try {
         const res = await fetch(`${API_BASE}/api/job/my-applications`, {
-          headers: { "Content-Type": "application/json", ...authHeader() },
+          headers: {
+            "Content-Type": "application/json",
+            ...authHeader(), // <- notar paréntesis
+          },
         });
         if (res.ok) {
           const { applications: apps } = await res.json();
           setApplications(apps);
         } else if (res.status === 401) {
-          // JWT expirado o inválido: limpiamos y forzamos logout local
+          // Token expirado o inválido
           localStorage.removeItem("userToken");
           setApplications([]);
-          setSnackbar({
-            open: true,
-            message: "Sesión expirada, inicia sesión nuevamente",
-            severity: "error",
-          });
         }
       } catch (error) {
         console.error("Error fetching applications:", error);
-        setSnackbar({
-          open: true,
-          message: "Error cargando tus postulaciones",
-          severity: "error",
-        });
       }
     };
     fetchApplications();
   }, [ready, userRole, token, authHeader]);
 
-  /* ────────────────────────────────
-      7. Confirmar cancelación de postulación
-  ──────────────────────────────────*/
+  // 7) Confirmar cancelación de postulación
   const confirmCancelApplication = async () => {
     const jobId = selectedCancelJobId;
     try {
       const res = await fetch(`${API_BASE}/api/job/cancel-application`, {
         method: "DELETE",
-        headers: { "Content-Type": "application/json", ...authHeader() },
+        headers: {
+          "Content-Type": "application/json",
+          ...authHeader(),
+        },
         body: JSON.stringify({ jobId }),
       });
       if (res.ok) {
@@ -155,7 +111,7 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
       } else if (res.status === 401) {
         localStorage.removeItem("userToken");
         setApplications([]);
-        setSnackbar({ open: true, message: "Sesión expirada, inicia sesión nuevamente", severity: "error" });
+        setSnackbar({ open: true, message: "Token expirado. Vuelve a iniciar sesión.", severity: "error" });
       } else {
         setSnackbar({ open: true, message: "Error al cancelar la postulación", severity: "error" });
       }
@@ -173,31 +129,44 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
     setSelectedCancelJobId(null);
   };
 
-  /* ────────────────────────────────
-      8. Cerrar sesión
-  ──────────────────────────────────*/
+  // 8) Cerrar sesión
   const handleSignOut = async () => {
     await signOut({ redirect: false });
     setSnackbar({ open: true, message: "Sesión cerrada correctamente", severity: "success" });
     setTimeout(() => router.push("/login"), 1200);
   };
 
-  /* ────────────────────────────────
-      9. Esperar a que auth esté listo
-  ──────────────────────────────────*/
+  // 9) Spinner mientras ready / sessionStatus / userRole no estén listos
   if (!ready || sessionStatus === "loading" || !userRole) {
-    return <p>Cargando…</p>;
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 8 }}>
+        <CircularProgress />
+      </Box>
+    );
   }
 
-  /* ────────────────────────────────
-      10. Render principal
-  ──────────────────────────────────*/
+  // 10) Render final
   return (
     <DashboardLayout userRole={userRole} toggleDarkMode={toggleDarkMode} currentMode={currentMode}>
       <Box sx={{ textAlign: "center", mt: 4 }}>
         <Avatar
           src={profileImageUrl}
-          onError={handleImageError}
+          onError={async () => {
+            // Si falla la imagen, renovar desde el endpoint correspondiente
+            try {
+              const endpoint =
+                userRole === "empleado"
+                  ? "/api/employee/renew-profile-picture"
+                  : "/api/employer/renew-profile-picture";
+              const r = await fetch(endpoint);
+              const d = await r.json();
+              if (d.url) {
+                setProfileImageUrl(d.url);
+              }
+            } catch (e) {
+              console.error("Error renovando URL de la imagen:", e);
+            }
+          }}
           sx={{ width: 100, height: 100, border: "2px solid #ccc", mx: "auto", mb: 2 }}
         />
         <Typography variant="h6">Bienvenido, {session?.user?.name || "Usuario"}</Typography>

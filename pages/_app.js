@@ -1,17 +1,21 @@
+// pages/_app.js
+
 import { useState, useMemo, useEffect } from "react";
-import { ThemeProvider, createTheme } from "@mui/material/styles";
-import CssBaseline from "@mui/material/CssBaseline";
 import { SessionProvider } from "next-auth/react";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
+import CssBaseline from "@mui/material/CssBaseline";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import Head from "next/head";
 
 export default function App({ Component, pageProps: { session, ...pageProps } }) {
+  // 1) Modo claro / oscuro
   const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
   const [mode, setMode] = useState("light");
 
   useEffect(() => {
+    // Al montarse, leemos si existe "colorMode" en localStorage
     const storedMode = localStorage.getItem("colorMode");
-    if (storedMode) {
+    if (storedMode === "light" || storedMode === "dark") {
       setMode(storedMode);
     } else {
       setMode(prefersDarkMode ? "dark" : "light");
@@ -26,17 +30,18 @@ export default function App({ Component, pageProps: { session, ...pageProps } })
     });
   };
 
+  // 2) Generación del tema de MUI
   const theme = useMemo(
     () =>
       createTheme({
         palette: {
           mode,
           primary: {
-            main: "#D96236", // Nuevo color primario
+            main: "#D96236", // color primario
             dark: "#B0482B",
           },
           secondary: {
-            main: "#103B40", // Nuevo color secundario
+            main: "#103B40", // color secundario
           },
           accent: {
             main: "#2F4F4F",
@@ -73,6 +78,20 @@ export default function App({ Component, pageProps: { session, ...pageProps } })
     [mode]
   );
 
+  // 3) Sincronizar la sesión de NextAuth con localStorage
+  //    Guardamos en localStorage “userToken” cada vez que cambie session.user.token.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    if (session?.user?.token) {
+      // Si existe token en la sesión, lo guardamos
+      localStorage.setItem("userToken", session.user.token);
+    } else {
+      // Si no hay sesión o no hay token, lo removemos
+      localStorage.removeItem("userToken");
+    }
+  }, [session]);
+
   return (
     <SessionProvider session={session}>
       <Head>
@@ -80,7 +99,12 @@ export default function App({ Component, pageProps: { session, ...pageProps } })
         <title>FAP Mendoza</title>
       </Head>
       <ThemeProvider theme={theme}>
+        {/* CssBaseline para normalizar estilos de MUI */}
         <CssBaseline />
+        {/* 
+          Pasamos toggleDarkMode y currentMode como props
+          para que cualquier página los reciba si los necesita.
+        */}
         <Component {...pageProps} toggleDarkMode={toggleDarkMode} currentMode={mode} />
       </ThemeProvider>
     </SessionProvider>
