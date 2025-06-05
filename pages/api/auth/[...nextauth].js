@@ -1,169 +1,159 @@
 // pages/api/auth/[...nextauth].js
-
-import NextAuth from "next-auth";
+import NextAuth            from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import GoogleProvider from "next-auth/providers/google";
-import prisma from "../../../lib/prisma";
-import bcrypt from "bcryptjs";
+import GoogleProvider      from "next-auth/providers/google";
+import prisma              from "../../../lib/prisma";
+import bcrypt              from "bcryptjs";
 
 const FASTAPI = process.env.NEXT_PUBLIC_API_URL || "https://api.fapmendoza.online";
 
+/* ══════════════════════════════════════
+   CONFIG
+   ══════════════════════════════════════ */
 export const authOptions = {
   secret: process.env.NEXTAUTH_SECRET,
-  debug: process.env.NODE_ENV !== "production",
+  debug : process.env.NODE_ENV !== "production",
 
+  /* ─────── PROVEEDORES ─────── */
   providers: [
-    // Credenciales (email + contraseña)
     CredentialsProvider({
       name: "Credenciales",
       credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Contraseña", type: "password" },
+        email   : { label: "Email",      type: "email"    },
+        password: { label: "Contraseña", type: "password" }
       },
-      async authorize({ email, password }) {
-        // 1-A) Validar usuario en Prisma
-        const user = await prisma.user.findUnique({ where: { email } });
-        if (!user) throw new Error("Usuario no encontrado");
-        if (!user.password) throw new Error("Registrado con Google, usa Google");
-        if (!user.confirmed) throw new Error("Debes confirmar tu correo para iniciar sesión");
+      async authorize ({ email, password }) {
+        /* 1 - Validar en Prisma */
+        const dbUser = await prisma.user.findUnique({ where: { email } });
+        if (!dbUser)                throw new Error("Usuario no encontrado");
+        if (!dbUser.password)       throw new Error("Registrado con Google");
+        if (!dbUser.confirmed)      throw new Error("Confirma tu correo");
+        if (!await bcrypt.compare(password, dbUser.password))
+          throw new Error("Contraseña incorrecta");
 
-        const isValid = await bcrypt.compare(password, user.password);
-        if (!isValid) throw new Error("Contraseña incorrecta");
-
-        // 1-B) Hacer login contra FastAPI usando x-www-form-urlencoded
-        const form = new URLSearchParams();
-        form.append("username", email);
-        form.append("password", password);
-
-        const res = await fetch(`${FASTAPI}/auth/login`, {
-          method: "POST",
+        /* 2 - JWT de FastAPI (x-www-form-urlencoded) */
+        const body = new URLSearchParams({ username: email, password });
+        const r    = await fetch(`${FASTAPI}/auth/login`, {
+          method : "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: form.toString(),
+          body   : body.toString()
         });
-        if (!res.ok) {
-          console.error("FastAPI /auth/login falló:", await res.text());
+        if (!r.ok) {
+          console.error("FastAPI /auth/login:", await r.text());
           throw new Error("Backend rechazó las credenciales");
         }
-        const { access_token } = await res.json();
+        const { access_token } = await r.json();
 
         return {
-          id: user.id.toString(),
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          image: user.profilePicture || "/images/default-user.png",
-          accessToken: access_token, // JWT de FastAPI
+          id   : dbUser.id.toString(),
+          name : dbUser.name,
+          email: dbUser.email,
+          role : dbUser.role,
+          image: dbUser.profilePicture || "/images/default-user.png",
+          accessToken: access_token                       // ★
         };
-      },
+      }
     }),
 
-    // Google Provider
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    }),
+      clientId    : process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET
+    })
   ],
 
+  /* ─────── CALLBACKS ─────── */
   callbacks: {
+    /* signIn – solo necesitamos lógica extra si proviene de Google  */
     async signIn({ user, account, profile }) {
-      // Solo interceptamos si viene de Google
-      if (account.provider === "google") {
-        // 2-A) Upsert en Prisma
-        let dbUser = await prisma.user.findUnique({ where: { email: user.email } });
-        if (!dbUser) {
-          dbUser = await prisma.user.create({
-            data: {
-              email: user.email,
-              name: user.name,
-              role: null, 
-              confirmed: true,
-              googleId: profile.sub,
-              profilePicture: user.image || profile.picture,
-            },
-          });
-        } else if (!dbUser.profilePicture) {
-          dbUser = await prisma.user.update({
-            where: { id: dbUser.id },
-            data: { profilePicture: user.image || profile.picture },
-          });
-        }
+      if (account.provider !== "google") return true;
 
-        // 2-B) Solicitar JWT a FastAPI con el id_token de Google
-        if (account.id_token) {
-          const res = await fetch(`${FASTAPI}/auth/login-google`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ id_token: account.id_token }),
-          });
-          if (res.ok) {
-            const { access_token } = await res.json();
-            user.accessToken = access_token;
-          } else {
-            console.warn("FastAPI /auth/login-google devolvió error:", await res.text());
-          }
+      /* A – Upsert del usuario en Prisma */
+      let dbUser = await prisma.user.upsert({
+        where : { email: user.email },
+        update: {
+          name           : user.name,
+          profilePicture : user.image || profile.picture
+        },
+        create: {
+          email          : user.email,
+          name           : user.name,
+          confirmed      : true,
+          googleId       : profile.sub,
+          profilePicture : user.image || profile.picture
         }
+      });
 
-        // 2-C) Asegurarnos de propagar la info de BD al objeto `user`
-        user.id = dbUser.id.toString();
-        user.image = dbUser.profilePicture || user.image;
-        user.role = dbUser.role;
+      /* B – JWT de FastAPI con id_token */
+      if (account.id_token) {
+        const r = await fetch(`${FASTAPI}/auth/login-google`, {
+          method : "POST",
+          headers: { "Content-Type": "application/json" },
+          body   : JSON.stringify({ id_token: account.id_token })
+        });
+        if (r.ok) {
+          const { access_token } = await r.json();
+          user.accessToken = access_token;               // ★
+        } else {
+          console.warn("FastAPI /auth/login-google:", await r.text());
+          return false;                                  // aborta sign-in
+        }
       }
 
+      /* C – Propagar datos definitivos a `user` (irá a jwt) */
+      user.id    = dbUser.id.toString();
+      user.role  = dbUser.role;
+      user.image = dbUser.profilePicture || user.image;
       return true;
     },
 
+    /* jwt – persiste info entre requests */
     async jwt({ token, user, account }) {
-      // Si se está logueando, almacenamos info en el JWT
-      if (user) {
-        token.id = user.id;
-        token.name = user.name;
-        token.email = user.email;
-        token.role = user.role;
-        token.image = user.image;
-        token.accessToken = user.accessToken || null; // JWT de FastAPI
+      if (user) {                                       // primer login
+        token.id          = user.id;
+        token.name        = user.name;
+        token.email       = user.email;
+        token.role        = user.role;
+        token.image       = user.image;
+        token.accessToken = user.accessToken || null;
       }
-      if (account) {
-        token.provider = account.provider;
-      } else if (!token.provider) {
-        token.provider = "credentials";
-      }
+      if (account && !token.provider) token.provider = account.provider;
       return token;
     },
 
+    /* session – expone datos al frontend */
     async session({ session, token }) {
-      // Exponemos session.user con el JWT de FastAPI
       session.user = {
-        id: token.id,
-        name: token.name,
-        email: token.email,
-        role: token.role,
-        image: token.image,
+        id      : token.id,
+        name    : token.name,
+        email   : token.email,
+        role    : token.role,
+        image   : token.image,
         provider: token.provider,
-        token: token.accessToken, // este es el JWT que usarás en fetch()
+        token   : token.accessToken                     // ★ aquí lo usa useAuthUser
       };
       return session;
-    },
+    }
   },
 
   pages: {
     signIn: "/login",
-    error: "/auth/error",
+    error : "/auth/error"
   },
 
+  /* cookie consistente */
   cookies: {
     sessionToken: {
-      name:
-        process.env.NODE_ENV === "production"
-          ? "__Secure-next-auth.session-token"
-          : "next-auth.session-token",
+      name: process.env.NODE_ENV === "production"
+        ? "__Secure-next-auth.session-token"
+        : "next-auth.session-token",
       options: {
         httpOnly: true,
         sameSite: "lax",
-        path: "/",
-        secure: process.env.NODE_ENV === "production",
-      },
-    },
-  },
+        path    : "/",
+        secure  : process.env.NODE_ENV === "production"
+      }
+    }
+  }
 };
 
 export default NextAuth(authOptions);
