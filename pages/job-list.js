@@ -35,7 +35,8 @@ export default function JobList() {
   ──────────────────────────────────*/
   const [jobs, setJobs] = useState([]);
   const [applications, setApplications] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loadingJobs, setLoadingJobs] = useState(true);
+  const [loadingApps, setLoadingApps] = useState(false);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
@@ -47,83 +48,104 @@ export default function JobList() {
   });
 
   /* ────────────────────────────────
-      3. Encapsular authHeader en useCallback
+      3. authHeader memoizado
   ──────────────────────────────────*/
   const authHeader = useCallback(() => {
     return token ? { Authorization: `Bearer ${token}` } : {};
   }, [token]);
 
   /* ────────────────────────────────
-      4. Cargar ofertas y postulaciones
+      4. Efecto: cargar ofertas (no lleva JWT)
   ──────────────────────────────────*/
   useEffect(() => {
     if (!ready) return;
 
-    const fetchAll = async () => {
-      setLoading(true);
+    const fetchJobs = async () => {
+      setLoadingJobs(true);
       try {
-        // 4.1) Ofertas vigentes (no requiere token)
         let url = `${API_BASE}/api/job/`;
         if (userRole === "empleador" && userId) {
           url += `?userId=${userId}`;
         }
-        const resJobs = await fetch(url, {
+        const res = await fetch(url, {
           headers: { "Content-Type": "application/json" },
         });
-        if (resJobs.ok) {
-          const { offers } = await resJobs.json();
+        if (res.ok) {
+          const { offers } = await res.json();
           const now = new Date();
           setJobs(
-            offers.filter(
-              (j) => !j.expirationDate || new Date(j.expirationDate) > now
+            offers.filter((j) =>
+              !j.expirationDate ? true : new Date(j.expirationDate) > now
             )
           );
         } else {
-          console.error("Error al obtener ofertas:", resJobs.status);
+          console.error("Error al obtener ofertas:", res.status);
           setSnackbar({
             open: true,
             message: "No se pudieron cargar las ofertas",
             severity: "error",
           });
         }
-
-        // 4.2) Postulaciones (solo empleado con token válido)
-        if (userRole === "empleado" && token) {
-          const resApps = await fetch(`${API_BASE}/api/job/my-applications`, {
-            headers: { "Content-Type": "application/json", ...authHeader() },
-          });
-
-          if (resApps.status === 401) {
-            // JWT expirado o inválido → limpiamos local y estado
-            localStorage.removeItem("userToken");
-            setApplications([]);
-          } else if (resApps.ok) {
-            const { applications: apps } = await resApps.json();
-            setApplications(apps);
-          } else {
-            console.error("Error al obtener postulaciones:", resApps.status);
-          }
-        }
       } catch (e) {
-        console.error("Error fetchAll:", e);
+        console.error("Error fetchJobs:", e);
         setSnackbar({
           open: true,
-          message: "Error cargando datos",
+          message: "Error cargando ofertas",
           severity: "error",
         });
       } finally {
-        setLoading(false);
+        setLoadingJobs(false);
       }
     };
 
-    fetchAll();
-  }, [ready, userRole, userId, token, authHeader]);
+    fetchJobs();
+  }, [ready, userRole, userId]);
 
   /* ────────────────────────────────
-      5. Helpers
+      5. Efecto: cargar postulaciones (solo empleado y con token)
   ──────────────────────────────────*/
-  const isApplied = (jobId) =>
-    applications.some((a) => a.jobId === jobId);
+  useEffect(() => {
+    if (!ready) return;
+    if (userRole !== "empleado" || !token) {
+      setApplications([]);
+      return;
+    }
+
+    const fetchApps = async () => {
+      setLoadingApps(true);
+      try {
+        const res = await fetch(`${API_BASE}/api/job/my-applications`, {
+          headers: { "Content-Type": "application/json", ...authHeader() },
+        });
+        if (res.status === 401) {
+          // Token expirado o inválido
+          localStorage.removeItem("userToken");
+          setApplications([]);
+        } else if (res.ok) {
+          const { applications: apps } = await res.json();
+          setApplications(apps);
+        } else {
+          console.error("Error al obtener postulaciones:", res.status);
+        }
+      } catch (e) {
+        console.error("Error fetchApps:", e);
+        setSnackbar({
+          open: true,
+          message: "Error cargando tus postulaciones",
+          severity: "error",
+        });
+      } finally {
+        setLoadingApps(false);
+      }
+    };
+
+    fetchApps();
+  }, [ready, userRole, token, authHeader]);
+
+  /* ────────────────────────────────
+      6. Helpers
+  ──────────────────────────────────*/
+  const isApplied = (jobId) => applications.some((a) => a.jobId === jobId);
 
   const bumpCount = (jobId, delta) =>
     setJobs((prev) =>
@@ -135,7 +157,7 @@ export default function JobList() {
     );
 
   /* ────────────────────────────────
-      6. Postular
+      7. Postular
   ──────────────────────────────────*/
   const handleApply = async (jobId) => {
     if (!token) {
@@ -194,7 +216,7 @@ export default function JobList() {
   };
 
   /* ────────────────────────────────
-      7. Cancelar postulación
+      8. Cancelar postulación
   ──────────────────────────────────*/
   const confirmCancel = async () => {
     const id = dialogs.cancel.jobId;
@@ -250,7 +272,7 @@ export default function JobList() {
   };
 
   /* ────────────────────────────────
-      8. Eliminar oferta (empleador)
+      9. Eliminar oferta (empleador)
   ──────────────────────────────────*/
   const confirmDelete = async () => {
     const id = dialogs.delete.jobId;
@@ -301,7 +323,7 @@ export default function JobList() {
   };
 
   /* ────────────────────────────────
-      9. Bloquear render hasta ready
+      10. Bloquear render hasta ready
   ──────────────────────────────────*/
   if (!ready) {
     return (
@@ -312,7 +334,7 @@ export default function JobList() {
   }
 
   /* ────────────────────────────────
-     10. Render
+      11. Render final
   ──────────────────────────────────*/
   return (
     <DashboardLayout>
@@ -321,7 +343,7 @@ export default function JobList() {
           Listado de Ofertas
         </Typography>
 
-        {loading ? (
+        {loadingJobs ? (
           <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
             <CircularProgress />
           </Box>
@@ -401,7 +423,7 @@ export default function JobList() {
         </Box>
       </Box>
 
-      {/* ── Dialog Confirmar Cancelación ─────────────────────── */}
+      {/* ── Dialog Confirmar Cancelación ────────────────── */}
       <Dialog
         open={dialogs.cancel.open}
         onClose={() => setDialogs((d) => ({ ...d, cancel: { open: false, jobId: null } }))}
@@ -420,7 +442,7 @@ export default function JobList() {
         </DialogActions>
       </Dialog>
 
-      {/* ── Dialog Confirmar Eliminación ───────────────────── */}
+      {/* ── Dialog Confirmar Eliminación ────────────────── */}
       <Dialog
         open={dialogs.delete.open}
         onClose={() => setDialogs((d) => ({ ...d, delete: { open: false, jobId: null } }))}
@@ -439,7 +461,7 @@ export default function JobList() {
         </DialogActions>
       </Dialog>
 
-      {/* ── Snackbar global ────────────────────────────────── */}
+      {/* ── Snackbar global ──────────────────────────────── */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={4000}
