@@ -27,20 +27,28 @@ import {
 } from "@mui/material";
 import PersonIcon from "@mui/icons-material/Person";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://api.fapmendoza.online";
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_URL || "https://api.fapmendoza.online";
 
 export default function Dashboard({ toggleDarkMode, currentMode }) {
   // 1) Autenticación centralizada
-  const { user, role: userRole, token, authHeader, ready, sessionStatus } = useAuthUser();
+  const { user, role: userRole, token, authHeader, ready, sessionStatus } =
+    useAuthUser();
   const { data: session } = useSession();
   const router = useRouter();
 
   // 2) Estado local
   const [applications, setApplications] = useState([]);
-  const [profileImageUrl, setProfileImageUrl] = useState("/images/default-user.png");
+  const [profileImageUrl, setProfileImageUrl] = useState(
+    "/images/default-user.png"
+  );
   const [openCancelDialog, setOpenCancelDialog] = useState(false);
   const [selectedCancelJobId, setSelectedCancelJobId] = useState(null);
-  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
 
   // 3) Forzar revalidación de sesión al montar (por si cambió algo en NextAuth)
   useEffect(() => {
@@ -70,14 +78,16 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
       setApplications([]);
       return;
     }
+
     const fetchApplications = async () => {
       try {
         const res = await fetch(`${API_BASE}/api/job/my-applications`, {
           headers: {
             "Content-Type": "application/json",
-            ...authHeader(), // <- notar paréntesis
+            ...authHeader(),
           },
         });
+
         if (res.ok) {
           const { applications: apps } = await res.json();
           setApplications(apps);
@@ -85,11 +95,14 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
           // Token expirado o inválido
           localStorage.removeItem("userToken");
           setApplications([]);
+        } else {
+          console.error("my-applications status:", res.status);
         }
       } catch (error) {
         console.error("Error fetching applications:", error);
       }
     };
+
     fetchApplications();
   }, [ready, userRole, token, authHeader]);
 
@@ -105,19 +118,38 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
         },
         body: JSON.stringify({ jobId }),
       });
+
       if (res.ok) {
-        setApplications((prev) => prev.filter((a) => a.jobId !== jobId));
-        setSnackbar({ open: true, message: "Postulación cancelada", severity: "success" });
+        setApplications((prev) =>
+          prev.filter((a) => a.jobId !== jobId)
+        );
+        setSnackbar({
+          open: true,
+          message: "Postulación cancelada",
+          severity: "success",
+        });
       } else if (res.status === 401) {
         localStorage.removeItem("userToken");
         setApplications([]);
-        setSnackbar({ open: true, message: "Token expirado. Vuelve a iniciar sesión.", severity: "error" });
+        setSnackbar({
+          open: true,
+          message: "Token expirado. Vuelve a iniciar sesión.",
+          severity: "error",
+        });
       } else {
-        setSnackbar({ open: true, message: "Error al cancelar la postulación", severity: "error" });
+        setSnackbar({
+          open: true,
+          message: "Error al cancelar la postulación",
+          severity: "error",
+        });
       }
     } catch (error) {
       console.error("Error al cancelar la postulación:", error);
-      setSnackbar({ open: true, message: "Error al cancelar la postulación", severity: "error" });
+      setSnackbar({
+        open: true,
+        message: "Error al cancelar la postulación",
+        severity: "error",
+      });
     } finally {
       setOpenCancelDialog(false);
       setSelectedCancelJobId(null);
@@ -132,7 +164,11 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
   // 8) Cerrar sesión
   const handleSignOut = async () => {
     await signOut({ redirect: false });
-    setSnackbar({ open: true, message: "Sesión cerrada correctamente", severity: "success" });
+    setSnackbar({
+      open: true,
+      message: "Sesión cerrada correctamente",
+      severity: "success",
+    });
     setTimeout(() => router.push("/login"), 1200);
   };
 
@@ -147,7 +183,11 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
 
   // 10) Render final
   return (
-    <DashboardLayout userRole={userRole} toggleDarkMode={toggleDarkMode} currentMode={currentMode}>
+    <DashboardLayout
+      userRole={userRole}
+      toggleDarkMode={toggleDarkMode}
+      currentMode={currentMode}
+    >
       <Box sx={{ textAlign: "center", mt: 4 }}>
         <Avatar
           src={profileImageUrl}
@@ -167,9 +207,17 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
               console.error("Error renovando URL de la imagen:", e);
             }
           }}
-          sx={{ width: 100, height: 100, border: "2px solid #ccc", mx: "auto", mb: 2 }}
+          sx={{
+            width: 100,
+            height: 100,
+            border: "2px solid #ccc",
+            mx: "auto",
+            mb: 2,
+          }}
         />
-        <Typography variant="h6">Bienvenido, {session?.user?.name || "Usuario"}</Typography>
+        <Typography variant="h6">
+          Bienvenido, {session?.user?.name || "Usuario"}
+        </Typography>
         <Typography variant="body1" color="text.secondary">
           Tu rol: {userRole}
         </Typography>
@@ -180,18 +228,36 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
             <Box sx={{ mt: 3, mx: "auto", maxWidth: 500 }}>
               <Grid container spacing={2}>
                 <Grid item xs={12} sm={6}>
-                  <Button fullWidth variant="contained" component={Link} href="/job-list">
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    component={Link}
+                    href="/job-list"
+                  >
                     Ver Ofertas de Empleo
                   </Button>
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <Button fullWidth variant="outlined" component={Link} href="/profile-empleado">
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    component={Link}
+                    href="/profile-empleado"
+                  >
                     Actualizar Perfil
                   </Button>
                 </Grid>
               </Grid>
             </Box>
-            <Paper sx={{ maxWidth: 900, mx: "auto", mt: 4, p: 3, borderRadius: 2 }}>
+            <Paper
+              sx={{
+                maxWidth: 900,
+                mx: "auto",
+                mt: 4,
+                p: 3,
+                borderRadius: 2,
+              }}
+            >
               <Typography variant="h5" gutterBottom>
                 Mis Postulaciones
               </Typography>
@@ -213,7 +279,9 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
                         }}
                       >
                         <CardContent sx={{ flexGrow: 1 }}>
-                          <Typography variant="h6">{app.job?.title}</Typography>
+                          <Typography variant="h6">
+                            {app.job?.title}
+                          </Typography>
                           <Typography
                             variant="body2"
                             color="text.secondary"
@@ -234,13 +302,21 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
                           <Typography
                             variant="body2"
                             color="text.secondary"
-                            sx={{ display: "flex", alignItems: "center", gap: 0.5, mt: 1 }}
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 0.5,
+                              mt: 1,
+                            }}
                           >
-                            Candidatos postulados: {app.job?._count?.applications ?? 0}
+                            Candidatos postulados:{" "}
+                            {app.job?._count?.applications ?? 0}
                             <PersonIcon fontSize="small" />
                           </Typography>
                         </CardContent>
-                        <CardActions sx={{ justifyContent: "space-between" }}>
+                        <CardActions
+                          sx={{ justifyContent: "space-between" }}
+                        >
                           <Button
                             component={Link}
                             href={`/job-offer?id=${app.job?.id}`}
@@ -272,24 +348,47 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
 
         {/* Opciones para empleador */}
         {userRole !== "empleado" && (
-          <Paper sx={{ maxWidth: 500, mx: "auto", mt: 4, p: 3, borderRadius: 2 }}>
+          <Paper
+            sx={{
+              maxWidth: 500,
+              mx: "auto",
+              mt: 4,
+              p: 3,
+              borderRadius: 2,
+            }}
+          >
             <Typography variant="h5" gutterBottom>
               Opciones de Empleador
             </Typography>
             <Divider sx={{ mb: 2 }} />
             <Grid container spacing={2}>
               <Grid item xs={12}>
-                <Button fullWidth variant="contained" component={Link} href="/job-create">
+                <Button
+                  fullWidth
+                  variant="contained"
+                  component={Link}
+                  href="/job-create"
+                >
                   Publicar Oferta de Empleo
                 </Button>
               </Grid>
               <Grid item xs={12}>
-                <Button fullWidth variant="outlined" component={Link} href="/job-list">
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  component={Link}
+                  href="/job-list"
+                >
                   Mis Ofertas Publicadas
                 </Button>
               </Grid>
               <Grid item xs={12}>
-                <Button fullWidth variant="outlined" component={Link} href="/profile-empleador">
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  component={Link}
+                  href="/profile-empleador"
+                >
                   Actualizar Perfil
                 </Button>
               </Grid>
@@ -308,13 +407,19 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
       <Dialog open={openCancelDialog} onClose={cancelCancelApplication}>
         <DialogTitle>Confirmar Cancelación</DialogTitle>
         <DialogContent>
-          <Typography>¿Deseas cancelar tu postulación a este empleo?</Typography>
+          <Typography>
+            ¿Deseas cancelar tu postulación a este empleo?
+          </Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={cancelCancelApplication} color="primary">
             Volver
           </Button>
-          <Button onClick={confirmCancelApplication} color="secondary" variant="contained">
+          <Button
+            onClick={confirmCancelApplication}
+            color="secondary"
+            variant="contained"
+          >
             Confirmar
           </Button>
         </DialogActions>

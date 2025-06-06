@@ -23,7 +23,8 @@ import PersonIcon from "@mui/icons-material/Person";
 import useAuthUser from "../hooks/useAuthUser";
 import DashboardLayout from "../components/DashboardLayout";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://api.fapmendoza.online";
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_URL || "https://api.fapmendoza.online";
 
 export default function JobList() {
   // 1) Autenticación centralizada
@@ -35,7 +36,11 @@ export default function JobList() {
   const [applications, setApplications] = useState([]);
   const [loadingJobs, setLoadingJobs] = useState(true);
   const [loadingApps, setLoadingApps] = useState(false);
-  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
   const [dialogs, setDialogs] = useState({
     delete: { open: false, jobId: null },
     cancel: { open: false, jobId: null },
@@ -109,6 +114,7 @@ export default function JobList() {
             ...getAuthHeader(),
           },
         });
+
         if (res.status === 401) {
           // Token expirado o inválido
           localStorage.removeItem("userToken");
@@ -148,11 +154,15 @@ export default function JobList() {
   // 7) Postular a oferta
   const handleApply = async (jobId) => {
     if (!token) {
-      setSnackbar({ open: true, message: "Debés iniciar sesión para postular", severity: "error" });
+      setSnackbar({
+        open: true,
+        message: "Debés iniciar sesión para postular",
+        severity: "error",
+      });
       return;
     }
     try {
-      const res = await fetch("/api/job/apply", {
+      const res = await fetch(`${API_BASE}/api/job/apply`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -162,7 +172,7 @@ export default function JobList() {
       });
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.error || res.statusText);
+        throw new Error(err.detail || res.statusText);
       }
 
       // Optimista: incrementar contador de candidatos
@@ -171,7 +181,11 @@ export default function JobList() {
         ...prev,
         { jobId, status: "sent", createdAt: new Date().toISOString() },
       ]);
-      setSnackbar({ open: true, message: "Has postulado exitosamente", severity: "success" });
+      setSnackbar({
+        open: true,
+        message: "Has postulado exitosamente",
+        severity: "success",
+      });
 
       // Confirmar estado real desde el backend
       const resApps = await fetch(`${API_BASE}/api/job/my-applications`, {
@@ -201,7 +215,11 @@ export default function JobList() {
   const confirmCancel = async () => {
     const id = dialogs.cancel.jobId;
     if (!token) {
-      setSnackbar({ open: true, message: "Debés iniciar sesión para cancelar", severity: "error" });
+      setSnackbar({
+        open: true,
+        message: "Debés iniciar sesión para cancelar",
+        severity: "error",
+      });
       setDialogs((d) => ({ ...d, cancel: { open: false, jobId: null } }));
       return;
     }
@@ -217,17 +235,33 @@ export default function JobList() {
       if (res.ok) {
         bumpCount(id, -1);
         setApplications((prev) => prev.filter((a) => a.jobId !== id));
-        setSnackbar({ open: true, message: "Postulación cancelada", severity: "success" });
+        setSnackbar({
+          open: true,
+          message: "Postulación cancelada",
+          severity: "success",
+        });
       } else if (res.status === 401) {
         localStorage.removeItem("userToken");
         setApplications([]);
-        setSnackbar({ open: true, message: "Token expirado, vuelve a iniciar sesión", severity: "error" });
+        setSnackbar({
+          open: true,
+          message: "Token expirado, vuelve a iniciar sesión",
+          severity: "error",
+        });
       } else {
-        setSnackbar({ open: true, message: "Error al cancelar la postulación", severity: "error" });
+        setSnackbar({
+          open: true,
+          message: "Error al cancelar la postulación",
+          severity: "error",
+        });
       }
     } catch (e) {
       console.error("Error al cancelar:", e);
-      setSnackbar({ open: true, message: "Error al cancelar la postulación", severity: "error" });
+      setSnackbar({
+        open: true,
+        message: "Error al cancelar la postulación",
+        severity: "error",
+      });
     } finally {
       setDialogs((d) => ({ ...d, cancel: { open: false, jobId: null } }));
     }
@@ -239,7 +273,11 @@ export default function JobList() {
     // En tu caso, usas un adminToken distinto para eliminar
     const adminToken = localStorage.getItem("adminToken");
     if (!adminToken) {
-      setSnackbar({ open: true, message: "No autorizado para eliminar", severity: "error" });
+      setSnackbar({
+        open: true,
+        message: "No autorizado para eliminar",
+        severity: "error",
+      });
       setDialogs((d) => ({ ...d, delete: { open: false, jobId: null } }));
       return;
     }
@@ -254,13 +292,25 @@ export default function JobList() {
       });
       if (res.ok) {
         setJobs((prev) => prev.filter((j) => j.id !== id));
-        setSnackbar({ open: true, message: "Oferta eliminada correctamente", severity: "success" });
+        setSnackbar({
+          open: true,
+          message: "Oferta eliminada correctamente",
+          severity: "success",
+        });
       } else {
-        setSnackbar({ open: true, message: "Error al eliminar la oferta", severity: "error" });
+        setSnackbar({
+          open: true,
+          message: "Error al eliminar la oferta",
+          severity: "error",
+        });
       }
     } catch (e) {
       console.error("Error al eliminar oferta:", e);
-      setSnackbar({ open: true, message: "Error al eliminar la oferta", severity: "error" });
+      setSnackbar({
+        open: true,
+        message: "Error al eliminar la oferta",
+        severity: "error",
+      });
     } finally {
       setDialogs((d) => ({ ...d, delete: { open: false, jobId: null } }));
     }
@@ -293,13 +343,20 @@ export default function JobList() {
           <Grid container spacing={3} sx={{ mx: "auto", width: { md: "900px" } }}>
             {jobs.map((job) => (
               <Grid item xs={12} sm={6} md={4} key={job.id}>
-                <Card sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
+                <Card
+                  sx={{ display: "flex", flexDirection: "column", height: "100%" }}
+                >
                   <CardContent sx={{ flexGrow: 1 }}>
                     <Typography variant="h6">{job.title}</Typography>
                     <Typography
                       variant="body2"
                       color="text.secondary"
-                      sx={{ display: "flex", alignItems: "center", gap: 0.5, mt: 1 }}
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 0.5,
+                        mt: 1,
+                      }}
                     >
                       Candidatos postulados: {job.candidatesCount || 0}
                       <PersonIcon fontSize="small" />
@@ -307,7 +364,11 @@ export default function JobList() {
                   </CardContent>
 
                   <CardActions sx={{ justifyContent: "space-between", p: 2 }}>
-                    <Button component={Link} href={`/job-offer?id=${job.id}`} size="small">
+                    <Button
+                      component={Link}
+                      href={`/job-offer?id=${job.id}`}
+                      size="small"
+                    >
                       Ver Detalles
                     </Button>
 
@@ -317,7 +378,10 @@ export default function JobList() {
                         variant="contained"
                         color="secondary"
                         onClick={() =>
-                          setDialogs((d) => ({ ...d, delete: { open: true, jobId: job.id } }))
+                          setDialogs((d) => ({
+                            ...d,
+                            delete: { open: true, jobId: job.id },
+                          }))
                         }
                       >
                         Eliminar
@@ -328,7 +392,10 @@ export default function JobList() {
                         variant="contained"
                         color="secondary"
                         onClick={() =>
-                          setDialogs((d) => ({ ...d, cancel: { open: true, jobId: job.id } }))
+                          setDialogs((d) => ({
+                            ...d,
+                            cancel: { open: true, jobId: job.id },
+                          }))
                         }
                       >
                         Cancelar Postulación
@@ -366,14 +433,20 @@ export default function JobList() {
       {/* ── Dialog Confirmar Cancelación ────────────────── */}
       <Dialog
         open={dialogs.cancel.open}
-        onClose={() => setDialogs((d) => ({ ...d, cancel: { open: false, jobId: null } }))}
+        onClose={() =>
+          setDialogs((d) => ({ ...d, cancel: { open: false, jobId: null } }))
+        }
       >
         <DialogTitle>Confirmar Cancelación</DialogTitle>
         <DialogContent>
           <Typography>¿Deseas cancelar tu postulación a este empleo?</Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDialogs((d) => ({ ...d, cancel: { open: false, jobId: null } }))}>
+          <Button
+            onClick={() =>
+              setDialogs((d) => ({ ...d, cancel: { open: false, jobId: null } }))
+            }
+          >
             Volver
           </Button>
           <Button onClick={confirmCancel} color="secondary" variant="contained">
@@ -385,14 +458,20 @@ export default function JobList() {
       {/* ── Dialog Confirmar Eliminación ────────────────── */}
       <Dialog
         open={dialogs.delete.open}
-        onClose={() => setDialogs((d) => ({ ...d, delete: { open: false, jobId: null } }))}
+        onClose={() =>
+          setDialogs((d) => ({ ...d, delete: { open: false, jobId: null } }))
+        }
       >
         <DialogTitle>Confirmar Eliminación</DialogTitle>
         <DialogContent>
           <Typography>¿Seguro que deseas eliminar esta oferta?</Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDialogs((d) => ({ ...d, delete: { open: false, jobId: null } }))}>
+          <Button
+            onClick={() =>
+              setDialogs((d) => ({ ...d, delete: { open: false, jobId: null } }))
+            }
+          >
             Volver
           </Button>
           <Button onClick={confirmDelete} color="secondary" variant="contained">
