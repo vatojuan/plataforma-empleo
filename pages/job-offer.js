@@ -1,190 +1,133 @@
+// pages/job-offer.js
+
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Container, Box, Typography, Button, Paper, Stack } from "@mui/material";
-import PersonIcon from "@mui/icons-material/Person"; // Importamos el icono
+import {
+  Container,
+  Typography,
+  Box,
+  CircularProgress,
+  Alert,
+  Divider,
+  Button,
+  Paper,
+  Stack,
+} from "@mui/material";
+import PersonIcon from "@mui/icons-material/Person";
+import DashboardLayout from "../components/DashboardLayout";
 
-export default function JobOffer() {
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://api.fapmendoza.online";
+
+export default function JobOfferPage() {
   const router = useRouter();
   const { id } = router.query;
+
   const [job, setJob] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
-    if (id) {
-      async function fetchJob() {
-        try {
-          const res = await fetch(`/api/job/get?id=${id}`);
-          if (res.ok) {
-            const data = await res.json();
-            setJob(data);
-          } else {
-            setJob(null);
-          }
-        } catch (error) {
-          console.error("Error obteniendo la oferta:", error);
-          setJob(null);
-        } finally {
-          setLoading(false);
-        }
+    if (!id) return;
+    const fetchJob = async () => {
+      setLoading(true);
+      setError(false);
+      try {
+        const res = await fetch(`${API_BASE}/api/job/${id}`);
+        if (!res.ok) throw new Error("Oferta no encontrada");
+        const data = await res.json();
+        setJob(data);
+      } catch (err) {
+        console.error("[JobOffer] error:", err);
+        setError(true);
+      } finally {
+        setLoading(false);
       }
-      fetchJob();
-    }
+    };
+    fetchJob();
   }, [id]);
 
-  if (loading) {
-    return (
-      <Container sx={{ textAlign: "center", mt: { xs: 2, sm: 4 } }}>
-        <Typography variant="h5" sx={{ fontSize: { xs: "1.2rem", sm: "1.5rem" } }}>
-          Cargando oferta...
-        </Typography>
-      </Container>
-    );
-  }
-
-  if (!job) {
-    return (
-      <Container sx={{ textAlign: "center", mt: { xs: 2, sm: 4 } }}>
-        <Paper elevation={3} sx={{ p: { xs: 2, sm: 3 }, mb: 2 }}>
-          <Typography
-            variant="h4"
-            gutterBottom
-            sx={{ fontSize: { xs: "1.8rem", sm: "2.4rem" } }}
-          >
-            Oferta no encontrada
-          </Typography>
-          <Typography
-            variant="body1"
-            sx={{ mb: 2, fontSize: { xs: "0.9rem", sm: "1rem" } }}
-          >
-            La oferta que buscas no existe o ha sido eliminada.
-          </Typography>
-          <Stack
-            direction="row"
-            spacing={2}
-            justifyContent="center"
-            sx={{ flexWrap: "wrap" }}
-          >
-            <Button
-              component={Link}
-              href="/dashboard"
-              variant="contained"
-              color="primary"
-              sx={{ mb: { xs: 1, sm: 0 } }}
-            >
-              Volver al Dashboard
-            </Button>
-            <Button
-              component={Link}
-              href="/job-list"
-              variant="contained"
-              color="primary"
-            >
-              Ofertas de empleo
-            </Button>
-          </Stack>
-        </Paper>
-      </Container>
-    );
-  }
+  // Fecha de publicación: intentamos createdAt o created_at
+  const postedDate = job?.createdAt || job?.created_at || null;
 
   return (
-    <Container sx={{ mt: { xs: 2, sm: 4 } }}>
-      <Typography
-        variant="h4"
-        component="h1"
-        gutterBottom
-        sx={{ fontSize: { xs: "1.8rem", sm: "2.4rem", md: "3rem" } }}
-      >
-        {job.title}
-      </Typography>
-      <Paper elevation={3} sx={{ p: { xs: 2, sm: 3 }, mb: 2 }}>
-        <Typography
-          variant="body1"
-          sx={{
-            whiteSpace: "pre-line",
-            lineHeight: 1.6,
-            fontSize: { xs: "0.9rem", sm: "1rem" },
-          }}
-        >
-          {job.description}
-        </Typography>
-      </Paper>
-      {job.requirements && (
-        <Paper elevation={3} sx={{ p: { xs: 2, sm: 3 }, mb: 2 }}>
-          <Typography
-            variant="h6"
-            sx={{ fontSize: { xs: "1.2rem", sm: "1.5rem" } }}
-          >
-            Requisitos
-          </Typography>
-          <Typography
-            variant="body1"
-            sx={{
-              whiteSpace: "pre-line",
-              lineHeight: 1.6,
-              fontSize: { xs: "0.9rem", sm: "1rem" },
-            }}
-          >
-            {job.requirements}
-          </Typography>
-        </Paper>
-      )}
-      {/* Mostrar la expiración siempre: si hay fecha se muestra, de lo contrario se indica "Sin expiración" */}
-      <Typography
-        variant="body2"
-        color="error"
-        sx={{ mt: 2, fontSize: { xs: "0.8rem", sm: "0.9rem" } }}
-      >
-        Expiración:{" "}
-        {job.expirationDate
-          ? new Date(job.expirationDate).toLocaleDateString()
-          : "Sin expiración"}
-      </Typography>
-      <Box sx={{ mb: 2 }}>
-        <Typography
-          variant="body2"
-          color="text.secondary"
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            fontSize: { xs: "0.8rem", sm: "0.9rem" },
-          }}
-        >
-          <span>
-            Publicado el:{" "}
-            {job.postedAt ? new Date(job.postedAt).toLocaleDateString() : "Sin fecha"}
-          </span>
-          <span style={{ display: "flex", alignItems: "center", gap: 0.5 }}></span>
-        </Typography>
-        <Typography
-          variant="body2"
-          color="text.secondary"
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 0.5,
-            fontSize: { xs: "0.8rem", sm: "0.9rem" },
-          }}
-        >
-          Candidatos postulados: {job.candidatesCount || 0}
-          <PersonIcon fontSize="small" />
-        </Typography>
-      </Box>
-      <Stack
-        direction="row"
-        spacing={2}
-        justifyContent="center"
-        sx={{ flexWrap: "wrap" }}
-      >
-        <Button component={Link} href="/dashboard" variant="contained" color="primary">
-          Volver al Dashboard
-        </Button>
-        <Button component={Link} href="/job-list" variant="contained" color="primary">
-          Ofertas de empleo
-        </Button>
-      </Stack>
-    </Container>
+    <DashboardLayout>
+      <Container maxWidth="md" sx={{ mt: 4 }}>
+        {loading ? (
+          <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+            <CircularProgress />
+            <Typography sx={{ ml: 2 }}>Cargando oferta…</Typography>
+          </Box>
+        ) : error || !job ? (
+          <Alert severity="error">
+            Oferta no encontrada<br />
+            La oferta que buscas no existe o ha sido eliminada.
+          </Alert>
+        ) : (
+          <>
+            <Typography variant="h4" gutterBottom>
+              {job.title}
+            </Typography>
+
+            <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
+              <Typography
+                variant="body1"
+                sx={{ whiteSpace: "pre-line", lineHeight: 1.6 }}
+              >
+                {job.description}
+              </Typography>
+            </Paper>
+
+            {job.requirements && (
+              <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
+                <Typography variant="h6" gutterBottom>
+                  Requisitos
+                </Typography>
+                <Typography
+                  variant="body1"
+                  sx={{ whiteSpace: "pre-line", lineHeight: 1.6 }}
+                >
+                  {job.requirements}
+                </Typography>
+              </Paper>
+            )}
+
+            <Box sx={{ mb: 2, color: "text.secondary" }}>
+              <Typography variant="body2">
+                <strong>Publicado el:</strong>{" "}
+                {postedDate
+                  ? new Date(postedDate).toLocaleDateString()
+                  : "Sin fecha"}
+              </Typography>
+              <Typography variant="body2" color="error">
+                <strong>Expiración:</strong>{" "}
+                {job.expirationDate
+                  ? new Date(job.expirationDate).toLocaleDateString()
+                  : "Sin expiración"}
+              </Typography>
+            </Box>
+
+            <Box sx={{ mb: 4, display: "flex", alignItems: "center", gap: 1 }}>
+              <PersonIcon />
+              <Typography variant="body2">
+                Candidatos postulados: {job.candidatesCount ?? 0}
+              </Typography>
+            </Box>
+
+            <Stack direction="row" spacing={2} justifyContent="center">
+              <Button component={Link} href="/dashboard" variant="contained">
+                Volver al Dashboard
+              </Button>
+              <Button component={Link} href="/job-list" variant="outlined">
+                Ver Ofertas
+              </Button>
+            </Stack>
+          </>
+        )}
+      </Container>
+    </DashboardLayout>
   );
 }
+
+// Evitamos prerendering en Vercel
+export const getServerSideProps = () => ({ props: {} });
