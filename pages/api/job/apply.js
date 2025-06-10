@@ -12,51 +12,54 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 1) Obtener sesión NextAuth para saber quién es el userId
+    // 1) Sesión NextAuth para userId
     const session = await getServerSession(req, res, authOptions);
     if (!session) {
       return res.status(401).json({ error: 'No autorizado' });
     }
     const userId = Number(session.user.id);
 
-    // 2) Extraer jobId del body
+    // 2) jobId en body
     const { jobId } = req.body;
     if (!jobId) {
       return res.status(400).json({ error: 'Falta el ID del empleo' });
     }
 
-    // 3) Verificar si ya existe una postulación local (Prisma)
+    // 3) Evitar duplicados en Prisma
     const existingApp = await prisma.application.findFirst({
       where: { userId, jobId: Number(jobId) },
     });
     if (existingApp) {
-      return res.status(400).json({ error: 'Ya has postulado a este empleo' });
+      return res.status(409).json({ error: 'Ya has postulado a este empleo' });
     }
 
-    // 4) Crear la aplicación en la base de datos local con Prisma
+    // 4) Crear en Prisma
     const application = await prisma.application.create({
       data: { userId, jobId: Number(jobId) },
     });
 
-    // 5) Llamar al endpoint de FastAPI para crear la propuesta remota
-    const fastapiUrl = process.env.NEXT_PUBLIC_API_URL || process.env.FASTAPI_URL;
-    const adminToken = req.cookies.adminToken;
-    await fetch(`${fastapiUrl}/api/proposals/create`, {
+    // 5) Consultar etiqueta de la oferta para FastAPI
+    const job = await prisma.job.findUnique({
+      where: { id: Number(jobId) },
+      select: { label: true },
+    });
+    const label = job?.label === 'automatic' ? 'automatic' : 'manual';
+
+    // 6) Llamar a FastAPI
+    const FASTAPI = process.env.NEXT_PUBLIC_API_URL || process.env.FASTAPI_URL;
+    await fetch(`${FASTAPI}/api/proposals/create`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(adminToken ? { Authorization: `Bearer ${adminToken}` } : {}),
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         job_id: Number(jobId),
         applicant_id: userId,
-        label: 'automatic',
+        label,
       }),
     }).catch((err) => {
-      console.error('Error al crear propuesta en FastAPI:', err);
+      console.error('Error FastAPI:', err);
     });
 
-    // 6) Generar JWT de usuario para guardar en localStorage usando 'jose'
+    // 7) Generar JWT local para localStorage
     const secretKey = new TextEncoder().encode(process.env.SECRET_KEY);
     const userToken = await new SignJWT({ sub: String(userId), role: 'empleado' })
       .setProtectedHeader({ alg: 'HS256' })
@@ -64,7 +67,7 @@ export default async function handler(req, res) {
       .setExpirationTime('30d')
       .sign(secretKey);
 
-    // 7) Responder con token para que el frontend lo guarde
+    // 8) Responder OK con datos
     return res.status(200).json({
       message: 'Postulación exitosa',
       application,
@@ -72,6 +75,6 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     console.error('Error al postular:', error);
-    return res.status(500).json({ error: 'Error al postular' });
+    return res.status(500).json({ error: 'Error interno al postular' });
   }
 }
