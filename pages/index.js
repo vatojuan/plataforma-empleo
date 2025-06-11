@@ -1,3 +1,4 @@
+// pages/index.js   (o el nombre de la página Home que tengas)
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
@@ -11,7 +12,7 @@ import {
   Fab,
   SvgIcon,
   Menu,
-  MenuItem
+  MenuItem,
 } from "@mui/material";
 import Footer from "../components/Footer";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
@@ -50,7 +51,7 @@ export default function Home() {
         display: "flex",
         flexDirection: "column",
         position: "relative",
-        overflow: "hidden"
+        overflow: "hidden",
       }}
     >
       {/* VIDEO DE FONDO PARA ESCRITORIO */}
@@ -71,7 +72,7 @@ export default function Home() {
           objectFit: "cover",
           objectPosition: "center",
           backgroundColor: "#103B40",
-          zIndex: -2
+          zIndex: -2,
         }}
       />
 
@@ -93,31 +94,27 @@ export default function Home() {
           objectFit: "contain",
           objectPosition: "center",
           backgroundColor: "#103B40",
-          zIndex: -2
+          zIndex: -2,
         }}
       />
 
-      {/* APPBAR con fondo forzado en móviles */}
+      {/* APPBAR */}
       <AppBar
         position="static"
         sx={(theme) => ({
           backgroundColor: "transparent !important",
           boxShadow: "none",
           [theme.breakpoints.down("sm")]: {
-            backgroundColor: "rgba(16,59,64,0.9) !important"
-          }
+            backgroundColor: "rgba(16,59,64,0.9) !important",
+          },
         })}
       >
-        <Toolbar
-          sx={{
-            flexWrap: "wrap",
-            gap: 1
-          }}
-        >
-          {/* Botones a la izquierda */}
+        <Toolbar sx={{ flexWrap: "wrap", gap: 1 }}>
+          {/* Botones de navegación */}
           <Button component={Link} href="/nosotros" color="inherit">
             Nosotros
           </Button>
+
           <Button color="inherit" onClick={handleSolucionesOpen}>
             Soluciones
           </Button>
@@ -126,23 +123,41 @@ export default function Home() {
             anchorEl={solucionesAnchor}
             open={Boolean(solucionesAnchor)}
             onClose={handleSolucionesClose}
-            MenuListProps={{
-              "aria-labelledby": "soluciones-button"
-            }}
+            MenuListProps={{ "aria-labelledby": "soluciones-button" }}
           >
-            <MenuItem onClick={() => handleSolucionesNavigate("/soluciones/recruitment")}>
+            <MenuItem
+              onClick={() =>
+                handleSolucionesNavigate("/soluciones/recruitment")
+              }
+            >
               Recruitment Process
             </MenuItem>
-            <MenuItem onClick={() => handleSolucionesNavigate("/soluciones/capacitacion")}>
+            <MenuItem
+              onClick={() =>
+                handleSolucionesNavigate("/soluciones/capacitacion")
+              }
+            >
               Capacitación y Desarrollo
             </MenuItem>
-            <MenuItem onClick={() => handleSolucionesNavigate("/soluciones/branding")}>
+            <MenuItem
+              onClick={() => handleSolucionesNavigate("/soluciones/branding")}
+            >
               Employer Branding & Engagement
             </MenuItem>
-            <MenuItem onClick={() => handleSolucionesNavigate("/soluciones/outsourcing")}>
+            <MenuItem
+              onClick={() => handleSolucionesNavigate("/soluciones/outsourcing")}
+            >
               Outsourcing
             </MenuItem>
+            <MenuItem
+              onClick={() =>
+                handleSolucionesNavigate("/soluciones/talent_management")
+              }
+            >
+              Talent Management
+            </MenuItem>
           </Menu>
+
           <Button component={Link} href="/contacto" color="inherit">
             Contacto
           </Button>
@@ -150,8 +165,7 @@ export default function Home() {
             variant="outlined"
             color="inherit"
             onClick={() =>
-              (window.location.href =
-                "https://fapmendoza.online/cv/upload")
+              (window.location.href = "https://fapmendoza.online/cv/upload")
             }
           >
             Subir CV
@@ -166,7 +180,7 @@ export default function Home() {
             </Button>
           )}
 
-          {/* Redes sociales a la derecha */}
+          {/* Redes sociales */}
           <Box sx={{ ml: "auto", display: "flex", gap: 1 }}>
             <IconButton
               onClick={() =>
@@ -178,7 +192,10 @@ export default function Home() {
             </IconButton>
             <IconButton
               onClick={() =>
-                window.open("https://www.linkedin.com/in/florenciaalvarezfap", "_blank")
+                window.open(
+                  "https://www.linkedin.com/in/florenciaalvarezfap",
+                  "_blank"
+                )
               }
               color="inherit"
             >
@@ -188,19 +205,19 @@ export default function Home() {
         </Toolbar>
       </AppBar>
 
-      {/* Espacio flexible para empujar el Footer hacia abajo */}
+      {/* Contenido flexible */}
       <Box sx={{ flexGrow: 1 }} />
 
       {/* FOOTER */}
       <Footer />
 
-      {/* BOTÓN FLOTANTE DE WHATSAPP */}
+      {/* Botón flotante de WhatsApp */}
       <Box
         sx={{
           position: "fixed",
           bottom: 16,
           right: 16,
-          zIndex: (theme) => theme.zIndex.drawer + 1
+          zIndex: (theme) => theme.zIndex.drawer + 1,
         }}
       >
         <Fab
