@@ -25,18 +25,19 @@ export default function Outsourcing() {
   const handleNext = () => router.push("/soluciones/talent_management");
   const handleContact = () => router.push("/contacto");
 
-  /* Servicios de outsourcing */
+  /* Servicios de outsourcing (Payroll actualizado) */
   const servicios = [
     {
       titulo: "Payroll Specialist (Responsable de Nóminas)",
       resumen:
         "Gestión integral y conforme a normativas para asegurar procesos precisos y oportunos.",
       bullets: [
-        "Elaboración de nóminas y pagos",
-        "Cálculo y gestión de beneficios laborales",
-        "Asesoría en retenciones fiscales y seguridad social",
-        "Reportes de pagos y deducciones",
-        "Gestión de vacaciones, licencias y ausencias",
+        "Determinar el salario bruto y neto",
+        "Incluir horas extra, bonos, descuentos y comisiones",
+        "Aplicar retenciones y cargas sociales correspondientes",
+        "Generar y revisar la nómina periódicamente",
+        "Coordinar transferencias bancarias o emisión de cheques",
+        "Entregar recibos de sueldo a los empleados",
       ],
     },
     {
@@ -95,12 +96,21 @@ export default function Outsourcing() {
       >
         <Container
           maxWidth="lg"
-          sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
         >
           <Box>
             <Typography variant="h5">Outsourcing</Typography>
-            <Typography variant="h2" sx={{ fontWeight: 700, mt: 1, lineHeight: 1.2 }}>
-              Expertos externos<br />para tu eficiencia
+            <Typography
+              variant="h2"
+              sx={{ fontWeight: 700, mt: 1, lineHeight: 1.2 }}
+            >
+              Expertos externos
+              <br />
+              para tu eficiencia
             </Typography>
           </Box>
           <IconButton onClick={handleNext} sx={{ color: "#FFF" }}>
@@ -121,8 +131,8 @@ export default function Outsourcing() {
           }}
         >
           <Typography variant="body1" paragraph>
-            Externalizá procesos clave con profesionales de confianza y enfocá tus recursos
-            en hacer crecer tu negocio.
+            Externalizá procesos clave con profesionales de confianza y enfocá
+            tus recursos en hacer crecer tu negocio.
           </Typography>
           <Button variant="contained" size="large" onClick={handleContact}>
             Contáctanos
@@ -153,7 +163,12 @@ export default function Outsourcing() {
                     <Typography variant="body2" sx={{ mb: 1.5 }}>
                       {s.resumen}
                     </Typography>
-                    <Divider sx={{ mb: 1, backgroundColor: "rgba(255,255,255,0.2)" }} />
+                    <Divider
+                      sx={{
+                        mb: 1,
+                        backgroundColor: "rgba(255,255,255,0.2)",
+                      }}
+                    />
                     <List dense>
                       {s.bullets.map((b, idx) => (
                         <ListItem key={idx} sx={{ pl: 0 }}>

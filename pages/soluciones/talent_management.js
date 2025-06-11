@@ -7,10 +7,6 @@ import {
   Grid,
   Card,
   CardContent,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
   Paper,
   Button,
   Divider,
@@ -25,27 +21,37 @@ export default function TalentManagement() {
   const handleNext = () => router.push("/contacto");
   const handleContact = () => router.push("/contacto");
 
-  /* Servicios principales */
+  /* Servicios principales (actualizado) */
   const servicios = [
     {
-      titulo: "Gestión de Nómina (Payroll)",
+      titulo: "Onboarding e Incorporación",
       resumen:
-        "Cálculo, procesamiento y pago de sueldos, beneficios y retenciones con total cumplimiento fiscal y laboral.",
+        "Orientamos a los nuevos empleados, facilitamos la documentación y herramientas necesarias y comunicamos las normas internas, la cultura y los valores de tu empresa.",
     },
     {
-      titulo: "Beneficios y Compensaciones",
+      titulo: "Gestión de Nómina y Beneficios",
       resumen:
-        "Administración de planes de salud, bonos, incentivos y otros beneficios que fortalecen tu propuesta de valor.",
+        "Calculamos y pagamos sueldos con precisión, administramos seguros, bonos, vacaciones y dejamos siempre al día los legajos y registros laborales.",
     },
     {
       titulo: "Altas, Bajas y Movimientos",
       resumen:
-        "Tramitamos de forma ágil los ingresos, egresos y modificaciones contractuales ante las entidades laborales.",
+        "Tramitamos de forma ágil los ingresos, egresos y modificaciones contractuales ante las entidades laborales correspondientes.",
+    },
+    {
+      titulo: "Evaluación del Desempeño",
+      resumen:
+        "Definimos objetivos claros, realizamos revisiones periódicas de desempeño y proponemos planes de mejora, promociones o ajustes salariales.",
+    },
+    {
+      titulo: "Clima y Relaciones Laborales",
+      resumen:
+        "Medimos la satisfacción y motivación del personal, resolvemos conflictos internos y promovemos un ambiente de trabajo saludable.",
     },
     {
       titulo: "Asesoría Legal Laboral",
       resumen:
-        "Redacción y actualización de contratos, más acompañamiento en el cumplimiento de la normativa vigente.",
+        "Redacción y actualización de contratos, más acompañamiento constante para el cumplimiento de toda la normativa vigente.",
     },
   ];
 
@@ -69,12 +75,21 @@ export default function TalentManagement() {
       >
         <Container
           maxWidth="lg"
-          sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
         >
           <Box>
             <Typography variant="h5">Talent Management</Typography>
-            <Typography variant="h2" sx={{ fontWeight: 700, mt: 1, lineHeight: 1.2 }}>
-              Administración de<br />Personal Estratégica
+            <Typography
+              variant="h2"
+              sx={{ fontWeight: 700, mt: 1, lineHeight: 1.2 }}
+            >
+              Administración de
+              <br />
+              Personal Estratégica
             </Typography>
           </Box>
           <IconButton onClick={handleNext} sx={{ color: "#FFF" }}>
@@ -126,7 +141,11 @@ export default function TalentManagement() {
                       {s.titulo}
                     </Typography>
                     <Divider
-                      sx={{ mb: 1, width: 40, backgroundColor: "rgba(255,255,255,0.3)" }}
+                      sx={{
+                        mb: 1,
+                        width: 40,
+                        backgroundColor: "rgba(255,255,255,0.3)",
+                      }}
                     />
                     <Typography variant="body2">{s.resumen}</Typography>
                   </CardContent>
