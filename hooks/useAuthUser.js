@@ -44,17 +44,44 @@ export default function useAuthUser() {
         }
       }
 
-      // En cualquier caso, marcamos listo
+      // Ya cargamos lo que había
       setReady(true);
     };
 
     tryLoadUser();
   }, [session, sessionStatus]);
 
+  // Header Authorization para fetch
   const authHeader = useCallback(
     () => (token ? { Authorization: `Bearer ${token}` } : {}),
     [token]
   );
 
-  return { user, role: user?.role, token, authHeader, ready, sessionStatus };
+  // Función para obtener las aplicaciones del usuario
+  const fetchApplications = useCallback(async () => {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API}/api/job/my-applications`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          ...authHeader(),
+        },
+      }
+    );
+    if (!res.ok) {
+      throw new Error(`Error ${res.status} cargando aplicaciones`);
+    }
+    return await res.json();
+  }, [authHeader]);
+
+  return {
+    user,
+    role: user?.role,
+    token,
+    ready,
+    sessionStatus,
+    authHeader,
+    fetchApplications,
+  };
 }
