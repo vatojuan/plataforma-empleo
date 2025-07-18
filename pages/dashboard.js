@@ -299,8 +299,7 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
                                 mt: 1,
                               }}
                             >
-                              Candidatos postulados:{" "}
-                              {app.job?._count?.applications ?? 0}
+                              Candidatos postulados: {app.job?.candidatesCount ?? 0}
                               <PersonIcon fontSize="small" />
                             </Typography>
                           </CardContent>

@@ -1,5 +1,4 @@
 // pages/job-offer.js
-
 import { useRouter } from 'next/router'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
@@ -16,23 +15,30 @@ import {
 import PersonIcon from '@mui/icons-material/Person'
 import DashboardLayout from '../components/DashboardLayout'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://api.fapmendoza.online'
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_URL || 'https://api.fapmendoza.online'
 
-export default function JobOfferPage() {
+export default function JobOfferPage () {
   const router = useRouter()
-  const { id } = router.query
+  const { id } = router.query                     // /job-offer?id=123
 
-  const [job, setJob] = useState(null)
+  const [job, setJob]       = useState(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(false)
+  const [error, setError]     = useState(false)
 
   useEffect(() => {
-    if (!router.isReady || !id) return
+    if (!router.isReady) return
+
+    const idStr =
+      Array.isArray(id) ? id[0] : id           // por si viniera como array
+
+    if (!idStr || idStr === 'undefined') return   // ⚠️ guard extra
+
     const fetchJob = async () => {
       setLoading(true)
       setError(false)
       try {
-        const res = await fetch(`${API_BASE}/api/job/${id}`)
+        const res = await fetch(`${API_BASE}/api/job/${idStr}`)
         if (!res.ok) throw new Error('Oferta no encontrada')
         const { job } = await res.json()
         setJob(job)
