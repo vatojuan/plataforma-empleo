@@ -5,6 +5,7 @@ import { signOut, getSession, useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import useAuthUser from "../hooks/useAuthUser";
+import PersonIcon from "@mui/icons-material/Person";
 import DashboardLayout from "../components/DashboardLayout";
 import {
   Box,
@@ -25,7 +26,6 @@ import {
   Alert,
   CircularProgress,
 } from "@mui/material";
-import PersonIcon from "@mui/icons-material/Person";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || "https://api.fapmendoza.online";
@@ -266,27 +266,29 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
                           }}
                         >
                           <CardContent sx={{ flexGrow: 1 }}>
-                            {/* Título */}
                             <Typography variant="h6">
-                              {app.jobTitle}
+                              {app.job?.title}
                             </Typography>
-                            {/* Fecha publicación */}
                             <Typography
                               variant="body2"
                               color="text.secondary"
-                              sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 1,
-                                mt: 1,
-                              }}
+                              sx={{ mt: 1 }}
                             >
-                              <strong>Publicado:</strong>{" "}
-                              {app.jobPostedAt
-                                ? new Date(app.jobPostedAt).toLocaleDateString()
+                              <strong>Publicado el:</strong>{" "}
+                              {app.job?.createdAt
+                                ? new Date(app.job.createdAt).toLocaleDateString()
                                 : "Sin fecha"}
                             </Typography>
-                            {/* Contador */}
+                            <Typography
+                              variant="body2"
+                              color="text.secondary"
+                              sx={{ mt: 1 }}
+                            >
+                              <strong>Expiración:</strong>{" "}
+                              {app.job?.expirationDate
+                                ? new Date(app.job.expirationDate).toLocaleDateString()
+                                : "Sin expiración"}
+                            </Typography>
                             <Typography
                               variant="body2"
                               color="text.secondary"
@@ -297,7 +299,8 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
                                 mt: 1,
                               }}
                             >
-                              Candidatos: {app.candidatesCount}
+                              Candidatos postulados:{" "}
+                              {app.job?._count?.applications ?? 0}
                               <PersonIcon fontSize="small" />
                             </Typography>
                           </CardContent>
