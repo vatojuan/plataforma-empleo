@@ -1,11 +1,9 @@
 // pages/dashboard.js
-
 import { useRouter } from "next/router";
 import { signOut, getSession, useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import useAuthUser from "../hooks/useAuthUser";
-import PersonIcon from "@mui/icons-material/Person";
 import DashboardLayout from "../components/DashboardLayout";
 import {
   Box,
@@ -26,18 +24,19 @@ import {
   Alert,
   CircularProgress,
 } from "@mui/material";
+import PersonIcon from "@mui/icons-material/Person";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || "https://api.fapmendoza.online";
 
 export default function Dashboard({ toggleDarkMode, currentMode }) {
-  // 1) Autenticación centralizada
+  /* ───────── 1. Auth centralizada ───────── */
   const { user, role: userRole, token, authHeader, ready, sessionStatus } =
     useAuthUser();
   const { data: session } = useSession();
   const router = useRouter();
 
-  // 2) Estado local
+  /* ───────── 2. State ───────── */
   const [applications, setApplications] = useState([]);
   const [profileImageUrl, setProfileImageUrl] = useState(
     "/images/default-user.png"
@@ -50,19 +49,19 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
     severity: "success",
   });
 
-  // 3) Forzar revalidación de sesión al montar
+  /* ───────── 3. Revalidar sesión al montar ───────── */
   useEffect(() => {
     getSession();
   }, []);
 
-  // 4) Renovar imagen si cambia en la sesión
+  /* ───────── 4. Actualizar avatar cuando cambie la sesión ───────── */
   useEffect(() => {
     if (session?.user?.image) {
       setProfileImageUrl(session.user.image);
     }
   }, [session]);
 
-  // 5) Redirecciones según estado
+  /* ───────── 5. Redirecciones por rol / login ───────── */
   useEffect(() => {
     if (!ready) return;
     if (!user) {
@@ -72,7 +71,7 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
     }
   }, [ready, user, userRole, router]);
 
-  // 6) Cargar mis postulaciones
+  /* ───────── 6. Fetch de postulaciones (empleado) ───────── */
   useEffect(() => {
     if (!ready || userRole !== "empleado" || !token) {
       setApplications([]);
@@ -94,16 +93,18 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
         } else if (res.status === 401) {
           localStorage.removeItem("userToken");
           setApplications([]);
+        } else {
+          console.error("[Dashboard] my-applications status:", res.status);
         }
       } catch (error) {
-        console.error("Error fetching applications:", error);
+        console.error("[Dashboard] fetchApplications:", error);
       }
     };
 
     fetchApplications();
   }, [ready, userRole, token, authHeader]);
 
-  // 7) Cancelar postulación
+  /* ───────── 7. Cancelar postulación ───────── */
   const confirmCancelApplication = async () => {
     const jobId = selectedCancelJobId;
     try {
@@ -117,17 +118,29 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
       });
 
       if (res.ok) {
-        setApplications((prev) =>
-          prev.filter((a) => a.jobId !== jobId)
-        );
+        setApplications((prev) => prev.filter((a) => a.job.id !== jobId));
         setSnackbar({
           open: true,
           message: "Postulación cancelada",
           severity: "success",
         });
+      } else if (res.status === 401) {
+        localStorage.removeItem("userToken");
+        setApplications([]);
+        setSnackbar({
+          open: true,
+          message: "Token expirado. Vuelve a iniciar sesión.",
+          severity: "error",
+        });
+      } else {
+        setSnackbar({
+          open: true,
+          message: "Error al cancelar la postulación",
+          severity: "error",
+        });
       }
     } catch (error) {
-      console.error("Error al cancelar la postulación:", error);
+      console.error("[Dashboard] cancelApplication:", error);
       setSnackbar({
         open: true,
         message: "Error al cancelar la postulación",
@@ -139,12 +152,7 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
     }
   };
 
-  const cancelCancelApplication = () => {
-    setOpenCancelDialog(false);
-    setSelectedCancelJobId(null);
-  };
-
-  // 8) Cerrar sesión
+  /* ───────── 8. Cerrar sesión ───────── */
   const handleSignOut = async () => {
     await signOut({ redirect: false });
     setSnackbar({
@@ -155,7 +163,7 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
     setTimeout(() => router.push("/login"), 1200);
   };
 
-  // 9) Spinner mientras carga
+  /* ───────── 9. Loader inicial ───────── */
   if (!ready || sessionStatus === "loading" || !userRole) {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", mt: 8 }}>
@@ -164,7 +172,7 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
     );
   }
 
-  // 10) Render final
+  /* ───────── 10. Render ───────── */
   return (
     <DashboardLayout
       userRole={userRole}
@@ -172,6 +180,7 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
       currentMode={currentMode}
     >
       <Box sx={{ textAlign: "center", mt: 4 }}>
+        {/* Avatar + saludo */}
         <Avatar
           src={profileImageUrl}
           onError={async () => {
@@ -182,11 +191,9 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
                   : "/api/employer/renew-profile-picture";
               const r = await fetch(endpoint);
               const d = await r.json();
-              if (d.url) {
-                setProfileImageUrl(d.url);
-              }
+              if (d.url) setProfileImageUrl(d.url);
             } catch (e) {
-              console.error("Error renovando URL de la imagen:", e);
+              console.error("[Dashboard] renovar avatar:", e);
             }
           }}
           sx={{
@@ -204,7 +211,7 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
           Tu rol: {userRole}
         </Typography>
 
-        {/* Opciones para empleado */}
+        {/* ───── Opciones para empleado ───── */}
         {userRole === "empleado" && (
           <>
             <Box sx={{ mt: 3, mx: "auto", maxWidth: 500 }}>
@@ -231,6 +238,8 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
                 </Grid>
               </Grid>
             </Box>
+
+            {/* -------- Mis postulaciones -------- */}
             <Paper
               sx={{
                 maxWidth: 900,
@@ -250,99 +259,81 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
                 </Typography>
               ) : (
                 <Grid container spacing={3} justifyContent="center">
-                  {applications.map((app) => {
-                    // Determinar si se puede cancelar o ya enviada
-                    const cancelable =
-                      (app.label === "automatic" && app.status === "waiting") ||
-                      (app.label === "manual" && app.status === "pending");
-                    return (
-                      <Grid item xs={12} sm={6} md={4} key={app.id}>
-                        <Card
-                          sx={{
-                            display: "flex",
-                            flexDirection: "column",
-                            height: "100%",
-                            bgcolor: "rgba(217,98,54,0.15)",
-                          }}
-                        >
-                          <CardContent sx={{ flexGrow: 1 }}>
-                            <Typography variant="h6">
-                              {app.job?.title}
-                            </Typography>
-                            <Typography
-                              variant="body2"
-                              color="text.secondary"
-                              sx={{ mt: 1 }}
-                            >
-                              <strong>Publicado el:</strong>{" "}
-                              {app.job?.createdAt
-                                ? new Date(app.job.createdAt).toLocaleDateString()
-                                : "Sin fecha"}
-                            </Typography>
-                            <Typography
-                              variant="body2"
-                              color="text.secondary"
-                              sx={{ mt: 1 }}
-                            >
-                              <strong>Expiración:</strong>{" "}
-                              {app.job?.expirationDate
-                                ? new Date(app.job.expirationDate).toLocaleDateString()
-                                : "Sin expiración"}
-                            </Typography>
-                            <Typography
-                              variant="body2"
-                              color="text.secondary"
-                              sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 0.5,
-                                mt: 1,
-                              }}
-                            >
-                              Candidatos postulados: {app.job?.candidatesCount ?? 0}
-                              <PersonIcon fontSize="small" />
-                            </Typography>
-                          </CardContent>
-                          <CardActions
-                            sx={{ justifyContent: "space-between" }}
+                  {applications.map((app) => (
+                    <Grid item xs={12} sm={6} md={4} key={app.id}>
+                      <Card
+                        sx={{
+                          display: "flex",
+                          flexDirection: "column",
+                          height: "100%",
+                          bgcolor: "rgba(217,98,54,0.15)",
+                        }}
+                      >
+                        <CardContent sx={{ flexGrow: 1 }}>
+                          <Typography variant="h6">
+                            {app.job.title}
+                          </Typography>
+
+                          <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{ mt: 1 }}
                           >
-                            <Button
-                              component={Link}
-                              href={`/job-offer?id=${app.jobId}`}
-                              size="small"
-                              variant="outlined"
-                            >
-                              Ver Detalles
-                            </Button>
-                            {cancelable ? (
-                              <Button
-                                onClick={() => {
-                                  setSelectedCancelJobId(app.jobId);
-                                  setOpenCancelDialog(true);
-                                }}
-                                size="small"
-                                variant="contained"
-                                color="secondary"
-                              >
-                                Cancelar Postulación
-                              </Button>
-                            ) : (
-                              <Button size="small" variant="outlined" disabled>
-                                Propuesta enviada
-                              </Button>
-                            )}
-                          </CardActions>
-                        </Card>
-                      </Grid>
-                    );
-                  })}
+                            Publicado el:{" "}
+                            {app.job.createdAt
+                              ? new Date(
+                                  app.job.createdAt
+                                ).toLocaleDateString("es-AR")
+                              : "Sin fecha"}
+                          </Typography>
+
+                          <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 0.5,
+                              mt: 1,
+                            }}
+                          >
+                            Candidatos postulados:{" "}
+                            {app.job.candidatesCount ?? 0}
+                            <PersonIcon fontSize="small" />
+                          </Typography>
+                        </CardContent>
+
+                        <CardActions sx={{ justifyContent: "space-between" }}>
+                          <Button
+                            component={Link}
+                            href={`/job-offer?id=${app.job.id}`}
+                            size="small"
+                            variant="outlined"
+                          >
+                            Ver Detalles
+                          </Button>
+                          <Button
+                            onClick={() => {
+                              setSelectedCancelJobId(app.job.id);
+                              setOpenCancelDialog(true);
+                            }}
+                            size="small"
+                            variant="contained"
+                            color="secondary"
+                          >
+                            Cancelar Postulación
+                          </Button>
+                        </CardActions>
+                      </Card>
+                    </Grid>
+                  ))}
                 </Grid>
               )}
             </Paper>
           </>
         )}
 
-        {/* Opciones para empleador */}
+        {/* ───── Opciones para empleador ───── */}
         {userRole !== "empleado" && (
           <Paper
             sx={{
@@ -392,6 +383,7 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
           </Paper>
         )}
 
+        {/* -------- botón cerrar sesión -------- */}
         <Box sx={{ textAlign: "center", mt: 4 }}>
           <Button onClick={handleSignOut} variant="contained" color="error">
             Cerrar sesión
@@ -399,8 +391,8 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
         </Box>
       </Box>
 
-      {/* Diálogo Confirmar Cancelación */}
-      <Dialog open={openCancelDialog} onClose={cancelCancelApplication}>
+      {/* ───── Diálogo cancelar ───── */}
+      <Dialog open={openCancelDialog} onClose={() => setOpenCancelDialog(false)}>
         <DialogTitle>Confirmar Cancelación</DialogTitle>
         <DialogContent>
           <Typography>
@@ -408,9 +400,7 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={cancelCancelApplication} color="primary">
-            Volver
-          </Button>
+          <Button onClick={() => setOpenCancelDialog(false)}>Volver</Button>
           <Button
             onClick={confirmCancelApplication}
             color="secondary"
@@ -421,7 +411,7 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
         </DialogActions>
       </Dialog>
 
-      {/* Snackbar global */}
+      {/* ───── Snackbar global ───── */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={4000}
@@ -432,6 +422,16 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
           onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
           severity={snackbar.severity}
           variant="filled"
+          sx={{
+            width: "100%",
+            bgcolor: (theme) =>
+              snackbar.severity === "success"
+                ? theme.palette.secondary.main
+                : snackbar.severity === "error"
+                ? theme.palette.error.main
+                : theme.palette.info.main,
+            color: "#fff",
+          }}
         >
           {snackbar.message}
         </Alert>
