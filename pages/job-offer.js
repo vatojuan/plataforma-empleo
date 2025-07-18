@@ -35,8 +35,9 @@ export default function JobOfferPage() {
       try {
         const res = await fetch(`${API_BASE}/api/job/${id}`);
         if (!res.ok) throw new Error("Oferta no encontrada");
-        const data = await res.json();
-        setJob(data);
+        const result = await res.json();
+        // El API devuelve { job: {...} }
+        setJob(result.job);
       } catch (err) {
         console.error("[JobOffer] error:", err);
         setError(true);
@@ -47,7 +48,7 @@ export default function JobOfferPage() {
     fetchJob();
   }, [id]);
 
-  // Fecha de publicación: intentamos createdAt o created_at
+  // Fecha de publicación: el detalle no incluye createdAt por defecto
   const postedDate = job?.createdAt || job?.created_at || null;
 
   return (
@@ -60,15 +61,18 @@ export default function JobOfferPage() {
           </Box>
         ) : error || !job ? (
           <Alert severity="error">
-            Oferta no encontrada<br />
+            Oferta no encontrada
+            <br />
             La oferta que buscas no existe o ha sido eliminada.
           </Alert>
         ) : (
           <>
+            {/* Título */}
             <Typography variant="h4" gutterBottom>
               {job.title}
             </Typography>
 
+            {/* Descripción */}
             <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
               <Typography
                 variant="body1"
@@ -78,6 +82,7 @@ export default function JobOfferPage() {
               </Typography>
             </Paper>
 
+            {/* Requisitos */}
             {job.requirements && (
               <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
                 <Typography variant="h6" gutterBottom>
@@ -92,6 +97,7 @@ export default function JobOfferPage() {
               </Paper>
             )}
 
+            {/* Fechas y expiración */}
             <Box sx={{ mb: 2, color: "text.secondary" }}>
               <Typography variant="body2">
                 <strong>Publicado el:</strong>{" "}
@@ -107,6 +113,7 @@ export default function JobOfferPage() {
               </Typography>
             </Box>
 
+            {/* Contador de candidatos */}
             <Box sx={{ mb: 4, display: "flex", alignItems: "center", gap: 1 }}>
               <PersonIcon />
               <Typography variant="body2">
@@ -114,6 +121,7 @@ export default function JobOfferPage() {
               </Typography>
             </Box>
 
+            {/* Botones de navegación */}
             <Stack direction="row" spacing={2} justifyContent="center">
               <Button component={Link} href="/dashboard" variant="contained">
                 Volver al Dashboard
