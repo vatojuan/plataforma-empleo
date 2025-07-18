@@ -1,68 +1,63 @@
 // pages/job-offer.js
 
-import { useRouter } from "next/router";
-import { useState, useEffect } from "react";
-import Link from "next/link";
+import { useRouter } from 'next/router'
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import {
   Container,
   Typography,
   Box,
   CircularProgress,
   Alert,
-  Divider,
-  Button,
   Paper,
   Stack,
-} from "@mui/material";
-import PersonIcon from "@mui/icons-material/Person";
-import DashboardLayout from "../components/DashboardLayout";
+  Button,
+} from '@mui/material'
+import PersonIcon from '@mui/icons-material/Person'
+import DashboardLayout from '../components/DashboardLayout'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://api.fapmendoza.online";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://api.fapmendoza.online'
 
 export default function JobOfferPage() {
-  const router = useRouter();
-  const { id } = router.query;
+  const router = useRouter()
+  const { id } = router.query
 
-  const [job, setJob] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const [job, setJob] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
 
   useEffect(() => {
-    if (!id) return;
+    if (!router.isReady || !id) return
     const fetchJob = async () => {
-      setLoading(true);
-      setError(false);
+      setLoading(true)
+      setError(false)
       try {
-        const res = await fetch(`${API_BASE}/api/job/${id}`);
-        if (!res.ok) throw new Error("Oferta no encontrada");
-        const result = await res.json();
-        console.log("[DEBUG] Oferta recibida del backend:", result.job);
-        // El API devuelve { job: { ... } }
-        setJob(result.job);
+        const res = await fetch(`${API_BASE}/api/job/${id}`)
+        if (!res.ok) throw new Error('Oferta no encontrada')
+        const { job } = await res.json()
+        setJob(job)
       } catch (err) {
-        console.error("[JobOffer] error:", err);
-        setError(true);
+        console.error('[JobOffer] error:', err)
+        setError(true)
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
-    fetchJob();
-  }, [id]);
+    }
+    fetchJob()
+  }, [router.isReady, id])
 
-  // Fecha de publicación: probamos varios nombres de propiedad
-  const postedDate =
-    job?.createdAt ||
-    job?.created_at ||
-    job?.created_at_utc ||
-    job?.postedAt ||
-    job?.fecha_publicacion ||
-    null;
+  const postedDate = job?.createdAt
+    ? new Date(job.createdAt).toLocaleDateString()
+    : null
+  const expirationDate = job?.expirationDate
+    ? new Date(job.expirationDate).toLocaleDateString()
+    : null
 
   return (
     <DashboardLayout>
       <Container maxWidth="md" sx={{ mt: 4 }}>
         {loading ? (
-          <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
             <CircularProgress />
             <Typography sx={{ ml: 2 }}>Cargando oferta…</Typography>
           </Box>
@@ -74,22 +69,19 @@ export default function JobOfferPage() {
           </Alert>
         ) : (
           <>
-            {/* Título */}
             <Typography variant="h4" gutterBottom>
               {job.title}
             </Typography>
 
-            {/* Descripción */}
             <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
               <Typography
                 variant="body1"
-                sx={{ whiteSpace: "pre-line", lineHeight: 1.6 }}
+                sx={{ whiteSpace: 'pre-line', lineHeight: 1.6 }}
               >
                 {job.description}
               </Typography>
             </Paper>
 
-            {/* Requisitos */}
             {job.requirements && (
               <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
                 <Typography variant="h6" gutterBottom>
@@ -97,38 +89,38 @@ export default function JobOfferPage() {
                 </Typography>
                 <Typography
                   variant="body1"
-                  sx={{ whiteSpace: "pre-line", lineHeight: 1.6 }}
+                  sx={{ whiteSpace: 'pre-line', lineHeight: 1.6 }}
                 >
                   {job.requirements}
                 </Typography>
               </Paper>
             )}
 
-            {/* Fechas y expiración */}
-            <Box sx={{ mb: 2, color: "text.secondary" }}>
+            <Box sx={{ mb: 2, color: 'text.secondary' }}>
               <Typography variant="body2">
-                <strong>Publicado el:</strong>{" "}
-                {postedDate
-                  ? new Date(postedDate).toLocaleDateString()
-                  : "Sin fecha"}
+                <strong>Publicado el:</strong>{' '}
+                {postedDate ?? 'Sin fecha'}
               </Typography>
               <Typography variant="body2" color="error">
-                <strong>Expiración:</strong>{" "}
-                {job.expirationDate
-                  ? new Date(job.expirationDate).toLocaleDateString()
-                  : "Sin expiración"}
+                <strong>Expiración:</strong>{' '}
+                {expirationDate ?? 'Sin expiración'}
               </Typography>
             </Box>
 
-            {/* Contador de candidatos */}
-            <Box sx={{ mb: 4, display: "flex", alignItems: "center", gap: 1 }}>
+            <Box
+              sx={{
+                mb: 4,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+              }}
+            >
               <PersonIcon />
               <Typography variant="body2">
                 Candidatos postulados: {job.candidatesCount ?? 0}
               </Typography>
             </Box>
 
-            {/* Botones de navegación */}
             <Stack direction="row" spacing={2} justifyContent="center">
               <Button component={Link} href="/dashboard" variant="contained">
                 Volver al Dashboard
@@ -141,8 +133,8 @@ export default function JobOfferPage() {
         )}
       </Container>
     </DashboardLayout>
-  );
+  )
 }
 
 // Evitamos prerendering en Vercel
-export const getServerSideProps = () => ({ props: {} });
+export const getServerSideProps = () => ({ props: {} })
