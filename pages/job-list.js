@@ -73,7 +73,6 @@ export default function JobList() {
   // 4) Cargar ofertas (públicas o propias si es empleador)
   useEffect(() => {
     if (!ready) return;
-    console.log("[JobList] fetchJobs arrancando...");
     const fetchJobs = async () => {
       setLoadingJobs(true);
       try {
@@ -81,22 +80,24 @@ export default function JobList() {
         if (userRole === "empleador" && userId) {
           url += `?userId=${userId}`;
         }
-        console.log("[JobList] GET", url);
         const res = await fetch(url, {
           headers: { "Content-Type": "application/json" },
         });
-        if (!res.ok) {
-          console.error("[JobList] Error al obtener ofertas:", res.status);
-          throw new Error(`Status ${res.status}`);
-        }
+        if (!res.ok) throw new Error(`Status ${res.status}`);
         const { offers } = await res.json();
         const now = new Date();
         setJobs(
-          offers.filter((j) => !j.expirationDate || new Date(j.expirationDate) > now)
+          offers.filter((j) =>
+            !j.expirationDate || new Date(j.expirationDate) > now
+          )
         );
       } catch (e) {
-        console.error("[JobList] fetchJobs fallo:", e);
-        setSnackbar({ open: true, message: "Error cargando ofertas", severity: "error" });
+        console.error("[JobList] fetchJobs error:", e);
+        setSnackbar({
+          open: true,
+          message: "Error cargando ofertas",
+          severity: "error",
+        });
       } finally {
         setLoadingJobs(false);
       }
@@ -108,33 +109,26 @@ export default function JobList() {
   useEffect(() => {
     if (!ready) return;
     if (userRole !== "empleado" || !authToken) {
-      console.log("[JobList] no fetchApps:", userRole, authToken);
       setApplications([]);
       return;
     }
-    console.log("[JobList] fetchApps arrancando...");
     const fetchApps = async () => {
       setLoadingApps(true);
       try {
         const url = `${API_BASE}/api/job/my-applications`;
-        console.log("[JobList] GET", url);
         const res = await fetch(url, {
           headers: { "Content-Type": "application/json", ...authHeader() },
         });
         if (res.status === 401) {
-          console.warn("[JobList] fetchApps 401 → token expirado");
           localStorage.removeItem("userToken");
           setLocalToken(null);
           setApplications([]);
-        } else if (!res.ok) {
-          console.error("[JobList] fetchApps fallo:", res.status);
-        } else {
+        } else if (res.ok) {
           const { applications: apps } = await res.json();
-          console.log("[JobList] apps recibidas:", apps);
           setApplications(apps);
         }
       } catch (e) {
-        console.error("[JobList] fetchApps exception:", e);
+        console.error("[JobList] fetchApps error:", e);
         setSnackbar({
           open: true,
           message: "Error cargando tus postulaciones",
@@ -152,17 +146,24 @@ export default function JobList() {
     applications.find((a) => a.jobId === jobId);
   const bumpCount = (jobId, delta) =>
     setJobs((prev) =>
-      prev.map((j) => (j.id === jobId ? { ...j, candidatesCount: (j.candidatesCount || 0) + delta } : j))
+      prev.map((j) =>
+        j.id === jobId
+          ? { ...j, candidatesCount: (j.candidatesCount || 0) + delta }
+          : j
+      )
     );
 
   // 7) Postular a oferta
   const handleApply = async (jobId) => {
     if (!authToken) {
-      setSnackbar({ open: true, message: "Debes iniciar sesión para postular", severity: "error" });
+      setSnackbar({
+        open: true,
+        message: "Debes iniciar sesión para postular",
+        severity: "error",
+      });
       return;
     }
     try {
-      console.log("[JobList] handleApply POST", `${API_BASE}/api/job/apply`, jobId);
       const res = await fetch(`${API_BASE}/api/job/apply`, {
         method: "POST",
         headers: { "Content-Type": "application/json", ...authHeader() },
@@ -174,7 +175,11 @@ export default function JobList() {
       }
       // Optimista
       bumpCount(jobId, 1);
-      setSnackbar({ open: true, message: "Has postulado exitosamente", severity: "success" });
+      setSnackbar({
+        open: true,
+        message: "Has postulado exitosamente",
+        severity: "success",
+      });
       // re-fetch apps
       const appsRes = await fetch(`${API_BASE}/api/job/my-applications`, {
         headers: { "Content-Type": "application/json", ...authHeader() },
@@ -185,7 +190,11 @@ export default function JobList() {
       }
     } catch (e) {
       console.error("[JobList] handleApply error:", e);
-      setSnackbar({ open: true, message: "Error al postular", severity: "error" });
+      setSnackbar({
+        open: true,
+        message: "Error al postular",
+        severity: "error",
+      });
     }
   };
 
@@ -193,24 +202,38 @@ export default function JobList() {
   const confirmCancel = async () => {
     const id = dialogs.cancel.jobId;
     if (!authToken) {
-      setSnackbar({ open: true, message: "Debes iniciar sesión para cancelar", severity: "error" });
+      setSnackbar({
+        open: true,
+        message: "Debes iniciar sesión para cancelar",
+        severity: "error",
+      });
       setDialogs((d) => ({ ...d, cancel: { open: false, jobId: null } }));
       return;
     }
     try {
-      console.log("[JobList] confirmCancel DELETE", `${API_BASE}/api/job/cancel-application`, id);
-      const res = await fetch(`${API_BASE}/api/job/cancel-application`, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json", ...authHeader() },
-        body: JSON.stringify({ jobId: id }),
-      });
+      const res = await fetch(
+        `${API_BASE}/api/job/cancel-application`,
+        {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json", ...authHeader() },
+          body: JSON.stringify({ jobId: id }),
+        }
+      );
       if (!res.ok) throw new Error(`${res.status}`);
       bumpCount(id, -1);
       setApplications((apps) => apps.filter((a) => a.jobId !== id));
-      setSnackbar({ open: true, message: "Postulación cancelada", severity: "success" });
+      setSnackbar({
+        open: true,
+        message: "Postulación cancelada",
+        severity: "success",
+      });
     } catch (e) {
       console.error("[JobList] confirmCancel error:", e);
-      setSnackbar({ open: true, message: "Error al cancelar", severity: "error" });
+      setSnackbar({
+        open: true,
+        message: "Error al cancelar",
+        severity: "error",
+      });
     } finally {
       setDialogs((d) => ({ ...d, cancel: { open: false, jobId: null } }));
     }
@@ -221,22 +244,37 @@ export default function JobList() {
     const id = dialogs.delete.jobId;
     const adminToken = localStorage.getItem("adminToken");
     if (!adminToken) {
-      setSnackbar({ open: true, message: "No autorizado", severity: "error" });
+      setSnackbar({
+        open: true,
+        message: "No autorizado",
+        severity: "error",
+      });
       setDialogs((d) => ({ ...d, delete: { open: false, jobId: null } }));
       return;
     }
     try {
       const res = await fetch(`${API_BASE}/api/job/delete`, {
         method: "DELETE",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${adminToken}` },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${adminToken}`,
+        },
         body: JSON.stringify({ jobId: id }),
       });
       if (!res.ok) throw new Error(`${res.status}`);
       setJobs((prev) => prev.filter((j) => j.id !== id));
-      setSnackbar({ open: true, message: "Oferta eliminada correctamente", severity: "success" });
+      setSnackbar({
+        open: true,
+        message: "Oferta eliminada correctamente",
+        severity: "success",
+      });
     } catch (e) {
       console.error("[JobList] confirmDelete error:", e);
-      setSnackbar({ open: true, message: "Error al eliminar la oferta", severity: "error" });
+      setSnackbar({
+        open: true,
+        message: "Error al eliminar la oferta",
+        severity: "error",
+      });
     } finally {
       setDialogs((d) => ({ ...d, delete: { open: false, jobId: null } }));
     }
@@ -299,6 +337,7 @@ export default function JobList() {
                       </Button>
                     ) : (() => {
                         const app = getApplicationForJob(job.id);
+                        // Si no se ha postulado todavía
                         if (!app) {
                           return (
                             <Button
@@ -311,11 +350,10 @@ export default function JobList() {
                             </Button>
                           );
                         }
-
+                        // Si está en waiting o pending => cancelar
                         const isCancelable =
                           (app.label === "automatic" && app.status === "waiting") ||
-                          (app.label === "manual" && app.status === "pending");
-
+                          (app.label === "manual"    && app.status === "pending");
                         if (isCancelable) {
                           return (
                             <Button
@@ -333,7 +371,7 @@ export default function JobList() {
                             </Button>
                           );
                         }
-
+                        // Si ya se envió
                         return (
                           <Button size="small" variant="outlined" disabled>
                             Propuesta enviada
@@ -341,7 +379,6 @@ export default function JobList() {
                         );
                       })()}
                   </CardActions>
-
                 </Card>
               </Grid>
             ))}
