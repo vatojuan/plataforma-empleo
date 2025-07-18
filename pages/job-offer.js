@@ -17,7 +17,8 @@ import {
 import PersonIcon from "@mui/icons-material/Person";
 import DashboardLayout from "../components/DashboardLayout";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://api.fapmendoza.online";
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_URL || "https://api.fapmendoza.online";
 
 export default function JobOfferPage() {
   const router = useRouter();
@@ -36,7 +37,7 @@ export default function JobOfferPage() {
         const res = await fetch(`${API_BASE}/api/job/${id}`);
         if (!res.ok) throw new Error("Oferta no encontrada");
         const result = await res.json();
-        // El API devuelve { job: {...} }
+        // El API devuelve { job: { ... } }
         setJob(result.job);
       } catch (err) {
         console.error("[JobOffer] error:", err);
@@ -48,7 +49,7 @@ export default function JobOfferPage() {
     fetchJob();
   }, [id]);
 
-  // Fecha de publicación: el detalle no incluye createdAt por defecto
+  // Fecha de publicación: intentamos createdAt o created_at
   const postedDate = job?.createdAt || job?.created_at || null;
 
   return (
