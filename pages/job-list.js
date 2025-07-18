@@ -148,7 +148,8 @@ export default function JobList() {
   }, [ready, userRole, authToken]);
 
   // 6) Helpers
-  const isApplied = (jobId) => applications.some((a) => a.jobId === jobId);
+  const getApplicationForJob = (jobId) =>
+    applications.find((a) => a.jobId === jobId);
   const bumpCount = (jobId, delta) =>
     setJobs((prev) =>
       prev.map((j) => (j.id === jobId ? { ...j, candidatesCount: (j.candidatesCount || 0) + delta } : j))
@@ -290,29 +291,57 @@ export default function JobList() {
                         size="small"
                         variant="contained"
                         color="secondary"
-                        onClick={() => setDialogs((d) => ({ ...d, delete: { open: true, jobId: job.id } }))}
+                        onClick={() =>
+                          setDialogs((d) => ({ ...d, delete: { open: true, jobId: job.id } }))
+                        }
                       >
                         Eliminar
                       </Button>
-                    ) : isApplied(job.id) ? (
-                      <Button
-                        size="small"
-                        variant="contained"
-                        color="secondary"
-                        onClick={() => setDialogs((d) => ({ ...d, cancel: { open: true, jobId: job.id } }))}
-                      >
-                        Cancelar Postulación
-                      </Button>
-                    ) : userId ? (
-                      <Button size="small" variant="contained" color="primary" onClick={() => handleApply(job.id)}>
-                        Postularme
-                      </Button>
-                    ) : (
-                      <Button size="small" variant="outlined" disabled>
-                        Iniciar sesión para postular
-                      </Button>
-                    )}
+                    ) : (() => {
+                        const app = getApplicationForJob(job.id);
+                        if (!app) {
+                          return (
+                            <Button
+                              size="small"
+                              variant="contained"
+                              color="primary"
+                              onClick={() => handleApply(job.id)}
+                            >
+                              Postularme
+                            </Button>
+                          );
+                        }
+
+                        const isCancelable =
+                          (app.label === "automatic" && app.status === "waiting") ||
+                          (app.label === "manual" && app.status === "pending");
+
+                        if (isCancelable) {
+                          return (
+                            <Button
+                              size="small"
+                              variant="contained"
+                              color="secondary"
+                              onClick={() =>
+                                setDialogs((d) => ({
+                                  ...d,
+                                  cancel: { open: true, jobId: job.id },
+                                }))
+                              }
+                            >
+                              Cancelar Postulación
+                            </Button>
+                          );
+                        }
+
+                        return (
+                          <Button size="small" variant="outlined" disabled>
+                            Propuesta enviada
+                          </Button>
+                        );
+                      })()}
                   </CardActions>
+
                 </Card>
               </Grid>
             ))}
