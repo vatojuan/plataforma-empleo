@@ -25,7 +25,6 @@ import {
   Alert,
   CircularProgress,
 } from "@mui/material";
-import PersonIcon from "@mui/icons-material/Person";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || "https://api.fapmendoza.online";
@@ -50,7 +49,7 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
     severity: "success",
   });
 
-  // 3) Forzar revalidación de sesión al montar (por si cambió algo en NextAuth)
+  // 3) Forzar revalidación de sesión al montar
   useEffect(() => {
     getSession();
   }, []);
@@ -72,13 +71,12 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
     }
   }, [ready, user, userRole, router]);
 
-  // 6) Cargar postulaciones (solo empleado, cuando ready && token esté presente)
+  // 6) Cargar postulaciones (solo empleado)
   useEffect(() => {
     if (!ready || userRole !== "empleado" || !token) {
       setApplications([]);
       return;
     }
-
     const fetchApplications = async () => {
       try {
         const res = await fetch(`${API_BASE}/api/job/my-applications`, {
@@ -87,12 +85,10 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
             ...authHeader(),
           },
         });
-
         if (res.ok) {
           const { applications: apps } = await res.json();
           setApplications(apps);
         } else if (res.status === 401) {
-          // Token expirado o inválido
           localStorage.removeItem("userToken");
           setApplications([]);
         } else {
@@ -102,7 +98,6 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
         console.error("Error fetching applications:", error);
       }
     };
-
     fetchApplications();
   }, [ready, userRole, token, authHeader]);
 
@@ -118,11 +113,8 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
         },
         body: JSON.stringify({ jobId }),
       });
-
       if (res.ok) {
-        setApplications((prev) =>
-          prev.filter((a) => a.jobId !== jobId)
-        );
+        setApplications((prev) => prev.filter((a) => a.jobId !== jobId));
         setSnackbar({
           open: true,
           message: "Postulación cancelada",
@@ -172,7 +164,7 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
     setTimeout(() => router.push("/login"), 1200);
   };
 
-  // 9) Spinner mientras ready / sessionStatus / userRole no estén listos
+  // 9) Spinner mientras no esté listo
   if (!ready || sessionStatus === "loading" || !userRole) {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", mt: 8 }}>
@@ -192,7 +184,6 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
         <Avatar
           src={profileImageUrl}
           onError={async () => {
-            // Si falla la imagen, renovar desde el endpoint correspondiente
             try {
               const endpoint =
                 userRole === "empleado"
@@ -200,9 +191,7 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
                   : "/api/employer/renew-profile-picture";
               const r = await fetch(endpoint);
               const d = await r.json();
-              if (d.url) {
-                setProfileImageUrl(d.url);
-              }
+              if (d.url) setProfileImageUrl(d.url);
             } catch (e) {
               console.error("Error renovando URL de la imagen:", e);
             }
@@ -222,7 +211,6 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
           Tu rol: {userRole}
         </Typography>
 
-        {/* Opciones para empleado */}
         {userRole === "empleado" && (
           <>
             <Box sx={{ mt: 3, mx: "auto", maxWidth: 500 }}>
@@ -249,6 +237,7 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
                 </Grid>
               </Grid>
             </Box>
+
             <Paper
               sx={{
                 maxWidth: 900,
@@ -262,6 +251,7 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
                 Mis Postulaciones
               </Typography>
               <Divider sx={{ mb: 2 }} />
+
               {applications.length === 0 ? (
                 <Typography variant="body2" color="text.secondary">
                   No has postulado a ningún empleo.
@@ -279,9 +269,11 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
                         }}
                       >
                         <CardContent sx={{ flexGrow: 1 }}>
+                          {/* Título */}
                           <Typography variant="h6">
-                            {app.job?.title}
+                            {app.jobTitle}
                           </Typography>
+                          {/* Fecha de publicación */}
                           <Typography
                             variant="body2"
                             color="text.secondary"
@@ -292,13 +284,12 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
                               mt: 1,
                             }}
                           >
-                            <span>
-                              Publicado el:{" "}
-                              {app.job?.createdAt
-                                ? new Date(app.job.createdAt).toLocaleDateString()
-                                : "Sin fecha"}
-                            </span>
+                            Publicado el:{" "}
+                            {app.jobPostedAt
+                              ? new Date(app.jobPostedAt).toLocaleDateString()
+                              : "Sin fecha"}
                           </Typography>
+                          {/* Contador de candidatos */}
                           <Typography
                             variant="body2"
                             color="text.secondary"
@@ -310,32 +301,46 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
                             }}
                           >
                             Candidatos postulados:{" "}
-                            {app.job?._count?.applications ?? 0}
+                            {app.candidatesCount ?? 0}
                             <PersonIcon fontSize="small" />
                           </Typography>
                         </CardContent>
+
                         <CardActions
                           sx={{ justifyContent: "space-between" }}
                         >
+                          {/* Ver detalles */}
                           <Button
                             component={Link}
-                            href={`/job-offer?id=${app.job?.id}`}
+                            href={`/job-offer?id=${app.jobId}`}
                             size="small"
                             variant="outlined"
                           >
                             Ver Detalles
                           </Button>
-                          <Button
-                            onClick={() => {
-                              setSelectedCancelJobId(app.job?.id);
-                              setOpenCancelDialog(true);
-                            }}
-                            size="small"
-                            variant="contained"
-                            color="secondary"
-                          >
-                            Cancelar Postulación
-                          </Button>
+
+                          {/* Botón según estado */}
+                          {["pending", "waiting"].includes(app.status) ? (
+                            <Button
+                              size="small"
+                              variant="contained"
+                              color="secondary"
+                              onClick={() => {
+                                setSelectedCancelJobId(app.jobId);
+                                setOpenCancelDialog(true);
+                              }}
+                            >
+                              Cancelar Postulación
+                            </Button>
+                          ) : (
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              disabled
+                            >
+                              Propuesta enviada
+                            </Button>
+                          )}
                         </CardActions>
                       </Card>
                     </Grid>
@@ -346,7 +351,6 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
           </>
         )}
 
-        {/* Opciones para empleador */}
         {userRole !== "empleado" && (
           <Paper
             sx={{
