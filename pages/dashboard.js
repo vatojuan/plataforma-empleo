@@ -25,6 +25,7 @@ import {
   Alert,
   CircularProgress,
 } from "@mui/material";
+import PersonIcon from "@mui/icons-material/Person";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || "https://api.fapmendoza.online";
@@ -54,14 +55,14 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
     getSession();
   }, []);
 
-  // 4) Actualizar la imagen de perfil cuando cambie session.user.image
+  // 4) Renovar imagen si cambia en la sesión
   useEffect(() => {
     if (session?.user?.image) {
       setProfileImageUrl(session.user.image);
     }
   }, [session]);
 
-  // 5) Redirigir si no está listo o no hay usuario / rol
+  // 5) Redirecciones según estado
   useEffect(() => {
     if (!ready) return;
     if (!user) {
@@ -71,12 +72,13 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
     }
   }, [ready, user, userRole, router]);
 
-  // 6) Cargar postulaciones (solo empleado)
+  // 6) Cargar mis postulaciones
   useEffect(() => {
     if (!ready || userRole !== "empleado" || !token) {
       setApplications([]);
       return;
     }
+
     const fetchApplications = async () => {
       try {
         const res = await fetch(`${API_BASE}/api/job/my-applications`, {
@@ -85,23 +87,23 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
             ...authHeader(),
           },
         });
+
         if (res.ok) {
           const { applications: apps } = await res.json();
           setApplications(apps);
         } else if (res.status === 401) {
           localStorage.removeItem("userToken");
           setApplications([]);
-        } else {
-          console.error("my-applications status:", res.status);
         }
       } catch (error) {
         console.error("Error fetching applications:", error);
       }
     };
+
     fetchApplications();
   }, [ready, userRole, token, authHeader]);
 
-  // 7) Confirmar cancelación de postulación
+  // 7) Cancelar postulación
   const confirmCancelApplication = async () => {
     const jobId = selectedCancelJobId;
     try {
@@ -113,26 +115,15 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
         },
         body: JSON.stringify({ jobId }),
       });
+
       if (res.ok) {
-        setApplications((prev) => prev.filter((a) => a.jobId !== jobId));
+        setApplications((prev) =>
+          prev.filter((a) => a.jobId !== jobId)
+        );
         setSnackbar({
           open: true,
           message: "Postulación cancelada",
           severity: "success",
-        });
-      } else if (res.status === 401) {
-        localStorage.removeItem("userToken");
-        setApplications([]);
-        setSnackbar({
-          open: true,
-          message: "Token expirado. Vuelve a iniciar sesión.",
-          severity: "error",
-        });
-      } else {
-        setSnackbar({
-          open: true,
-          message: "Error al cancelar la postulación",
-          severity: "error",
         });
       }
     } catch (error) {
@@ -164,7 +155,7 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
     setTimeout(() => router.push("/login"), 1200);
   };
 
-  // 9) Spinner mientras no esté listo
+  // 9) Spinner mientras carga
   if (!ready || sessionStatus === "loading" || !userRole) {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", mt: 8 }}>
@@ -191,7 +182,9 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
                   : "/api/employer/renew-profile-picture";
               const r = await fetch(endpoint);
               const d = await r.json();
-              if (d.url) setProfileImageUrl(d.url);
+              if (d.url) {
+                setProfileImageUrl(d.url);
+              }
             } catch (e) {
               console.error("Error renovando URL de la imagen:", e);
             }
@@ -211,6 +204,7 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
           Tu rol: {userRole}
         </Typography>
 
+        {/* Opciones para empleado */}
         {userRole === "empleado" && (
           <>
             <Box sx={{ mt: 3, mx: "auto", maxWidth: 500 }}>
@@ -237,7 +231,6 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
                 </Grid>
               </Grid>
             </Box>
-
             <Paper
               sx={{
                 maxWidth: 900,
@@ -251,106 +244,103 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
                 Mis Postulaciones
               </Typography>
               <Divider sx={{ mb: 2 }} />
-
               {applications.length === 0 ? (
                 <Typography variant="body2" color="text.secondary">
                   No has postulado a ningún empleo.
                 </Typography>
               ) : (
                 <Grid container spacing={3} justifyContent="center">
-                  {applications.map((app) => (
-                    <Grid item xs={12} sm={6} md={4} key={app.id}>
-                      <Card
-                        sx={{
-                          display: "flex",
-                          flexDirection: "column",
-                          height: "100%",
-                          bgcolor: "rgba(217,98,54,0.15)",
-                        }}
-                      >
-                        <CardContent sx={{ flexGrow: 1 }}>
-                          {/* Título */}
-                          <Typography variant="h6">
-                            {app.jobTitle}
-                          </Typography>
-                          {/* Fecha de publicación */}
-                          <Typography
-                            variant="body2"
-                            color="text.secondary"
-                            sx={{
-                              display: "flex",
-                              justifyContent: "space-between",
-                              alignItems: "center",
-                              mt: 1,
-                            }}
-                          >
-                            Publicado el:{" "}
-                            {app.jobPostedAt
-                              ? new Date(app.jobPostedAt).toLocaleDateString()
-                              : "Sin fecha"}
-                          </Typography>
-                          {/* Contador de candidatos */}
-                          <Typography
-                            variant="body2"
-                            color="text.secondary"
-                            sx={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 0.5,
-                              mt: 1,
-                            }}
-                          >
-                            Candidatos postulados:{" "}
-                            {app.candidatesCount ?? 0}
-                            <PersonIcon fontSize="small" />
-                          </Typography>
-                        </CardContent>
-
-                        <CardActions
-                          sx={{ justifyContent: "space-between" }}
+                  {applications.map((app) => {
+                    // Determinar si se puede cancelar o ya enviada
+                    const cancelable =
+                      (app.label === "automatic" && app.status === "waiting") ||
+                      (app.label === "manual" && app.status === "pending");
+                    return (
+                      <Grid item xs={12} sm={6} md={4} key={app.id}>
+                        <Card
+                          sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            height: "100%",
+                            bgcolor: "rgba(217,98,54,0.15)",
+                          }}
                         >
-                          {/* Ver detalles */}
-                          <Button
-                            component={Link}
-                            href={`/job-offer?id=${app.jobId}`}
-                            size="small"
-                            variant="outlined"
-                          >
-                            Ver Detalles
-                          </Button>
-
-                          {/* Botón según estado */}
-                          {["pending", "waiting"].includes(app.status) ? (
-                            <Button
-                              size="small"
-                              variant="contained"
-                              color="secondary"
-                              onClick={() => {
-                                setSelectedCancelJobId(app.jobId);
-                                setOpenCancelDialog(true);
+                          <CardContent sx={{ flexGrow: 1 }}>
+                            {/* Título */}
+                            <Typography variant="h6">
+                              {app.jobTitle}
+                            </Typography>
+                            {/* Fecha publicación */}
+                            <Typography
+                              variant="body2"
+                              color="text.secondary"
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 1,
+                                mt: 1,
                               }}
                             >
-                              Cancelar Postulación
-                            </Button>
-                          ) : (
+                              <strong>Publicado:</strong>{" "}
+                              {app.jobPostedAt
+                                ? new Date(app.jobPostedAt).toLocaleDateString()
+                                : "Sin fecha"}
+                            </Typography>
+                            {/* Contador */}
+                            <Typography
+                              variant="body2"
+                              color="text.secondary"
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 0.5,
+                                mt: 1,
+                              }}
+                            >
+                              Candidatos: {app.candidatesCount}
+                              <PersonIcon fontSize="small" />
+                            </Typography>
+                          </CardContent>
+                          <CardActions
+                            sx={{ justifyContent: "space-between" }}
+                          >
                             <Button
+                              component={Link}
+                              href={`/job-offer?id=${app.jobId}`}
                               size="small"
                               variant="outlined"
-                              disabled
                             >
-                              Propuesta enviada
+                              Ver Detalles
                             </Button>
-                          )}
-                        </CardActions>
-                      </Card>
-                    </Grid>
-                  ))}
+                            {cancelable ? (
+                              <Button
+                                onClick={() => {
+                                  setSelectedCancelJobId(app.jobId);
+                                  setOpenCancelDialog(true);
+                                }}
+                                size="small"
+                                variant="contained"
+                                color="secondary"
+                              >
+                                Cancelar Postulación
+                              </Button>
+                            ) : (
+                              <Button size="small" variant="outlined" disabled>
+                                Propuesta enviada
+                              </Button>
+                            )}
+                          </CardActions>
+                        </Card>
+                      </Grid>
+                    );
+                  })}
                 </Grid>
               )}
             </Paper>
           </>
         )}
 
+        {/* Opciones para empleador */}
         {userRole !== "empleado" && (
           <Paper
             sx={{
@@ -440,16 +430,6 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
           onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
           severity={snackbar.severity}
           variant="filled"
-          sx={{
-            width: "100%",
-            bgcolor: (theme) =>
-              snackbar.severity === "success"
-                ? theme.palette.secondary.main
-                : snackbar.severity === "error"
-                ? theme.palette.error.main
-                : theme.palette.info.main,
-            color: "#fff",
-          }}
         >
           {snackbar.message}
         </Alert>
