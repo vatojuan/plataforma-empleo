@@ -31,8 +31,8 @@ export default function JobList() {
     user,
     role: userRole,
     token: sessionToken,
-    authHeader: getNextAuthHeader,
     ready,
+    authHeader: getNextAuthHeader,
   } = useAuthUser();
   const userId = user?.id || null;
 
@@ -312,17 +312,17 @@ export default function JobList() {
                     <CardContent sx={{ flexGrow: 1 }}>
                       <Typography variant="h6">{job.title}</Typography>
 
-                      {/* Fecha de publicación */}
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{ mt: 1 }}
-                      >
-                        Publicado el:{" "}
-                        {job.createdAt
-                          ? new Date(job.createdAt).toLocaleDateString()
-                          : "Sin fecha"}
-                      </Typography>
+                      {/* Fecha de publicación (solo si existe) */}
+                      {job.createdAt && (
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{ mt: 1 }}
+                        >
+                          Publicado el:{" "}
+                          {new Date(job.createdAt).toLocaleDateString()}
+                        </Typography>
+                      )}
 
                       {/* Fecha de expiración */}
                       <Typography
@@ -437,7 +437,10 @@ export default function JobList() {
         <DialogActions>
           <Button
             onClick={() =>
-              setDialogs((d) => ({ ...d, cancel: { open: false, jobId: null } }))
+              setDialogs((d) => ({
+                ...d,
+                cancel: { open: false, jobId: null },
+              }))
             }
           >
             Volver
@@ -466,7 +469,10 @@ export default function JobList() {
         <DialogActions>
           <Button
             onClick={() =>
-              setDialogs((d) => ({ ...d, delete: { open: false, jobId: null } }))
+              setDialogs((d) => ({
+                ...d,
+                delete: { open: false, jobId: null },
+              }))
             }
           >
             Volver
