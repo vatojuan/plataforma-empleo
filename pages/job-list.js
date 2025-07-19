@@ -65,7 +65,7 @@ export default function JobList() {
     cancel: { open: false, jobId: null },
   });
 
-  /* ─── 3. Fetch de ofertas ─── */
+  /* ─── 3. Fetch ofertas ─── */
   useEffect(() => {
     if (!ready) return;
 
@@ -102,7 +102,7 @@ export default function JobList() {
     fetchJobs();
   }, [ready, userRole, userId]);
 
-  /* ─── 4. Fetch de postulaciones (empleado) ─── */
+  /* ─── 4. Fetch postulaciones (empleado) ─── */
   useEffect(() => {
     if (!ready) return;
     if (userRole !== "empleado" || !authToken) {
@@ -300,6 +300,10 @@ export default function JobList() {
                 ((app.label === "automatic" && app.status === "waiting") ||
                   (app.label === "manual" && app.status === "pending"));
 
+              /* Fecha de publicación: primer campo existente */
+              const publishedAt =
+                job.createdAt || job.created_at || job.jobPostedAt || null;
+
               return (
                 <Grid item xs={12} sm={6} md={4} key={job.id}>
                   <Card
@@ -312,19 +316,17 @@ export default function JobList() {
                     <CardContent sx={{ flexGrow: 1 }}>
                       <Typography variant="h6">{job.title}</Typography>
 
-                      {/* Fecha de publicación (solo si existe) */}
-                      {job.createdAt && (
+                      {publishedAt && (
                         <Typography
                           variant="body2"
                           color="text.secondary"
                           sx={{ mt: 1 }}
                         >
                           Publicado el:{" "}
-                          {new Date(job.createdAt).toLocaleDateString()}
+                          {new Date(publishedAt).toLocaleDateString()}
                         </Typography>
                       )}
 
-                      {/* Fecha de expiración */}
                       <Typography
                         variant="body2"
                         color="error"
@@ -336,7 +338,6 @@ export default function JobList() {
                           : "Sin expiración"}
                       </Typography>
 
-                      {/* Conteo de postulados */}
                       <Typography
                         variant="body2"
                         color="text.secondary"
@@ -361,7 +362,6 @@ export default function JobList() {
                         Ver Detalles
                       </Button>
 
-                      {/* ----- Botón contextual ----- */}
                       {userRole === "empleador" ? (
                         <Button
                           size="small"
