@@ -1,7 +1,8 @@
+// pages/profile-empleado.js
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import axios from "axios";
-import { useSession, signOut } from "next-auth/react";
+import { useSession, signOut, getSession } from "next-auth/react";
 import DashboardLayout from "../components/DashboardLayout";
 import ProfileImage from "../components/ProfileImage";
 import Link from "next/link";
@@ -19,12 +20,13 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  LinearProgress
+  LinearProgress,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 
 export default function ProfileEmpleado() {
-  const { data: session, status } = useSession();
+  // El hook useSession ahora también nos da la función `update`
+  const { data: session, status, update } = useSession();
   const router = useRouter();
 
   // Estados para el perfil
@@ -34,7 +36,9 @@ export default function ProfileEmpleado() {
   const [loading, setLoading] = useState(false);
 
   // Estado para la imagen de perfil
-  const [profileImageUrl, setProfileImageUrl] = useState("/images/default-user.png");
+  const [profileImageUrl, setProfileImageUrl] = useState(
+    "/images/default-user.png"
+  );
 
   // Handler para renovar la imagen en caso de error
   const handleImageError = async () => {
@@ -58,7 +62,11 @@ export default function ProfileEmpleado() {
   const [documents, setDocuments] = useState([]);
   const [uploading, setUploading] = useState(false);
 
-  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
 
   // Diálogo para eliminar documento
   const [openDocDeleteDialog, setOpenDocDeleteDialog] = useState(false);
@@ -75,13 +83,21 @@ export default function ProfileEmpleado() {
     try {
       const res = await axios.delete("/api/user/delete");
       if (res.status === 200) {
-        setSnackbar({ open: true, message: "Cuenta eliminada correctamente", severity: "success" });
+        setSnackbar({
+          open: true,
+          message: "Cuenta eliminada correctamente",
+          severity: "success",
+        });
         await signOut({ redirect: false });
         router.push("/login");
       }
     } catch (error) {
       console.error("Error al eliminar la cuenta:", error);
-      setSnackbar({ open: true, message: "Error al eliminar la cuenta", severity: "error" });
+      setSnackbar({
+        open: true,
+        message: "Error al eliminar la cuenta",
+        severity: "error",
+      });
     } finally {
       setOpenDeleteDialog(false);
     }
@@ -90,7 +106,8 @@ export default function ProfileEmpleado() {
   // Cargar perfil del empleado
   useEffect(() => {
     if (session) {
-      axios.get("/api/employee/profile")
+      axios
+        .get("/api/employee/profile")
         .then(async (res) => {
           const data = res.data;
           setName(data.name || "");
@@ -100,12 +117,17 @@ export default function ProfileEmpleado() {
             setProfileImageUrl(data.profilePicture);
             if (data.profilePicture.includes("X-Goog-Expires")) {
               try {
-                const renewRes = await axios.get("/api/employee/renew-profile-picture");
+                const renewRes = await axios.get(
+                  "/api/employee/renew-profile-picture"
+                );
                 if (renewRes.data?.url) {
                   setProfileImageUrl(renewRes.data.url);
                 }
               } catch (error) {
-                console.error("Error renovando la URL firmada de la imagen:", error);
+                console.error(
+                  "Error renovando la URL firmada de la imagen:",
+                  error
+                );
               }
             }
           }
@@ -117,7 +139,8 @@ export default function ProfileEmpleado() {
   // Cargar documentos subidos
   useEffect(() => {
     if (session) {
-      axios.get("/api/employee/documents")
+      axios
+        .get("/api/employee/documents")
         .then((res) => {
           setDocuments(res.data.documents);
         })
@@ -135,13 +158,31 @@ export default function ProfileEmpleado() {
     e.preventDefault();
     setLoading(true);
     try {
-      // Enviar la descripción junto con los otros campos; el servidor se encargará de generar el embedding.
       await axios.put("/api/employee/profile", { name, phone, description });
-      setSnackbar({ open: true, message: "Perfil actualizado exitosamente", severity: "success" });
-      setTimeout(() => window.location.reload(), 1500);
+
+      // --- ¡CAMBIO CLAVE AQUÍ! ---
+      // 1. Actualizamos la sesión del lado del cliente con el nuevo nombre.
+      await update({ ...session, user: { ...session.user, name: name } });
+      
+      // Opcionalmente, para refrescar toda la sesión desde el backend:
+      // await getSession();
+
+      setSnackbar({
+        open: true,
+        message: "Perfil actualizado exitosamente",
+        severity: "success",
+      });
+      
+      // 2. Ya no necesitamos recargar la página.
+      // setTimeout(() => window.location.reload(), 1500);
+
     } catch (error) {
       console.error("Error actualizando el perfil:", error);
-      setSnackbar({ open: true, message: "Error actualizando el perfil", severity: "error" });
+      setSnackbar({
+        open: true,
+        message: "Error actualizando el perfil",
+        severity: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -156,17 +197,38 @@ export default function ProfileEmpleado() {
     const formData = new FormData();
     formData.append("profilePicture", imageFile);
     try {
-      const res = await axios.post("/api/employee/upload-profile-picture", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const res = await axios.post(
+        "/api/employee/upload-profile-picture",
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+      
+      // --- ¡CAMBIO CLAVE AQUÍ! ---
+      // Actualizamos la sesión con la nueva URL de la imagen
+      const newImageUrl = res.data.user.profilePicture;
+      await update({ ...session, user: { ...session.user, image: newImageUrl } });
+      setProfileImageUrl(newImageUrl); // Actualizamos la imagen localmente también
+
       setProfileImageMessage("Imagen de perfil actualizada correctamente.");
-      setSnackbar({ open: true, message: "Imagen actualizada", severity: "success" });
-      setTimeout(() => window.location.reload(), 1500);
-      console.log("Imagen actualizada:", res.data.user.profilePicture);
+      setSnackbar({
+        open: true,
+        message: "Imagen actualizada",
+        severity: "success",
+      });
+      
+      // Ya no recargamos la página
+      // setTimeout(() => window.location.reload(), 1500);
+      console.log("Imagen actualizada:", newImageUrl);
     } catch (error) {
       console.error("Error actualizando la imagen de perfil:", error);
       setProfileImageMessage("Error al actualizar la imagen de perfil.");
-      setSnackbar({ open: true, message: "Error actualizando imagen", severity: "error" });
+      setSnackbar({
+        open: true,
+        message: "Error actualizando imagen",
+        severity: "error",
+      });
     }
   };
 
@@ -208,17 +270,29 @@ export default function ProfileEmpleado() {
       formData.append("userId", session.user.id);
     }
     try {
-      const res = await axios.post("/api/employee/upload-document", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const res = await axios.post(
+        "/api/employee/upload-document",
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
       setUploadMessage("Documento subido correctamente.");
-      setSnackbar({ open: true, message: "Documento subido", severity: "success" });
+      setSnackbar({
+        open: true,
+        message: "Documento subido",
+        severity: "success",
+      });
       const updatedDocs = await axios.get("/api/employee/documents");
       setDocuments(updatedDocs.data.documents);
     } catch (error) {
       console.error("Error al subir el documento:", error);
       setUploadMessage("Error al subir el documento.");
-      setSnackbar({ open: true, message: "Error subiendo documento", severity: "error" });
+      setSnackbar({
+        open: true,
+        message: "Error subiendo documento",
+        severity: "error",
+      });
     } finally {
       setUploading(false);
     }
@@ -231,13 +305,23 @@ export default function ProfileEmpleado() {
 
   const confirmDeleteDocument = async () => {
     try {
-      await axios.delete("/api/employee/delete-document", { data: { documentId: selectedDocId } });
+      await axios.delete("/api/employee/delete-document", {
+        data: { documentId: selectedDocId },
+      });
       const updatedDocs = await axios.get("/api/employee/documents");
       setDocuments(updatedDocs.data.documents);
-      setSnackbar({ open: true, message: "Documento eliminado correctamente", severity: "success" });
+      setSnackbar({
+        open: true,
+        message: "Documento eliminado correctamente",
+        severity: "success",
+      });
     } catch (error) {
       console.error("Error al eliminar el documento:", error);
-      setSnackbar({ open: true, message: "Error al eliminar el documento", severity: "error" });
+      setSnackbar({
+        open: true,
+        message: "Error al eliminar el documento",
+        severity: "error",
+      });
     } finally {
       setOpenDocDeleteDialog(false);
       setSelectedDocId(null);
@@ -296,7 +380,13 @@ export default function ProfileEmpleado() {
               helperText="La descripción se usará para facilitar las búsquedas y matching. Máximo 1000 caracteres."
               inputProps={{ maxLength: 3000 }}
             />
-            <Button type="submit" variant="contained" color="primary" disabled={loading} sx={{ mt: 2 }}>
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              disabled={loading}
+              sx={{ mt: 2 }}
+            >
               {loading ? "Actualizando..." : "Actualizar Perfil"}
             </Button>
           </Box>
@@ -316,15 +406,25 @@ export default function ProfileEmpleado() {
             Subir CV o Archivo De Interes
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Se permiten hasta {MAX_FILES} documentos. Tamaño máximo de cada archivo: {MAX_FILE_SIZE_MB} MB.
+            Se permiten hasta {MAX_FILES} documentos. Tamaño máximo de cada
+            archivo: {MAX_FILE_SIZE_MB} MB.
           </Typography>
           <Button variant="contained" component="label" sx={{ mt: 1 }}>
             Seleccionar Archivo
-            <input type="file" hidden onChange={handleDocumentFileChange} accept=".pdf,.doc,.docx,.jpg,.png" />
+            <input
+              type="file"
+              hidden
+              onChange={handleDocumentFileChange}
+              accept=".pdf,.doc,.docx,.jpg,.png"
+            />
           </Button>
           {uploading && <LinearProgress sx={{ mt: 2 }} />}
           {uploadMessage && (
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{ mt: 1 }}
+            >
               {uploadMessage}
             </Typography>
           )}
@@ -337,9 +437,16 @@ export default function ProfileEmpleado() {
             No hay documentos subidos.
           </Typography>
         ) : (
-          <Box component="ul" sx={{ listStyle: "none", p: 0, maxWidth: 500, mx: "auto" }}>
+          <Box
+            component="ul"
+            sx={{ listStyle: "none", p: 0, maxWidth: 500, mx: "auto" }}
+          >
             {documents.map((doc) => (
-              <Box component="li" key={doc.id} sx={{ mb: 1, display: "flex", alignItems: "center" }}>
+              <Box
+                component="li"
+                key={doc.id}
+                sx={{ mb: 1, display: "flex", alignItems: "center" }}
+              >
                 <Box sx={{ flexGrow: 1 }}>
                   <Button
                     fullWidth
@@ -348,7 +455,9 @@ export default function ProfileEmpleado() {
                       e.preventDefault();
                       try {
                         const res = await axios.get(
-                          `/api/employee/get-signed-url?fileName=${encodeURIComponent(doc.fileKey)}`
+                          `/api/employee/get-signed-url?fileName=${encodeURIComponent(
+                            doc.fileKey
+                          )}`
                         );
                         if (!res.data || !res.data.url) {
                           throw new Error("Error al obtener la URL firmada");
@@ -364,13 +473,21 @@ export default function ProfileEmpleado() {
                       padding: "20px",
                       color: "#1976d2",
                       backgroundColor: "transparent",
-                      "&:hover": { backgroundColor: "rgba(25, 118, 210, 0.04)" },
+                      "&:hover": {
+                        backgroundColor: "rgba(25, 118, 210, 0.04)",
+                      },
                     }}
                   >
                     {doc.originalName || "Documento"}
                   </Button>
                 </Box>
-                <IconButton color="error" onClick={() => { setSelectedDocId(doc.id); setOpenDocDeleteDialog(true); }}>
+                <IconButton
+                  color="error"
+                  onClick={() => {
+                    setSelectedDocId(doc.id);
+                    setOpenDocDeleteDialog(true);
+                  }}
+                >
                   <DeleteIcon />
                 </IconButton>
               </Box>
@@ -385,8 +502,20 @@ export default function ProfileEmpleado() {
             </Button>
           </Link>
         </Box>
-        <Box sx={{ mt: 4, display: "flex", justifyContent: "flex-end", borderTop: "1px solid red", pt: 2 }}>
-          <Button onClick={handleDeleteAccount} variant="contained" color="warning">
+        <Box
+          sx={{
+            mt: 4,
+            display: "flex",
+            justifyContent: "flex-end",
+            borderTop: "1px solid red",
+            pt: 2,
+          }}
+        >
+          <Button
+            onClick={handleDeleteAccount}
+            variant="contained"
+            color="warning"
+          >
             Eliminar Cuenta
           </Button>
         </Box>
@@ -403,7 +532,11 @@ export default function ProfileEmpleado() {
           <Button onClick={cancelDeleteDocument} color="primary">
             Cancelar
           </Button>
-          <Button onClick={confirmDeleteDocument} color="secondary" variant="contained">
+          <Button
+            onClick={confirmDeleteDocument}
+            color="secondary"
+            variant="contained"
+          >
             Eliminar
           </Button>
         </DialogActions>
@@ -413,14 +546,19 @@ export default function ProfileEmpleado() {
         <DialogTitle>Confirmar Eliminación de Cuenta</DialogTitle>
         <DialogContent>
           <Typography>
-            ¿Estás seguro de que deseas eliminar tu cuenta? Esta acción no se puede deshacer.
+            ¿Estás seguro de que deseas eliminar tu cuenta? Esta acción no se
+            puede deshacer.
           </Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenDeleteDialog(false)} color="primary">
             Cancelar
           </Button>
-          <Button onClick={confirmDeleteAccount} color="secondary" variant="contained">
+          <Button
+            onClick={confirmDeleteAccount}
+            color="secondary"
+            variant="contained"
+          >
             Eliminar
           </Button>
         </DialogActions>
