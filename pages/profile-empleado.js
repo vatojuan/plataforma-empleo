@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import axios from "axios";
-import { useSession, signOut, getSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import DashboardLayout from "../components/DashboardLayout";
 import ProfileImage from "../components/ProfileImage";
 import Link from "next/link";
@@ -25,7 +25,6 @@ import {
 import DeleteIcon from "@mui/icons-material/Delete";
 
 export default function ProfileEmpleado() {
-  // El hook useSession ahora también nos da la función `update`
   const { data: session, status, update } = useSession();
   const router = useRouter();
 
@@ -158,24 +157,18 @@ export default function ProfileEmpleado() {
     e.preventDefault();
     setLoading(true);
     try {
+      // 1. La llamada a la API. Esta debe actualizar la tabla User en el backend.
       await axios.put("/api/employee/profile", { name, phone, description });
 
-      // --- ¡CAMBIO CLAVE AQUÍ! ---
-      // 1. Actualizamos la sesión del lado del cliente con el nuevo nombre.
-      await update({ ...session, user: { ...session.user, name: name } });
-      
-      // Opcionalmente, para refrescar toda la sesión desde el backend:
-      // await getSession();
+      // 2. Forzamos una recarga de la sesión desde el servidor.
+      // Esto obtendrá el nombre actualizado que acabamos de guardar en la tabla User.
+      await update();
 
       setSnackbar({
         open: true,
         message: "Perfil actualizado exitosamente",
         severity: "success",
       });
-      
-      // 2. Ya no necesitamos recargar la página.
-      // setTimeout(() => window.location.reload(), 1500);
-
     } catch (error) {
       console.error("Error actualizando el perfil:", error);
       setSnackbar({
@@ -197,6 +190,7 @@ export default function ProfileEmpleado() {
     const formData = new FormData();
     formData.append("profilePicture", imageFile);
     try {
+      // 1. La llamada a la API. Debe actualizar el campo 'image' en la tabla User.
       const res = await axios.post(
         "/api/employee/upload-profile-picture",
         formData,
@@ -204,23 +198,18 @@ export default function ProfileEmpleado() {
           headers: { "Content-Type": "multipart/form-data" },
         }
       );
-      
-      // --- ¡CAMBIO CLAVE AQUÍ! ---
-      // Actualizamos la sesión con la nueva URL de la imagen
-      const newImageUrl = res.data.user.profilePicture;
-      await update({ ...session, user: { ...session.user, image: newImageUrl } });
-      setProfileImageUrl(newImageUrl); // Actualizamos la imagen localmente también
 
-      setProfileImageMessage("Imagen de perfil actualizada correctamente.");
+      // 2. Forzamos la recarga de la sesión para obtener la nueva URL de la imagen.
+      await update();
+
+      // 3. Actualizamos la URL localmente para una respuesta visual inmediata.
+      setProfileImageUrl(res.data.user.profilePicture);
+
       setSnackbar({
         open: true,
         message: "Imagen actualizada",
         severity: "success",
       });
-      
-      // Ya no recargamos la página
-      // setTimeout(() => window.location.reload(), 1500);
-      console.log("Imagen actualizada:", newImageUrl);
     } catch (error) {
       console.error("Error actualizando la imagen de perfil:", error);
       setProfileImageMessage("Error al actualizar la imagen de perfil.");
@@ -241,7 +230,6 @@ export default function ProfileEmpleado() {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Verificar cantidad de archivos subidos
     if (documents.length >= MAX_FILES) {
       setSnackbar({
         open: true,
@@ -251,7 +239,6 @@ export default function ProfileEmpleado() {
       return;
     }
 
-    // Verificar el tamaño del archivo
     const fileSizeMB = file.size / (1024 * 1024);
     if (fileSizeMB > MAX_FILE_SIZE_MB) {
       setSnackbar({
@@ -270,7 +257,7 @@ export default function ProfileEmpleado() {
       formData.append("userId", session.user.id);
     }
     try {
-      const res = await axios.post(
+      await axios.post(
         "/api/employee/upload-document",
         formData,
         {

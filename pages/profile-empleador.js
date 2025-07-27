@@ -135,6 +135,7 @@ export default function ProfileEmpleador() {
     e.preventDefault();
     setLoading(true);
     try {
+      // 1. La llamada a la API. Esta debe actualizar la tabla User en el backend.
       await axios.put("/api/employer/profile", {
         name,
         companyName,
@@ -142,18 +143,14 @@ export default function ProfileEmpleador() {
         phone,
       });
 
-      // --- ¡CAMBIO CLAVE AQUÍ! ---
-      // Actualizamos la sesión del lado del cliente con el nuevo nombre.
-      await update({ ...session, user: { ...session.user, name: name } });
+      // 2. Forzamos una recarga de la sesión desde el servidor.
+      await update();
 
       setSnackbar({
         open: true,
         message: "Perfil actualizado exitosamente",
         severity: "success",
       });
-
-      // Ya no necesitamos recargar la página.
-      // setTimeout(() => window.location.reload(), 1500);
     } catch (error) {
       console.error("Error actualizando el perfil:", error);
       setSnackbar({
@@ -175,6 +172,7 @@ export default function ProfileEmpleador() {
     const formData = new FormData();
     formData.append("profilePicture", imageFile);
     try {
+      // 1. La llamada a la API. Debe actualizar el campo 'image' en la tabla User.
       const res = await axios.post(
         "/api/employer/upload-profile-picture",
         formData,
@@ -183,22 +181,17 @@ export default function ProfileEmpleador() {
         }
       );
 
-      // --- ¡CAMBIO CLAVE AQUÍ! ---
-      // Actualizamos la sesión con la nueva URL de la imagen
-      const newImageUrl = res.data.user.profilePicture;
-      await update({ ...session, user: { ...session.user, image: newImageUrl } });
-      setProfileImageUrl(newImageUrl); // Actualizamos la imagen localmente
+      // 2. Forzamos la recarga de la sesión para obtener la nueva URL de la imagen.
+      await update();
 
-      setProfileImageMessage("Imagen de perfil actualizada correctamente.");
+      // 3. Actualizamos la URL localmente para una respuesta visual inmediata.
+      setProfileImageUrl(res.data.user.profilePicture);
+
       setSnackbar({
         open: true,
         message: "Imagen actualizada",
         severity: "success",
       });
-
-      // Ya no recargamos la página
-      // window.location.reload();
-      console.log("Imagen actualizada:", newImageUrl);
     } catch (error) {
       console.error("Error actualizando la imagen de perfil:", error);
       setProfileImageMessage("Error al actualizar la imagen de perfil.");
@@ -301,13 +294,10 @@ export default function ProfileEmpleador() {
     setSelectedDocId(null);
   };
 
-  // --- ¡CAMBIO CLAVE AQUÍ! ---
-  // Esta función ahora solo abre el diálogo de confirmación
   const handleDeleteAccount = () => {
     setOpenDeleteDialog(true);
   };
 
-  // Esta nueva función contiene la lógica para eliminar la cuenta
   const confirmDeleteAccount = async () => {
     try {
       const res = await axios.delete("/api/user/delete");
@@ -548,7 +538,6 @@ export default function ProfileEmpleador() {
         </DialogActions>
       </Dialog>
       
-      {/* --- ¡NUEVO DIÁLOGO AQUÍ! --- */}
       <Dialog
         open={openDeleteDialog}
         onClose={() => setOpenDeleteDialog(false)}
