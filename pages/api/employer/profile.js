@@ -14,54 +14,26 @@ export default async function handler(req, res) {
   if (req.method === 'GET') {
     console.log(`[API /api/employer/profile] GET: Buscando perfil para el ID: ${userId}`);
     try {
-      // **CORRECCIÓN FINAL**: Cambiamos el punto de partida de la consulta.
-      
-      // 1. Buscamos el perfil del empleador.
-      let employerProfile = await prisma.employerProfile.findUnique({
-        where: { userId: userId },
+      // **CORRECCIÓN FINAL v2**: Leemos todo desde el modelo 'User', que es donde están los datos.
+      const userProfile = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          name: true,
+          profilePicture: true,
+          companyName: true,
+          description: true,
+          phone: true,
+        },
       });
 
-      // 2. Si no existe, lo creamos.
-      if (!employerProfile) {
-        console.warn(`[API /api/employer/profile] Perfil de empleador NO encontrado para ID: ${userId}. Creando uno nuevo...`);
-        employerProfile = await prisma.employerProfile.create({
-          data: {
-            userId: userId,
-            companyName: '',
-            description: '',
-            phone: '',
-          }
-        });
+      if (!userProfile) {
+        console.error(`[API /api/employer/profile] Usuario no encontrado para el ID: ${userId}`);
+        return res.status(404).json({ error: 'Usuario no encontrado' });
       }
 
-      // 3. Ahora que sabemos que el perfil existe, lo buscamos de nuevo pero incluyendo los datos del usuario.
-      const profileWithUserData = await prisma.employerProfile.findUnique({
-        where: { userId: userId },
-        include: {
-          user: { // Incluimos el usuario relacionado
-            select: {
-              name: true,
-              profilePicture: true,
-            }
-          }
-        }
-      });
-
-      if (!profileWithUserData || !profileWithUserData.user) {
-         return res.status(404).json({ error: 'No se pudo encontrar el perfil con los datos de usuario.' });
-      }
-
-      // 4. Combinamos los datos en un solo objeto plano para el frontend.
-      const responseData = {
-        name: profileWithUserData.user.name || '',
-        profilePicture: profileWithUserData.user.profilePicture || null,
-        companyName: profileWithUserData.companyName || '',
-        description: profileWithUserData.description || '',
-        phone: profileWithUserData.phone || '',
-      };
-
-      console.log("[API /api/employer/profile] Perfil encontrado/creado. Datos combinados:", responseData);
-      return res.status(200).json(responseData);
+      // No es necesario combinar datos, ya que todo viene del mismo lugar.
+      console.log("[API /api/employer/profile] Perfil de usuario encontrado:", userProfile);
+      return res.status(200).json(userProfile);
 
     } catch (error) {
       console.error('[API /api/employer/profile] Error en GET:', error);
@@ -74,24 +46,19 @@ export default async function handler(req, res) {
     console.log(`[API /api/employer/profile] PUT: Actualizando perfil para el ID: ${userId}`);
 
     try {
-      // La lógica de la transacción sigue siendo correcta y robusta.
-      const [updatedUser, updatedEmployerProfile] = await prisma.$transaction([
-        prisma.user.update({
-          where: { id: userId },
-          data: { name: name },
-        }),
-        prisma.employerProfile.update({
-          where: { userId: userId },
-          data: {
-            companyName,
-            description,
-            phone,
-          },
-        }),
-      ]);
+      // **CORRECCIÓN FINAL v2**: Actualizamos todo directamente en el modelo 'User'.
+      const updatedUser = await prisma.user.update({
+        where: { id: userId },
+        data: {
+          name,
+          companyName,
+          description,
+          phone,
+        },
+      });
 
-      console.log(`✅ Perfil de usuario y empleador actualizado para ${userId}`);
-      return res.status(200).json({ user: updatedUser, profile: updatedEmployerProfile });
+      console.log(`✅ Perfil de usuario actualizado para ${userId}`);
+      return res.status(200).json(updatedUser);
 
     } catch (error) {
       console.error('[API /api/employer/profile] Error en PUT:', error);
