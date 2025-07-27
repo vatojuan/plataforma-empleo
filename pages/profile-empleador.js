@@ -55,7 +55,7 @@ export default function ProfileEmpleador() {
   const [selectedProfileImage, setSelectedProfileImage] = useState(null);
   const [profileImageMessage, setProfileImageMessage] = useState("");
 
-  // Estados para documentos legales
+  // Estados para documentos legales (RESTAURADO)
   const [selectedDocument, setSelectedDocument] = useState(null);
   const [uploadMessage, setUploadMessage] = useState("");
   const [documents, setDocuments] = useState([]);
@@ -68,23 +68,23 @@ export default function ProfileEmpleador() {
     severity: "success",
   });
 
-  // Diálogo para eliminar documento
+  // Diálogo para eliminar documento (RESTAURADO)
   const [openDocDeleteDialog, setOpenDocDeleteDialog] = useState(false);
   const [selectedDocId, setSelectedDocId] = useState(null);
 
   // Diálogo para eliminar cuenta
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
 
-  // Restricciones para archivos
-  const MAX_FILE_SIZE_MB = 5; // Tamaño máximo en MB
-  const MAX_FILES = 5; // Número máximo de archivos permitidos
+  // Restricciones para archivos (RESTAURADO)
+  const MAX_FILE_SIZE_MB = 5;
+  const MAX_FILES = 5;
 
   // Cargar perfil desde la API de empleador
   useEffect(() => {
     if (session) {
       axios
         .get("/api/employer/profile")
-        .then(async (res) => {
+        .then((res) => {
           const data = res.data;
           setName(data.name || "");
           setCompanyName(data.companyName || "");
@@ -92,28 +92,13 @@ export default function ProfileEmpleador() {
           setPhone(data.phone || "");
           if (data.profilePicture) {
             setProfileImageUrl(data.profilePicture);
-            if (data.profilePicture.includes("X-Goog-Expires")) {
-              try {
-                const renewRes = await axios.get(
-                  "/api/employer/renew-profile-picture"
-                );
-                if (renewRes.data?.url) {
-                  setProfileImageUrl(renewRes.data.url);
-                }
-              } catch (error) {
-                console.error(
-                  "Error renovando la URL firmada de la imagen:",
-                  error
-                );
-              }
-            }
           }
         })
         .catch((err) => console.error("Error al cargar el perfil:", err));
     }
   }, [session]);
 
-  // Cargar documentos subidos
+  // Cargar documentos subidos (RESTAURADO)
   useEffect(() => {
     if (session) {
       axios
@@ -135,7 +120,7 @@ export default function ProfileEmpleador() {
     e.preventDefault();
     setLoading(true);
     try {
-      // 1. La llamada a la API. Esta debe actualizar la tabla User en el backend.
+      // 1. La llamada a la API. Esta actualiza la base de datos.
       await axios.put("/api/employer/profile", {
         name,
         companyName,
@@ -143,7 +128,7 @@ export default function ProfileEmpleador() {
         phone,
       });
 
-      // 2. Forzamos una recarga de la sesión desde el servidor.
+      // 2. ¡ESTE ES EL CAMBIO CLAVE! Forzamos la recarga de la sesión desde el servidor.
       await update();
 
       setSnackbar({
@@ -172,7 +157,6 @@ export default function ProfileEmpleador() {
     const formData = new FormData();
     formData.append("profilePicture", imageFile);
     try {
-      // 1. La llamada a la API. Debe actualizar el campo 'image' en la tabla User.
       const res = await axios.post(
         "/api/employer/upload-profile-picture",
         formData,
@@ -180,11 +164,8 @@ export default function ProfileEmpleador() {
           headers: { "Content-Type": "multipart/form-data" },
         }
       );
-
-      // 2. Forzamos la recarga de la sesión para obtener la nueva URL de la imagen.
+      
       await update();
-
-      // 3. Actualizamos la URL localmente para una respuesta visual inmediata.
       setProfileImageUrl(res.data.user.profilePicture);
 
       setSnackbar({
@@ -194,7 +175,6 @@ export default function ProfileEmpleador() {
       });
     } catch (error) {
       console.error("Error actualizando la imagen de perfil:", error);
-      setProfileImageMessage("Error al actualizar la imagen de perfil.");
       setSnackbar({
         open: true,
         message: "Error actualizando imagen",
@@ -203,7 +183,7 @@ export default function ProfileEmpleador() {
     }
   };
 
-  // Subida automática del documento al seleccionar el archivo
+  // Lógica de documentos (RESTAURADA)
   const handleDocumentFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -362,8 +342,6 @@ export default function ProfileEmpleador() {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               required
-              helperText="La descripción se usará para facilitar las búsquedas y matching. Máximo 1000 caracteres."
-              inputProps={{ maxLength: 1000 }}
             />
             <TextField
               label="Teléfono"
@@ -383,17 +361,10 @@ export default function ProfileEmpleador() {
               {loading ? "Actualizando..." : "Actualizar Perfil"}
             </Button>
           </Box>
-          {session?.user?.provider === "credentials" && (
-            <Box sx={{ textAlign: "center", mt: 2 }}>
-              <Link href="/change-password" style={{ textDecoration: "none" }}>
-                <Button variant="contained" color="primary">
-                  Cambiar Contraseña
-                </Button>
-              </Link>
-            </Box>
-          )}
         </Paper>
         <Divider sx={{ my: 3 }} />
+        
+        {/* SECCIÓN DE DOCUMENTOS (RESTAURADA) */}
         <Paper sx={{ maxWidth: 500, mx: "auto", p: 3 }}>
           <Typography variant="h6" gutterBottom>
             Subir Archivo De Interés (Opcional)
@@ -479,10 +450,7 @@ export default function ProfileEmpleador() {
                 </Box>
                 <IconButton
                   color="error"
-                  onClick={() => {
-                    setSelectedDocId(doc.id);
-                    setOpenDocDeleteDialog(true);
-                  }}
+                  onClick={() => handleRequestDeleteDocument(doc.id)}
                 >
                   <DeleteIcon />
                 </IconButton>
@@ -490,6 +458,7 @@ export default function ProfileEmpleador() {
             ))}
           </Box>
         )}
+        
         <Divider sx={{ my: 3 }} />
         <Box sx={{ textAlign: "center", mt: 2 }}>
           <Link href="/dashboard" style={{ textDecoration: "none" }}>
@@ -517,6 +486,7 @@ export default function ProfileEmpleador() {
         </Box>
       </Box>
 
+      {/* DIÁLOGO DE ELIMINAR DOCUMENTO (RESTAURADO) */}
       <Dialog open={openDocDeleteDialog} onClose={cancelDeleteDocument}>
         <DialogTitle>Confirmar Eliminación de Documento</DialogTitle>
         <DialogContent>
@@ -562,7 +532,6 @@ export default function ProfileEmpleador() {
           </Button>
         </DialogActions>
       </Dialog>
-
       <Snackbar
         open={snackbar.open}
         autoHideDuration={4000}
@@ -573,16 +542,6 @@ export default function ProfileEmpleador() {
           onClose={() => setSnackbar({ ...snackbar, open: false })}
           severity={snackbar.severity}
           variant="filled"
-          sx={{
-            width: "100%",
-            bgcolor: (theme) =>
-              snackbar.severity === "success"
-                ? theme.palette.secondary.main
-                : snackbar.severity === "error"
-                ? theme.palette.error.main
-                : theme.palette.info.main,
-            color: "#fff",
-          }}
         >
           {snackbar.message}
         </Alert>
