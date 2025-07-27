@@ -34,10 +34,10 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
   const { data: session, status: sessionStatus } = useSession();
   const router = useRouter();
 
-  // Mantenemos tu hook personalizado para la lógica que no sea de visualización (token, etc.)
-  const { token, authHeader, ready } = useAuthUser();
+  // Mantenemos tu hook personalizado SOLO para la lógica de autenticación (token).
+  const { token, authHeader } = useAuthUser();
 
-  // --- CAMBIO CLAVE: Obtenemos el rol directamente de la sesión ---
+  // --- CAMBIO CLAVE: Obtenemos el rol y otros datos directamente de la sesión ---
   const userRole = session?.user?.role;
 
   /* ─── 2. State ─── */
@@ -50,7 +50,7 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
     severity: "success",
   });
 
-  /* ─── 3. Guards de ruta ─── */
+  /* ─── 3. Guards de ruta (Corregido) ─── */
   // Usamos la sesión de next-auth para verificar la autenticación.
   useEffect(() => {
     if (sessionStatus === "loading") return; // Esperamos a que la sesión cargue
@@ -63,9 +63,8 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
   }, [session, sessionStatus, userRole, router]);
 
 
-  /* ─── 4. Fetch postulaciones (sin cambios, pero ahora depende del userRole de la sesión) ─── */
+  /* ─── 4. Fetch postulaciones ─── */
   useEffect(() => {
-    // Aseguramos que tenemos todo lo necesario antes de hacer el fetch.
     if (sessionStatus !== "authenticated" || userRole !== "empleado" || !token) {
       setApplications([]);
       return;
@@ -110,7 +109,6 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
           severity: "success",
         });
       } else {
-        // Manejo de errores simplificado
         setSnackbar({
           open: true,
           message: "Error al cancelar la postulación",
@@ -159,7 +157,6 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
     >
       <Box sx={{ textAlign: "center", mt: 4 }}>
         <Avatar
-          // --- CAMBIO CLAVE: Usamos la imagen directamente de la sesión ---
           src={session?.user?.image || "/images/default-user.png"}
           sx={{
             width: 100,
@@ -170,14 +167,13 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
           }}
         />
         <Typography variant="h6">
-          {/* --- CAMBIO CLAVE: Usamos el nombre directamente de la sesión --- */}
           Bienvenido, {session?.user?.name || "Usuario"}
         </Typography>
         <Typography variant="body1" color="text.secondary">
           Tu rol: {userRole}
         </Typography>
 
-        {/* El resto de la lógica de renderizado no necesita cambios */}
+        {/* ─── EMPLEADO (RESTAURADO) ─── */}
         {userRole === "empleado" && (
           <>
             <Box sx={{ mt: 3, mx: "auto", maxWidth: 500 }}>
@@ -224,13 +220,74 @@ export default function Dashboard({ toggleDarkMode, currentMode }) {
                 </Typography>
               ) : (
                 <Grid container spacing={3} justifyContent="center">
-                  {/* ... mapping de aplicaciones ... */}
+                  {applications.map((app) => {
+                    const { job } = app;
+                    const isCancelable =
+                      (app.label === "automatic" && app.status === "waiting") ||
+                      (app.label === "manual" && app.status === "pending");
+
+                    return (
+                      <Grid item xs={12} sm={6} md={4} key={app.id}>
+                        <Card
+                          sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            height: "100%",
+                            bgcolor: "rgba(217,98,54,0.15)",
+                          }}
+                        >
+                          <CardContent sx={{ flexGrow: 1 }}>
+                            <Typography variant="h6">{job.title}</Typography>
+                            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                              Publicado el:{" "}
+                              {job.createdAt
+                                ? new Date(job.createdAt).toLocaleDateString()
+                                : "Sin fecha"}
+                            </Typography>
+                            <Typography variant="body2" color="error" sx={{ mt: 0.5 }}>
+                              Expira:{" "}
+                              {job.expirationDate
+                                ? new Date(job.expirationDate).toLocaleDateString()
+                                : "Sin expiración"}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary" sx={{ display: "flex", alignItems: "center", gap: 0.5, mt: 1 }}>
+                              Candidatos postulados: {job.candidatesCount ?? 0}
+                              <PersonIcon fontSize="small" />
+                            </Typography>
+                          </CardContent>
+                          <CardActions sx={{ justifyContent: "space-between" }}>
+                            <Button component={Link} href={`/job-offer?id=${job.id}`} size="small" variant="outlined">
+                              Ver Detalles
+                            </Button>
+                            {isCancelable ? (
+                              <Button
+                                size="small"
+                                variant="contained"
+                                color="secondary"
+                                onClick={() => {
+                                  setSelectedCancelJobId(job.id);
+                                  setOpenCancelDialog(true);
+                                }}
+                              >
+                                Cancelar Postulación
+                              </Button>
+                            ) : (
+                              <Button size="small" variant="outlined" disabled>
+                                Propuesta enviada
+                              </Button>
+                            )}
+                          </CardActions>
+                        </Card>
+                      </Grid>
+                    );
+                  })}
                 </Grid>
               )}
             </Paper>
           </>
         )}
 
+        {/* ─── EMPLEADOR / ADMIN (RESTAURADO) ─── */}
         {userRole !== "empleado" && (
           <Paper
             sx={{ maxWidth: 500, mx: "auto", mt: 4, p: 3, borderRadius: 2 }}
