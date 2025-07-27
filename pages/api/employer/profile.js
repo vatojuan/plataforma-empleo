@@ -14,7 +14,7 @@ export default async function handler(req, res) {
   if (req.method === 'GET') {
     console.log(`[API /api/employer/profile] GET: Buscando perfil para el ID: ${userId}`);
     try {
-      // **CORRECCIÓN FINAL v2**: Leemos todo desde el modelo 'User', que es donde están los datos.
+      // Leemos todo desde el modelo 'User', que es donde están los datos.
       const userProfile = await prisma.user.findUnique({
         where: { id: userId },
         select: {
@@ -31,7 +31,6 @@ export default async function handler(req, res) {
         return res.status(404).json({ error: 'Usuario no encontrado' });
       }
 
-      // No es necesario combinar datos, ya que todo viene del mismo lugar.
       console.log("[API /api/employer/profile] Perfil de usuario encontrado:", userProfile);
       return res.status(200).json(userProfile);
 
@@ -46,7 +45,7 @@ export default async function handler(req, res) {
     console.log(`[API /api/employer/profile] PUT: Actualizando perfil para el ID: ${userId}`);
 
     try {
-      // **CORRECCIÓN FINAL v2**: Actualizamos todo directamente en el modelo 'User'.
+      // Actualizamos todo directamente en el modelo 'User'.
       const updatedUser = await prisma.user.update({
         where: { id: userId },
         data: {
