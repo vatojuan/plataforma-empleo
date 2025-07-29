@@ -11,13 +11,14 @@ import {
   Fab,
 } from "@mui/material";
 import Link from "next/link";
-import Footer from "./Footer";
+import Footer from "./Footer"; // Asegúrate de que la ruta a tu componente Footer sea correcta
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import { useState } from "react";
 import { useRouter } from "next/router";
+import { useSession } from "next-auth/react"; // 1. Importamos useSession para manejar la lógica de autenticación
 
-// Ícono de Instagram personalizado
+// Ícono de Instagram personalizado (sin cambios)
 function InstagramIcon(props) {
   return (
     <SvgIcon {...props}>
@@ -28,6 +29,7 @@ function InstagramIcon(props) {
 
 export default function MainLayout({ children }) {
   const router = useRouter();
+  const { data: session, status } = useSession(); // 2. Obtenemos el estado de la sesión
   const [solucionesAnchor, setSolucionesAnchor] = useState(null);
 
   const handleSolucionesOpen = (event) => setSolucionesAnchor(event.currentTarget);
@@ -37,26 +39,33 @@ export default function MainLayout({ children }) {
     router.push(path);
   };
 
+  // Determina si la página actual es la de inicio para aplicar estilos diferentes a la AppBar
+  const isHomePage = router.pathname === '/';
+
   return (
-    /* Contenedor raíz: fondo verde y texto blanco */
     <Box
       sx={{
         display: "flex",
         flexDirection: "column",
         minHeight: "100vh",
-        backgroundColor: "#103B40", // Verde FAP
-        color: "#FFFFFF",           // Texto por defecto blanco
+        // El fondo verde se aplicará en todas las páginas excepto en la de inicio, que tiene video.
+        backgroundColor: isHomePage ? 'transparent' : '#103B40',
+        color: "#FFFFFF",
+        position: 'relative', // Necesario para que el z-index de los videos funcione correctamente
+        zIndex: 1,
       }}
     >
-      {/* AppBar transparente (sobre el fondo verde) */}
+      {/* AppBar ahora es parte del Layout general */}
       <AppBar
         position="fixed"
         sx={(theme) => ({
+          // La AppBar es transparente en la home (para ver el video) y en el resto de páginas en desktop.
+          // En móvil, siempre tiene un fondo semitransparente para legibilidad.
           backgroundColor: "transparent !important",
           boxShadow: "none",
           zIndex: 1100,
           [theme.breakpoints.down("sm")]: {
-            backgroundColor: "rgba(16,59,64,0.9) !important",
+            backgroundColor: "rgba(16, 59, 64, 0.9) !important",
           },
         })}
       >
@@ -68,7 +77,7 @@ export default function MainLayout({ children }) {
             Soluciones
           </Button>
 
-          {/* Menú Soluciones */}
+          {/* Menú Soluciones UNIFICADO */}
           <Menu
             id="soluciones-menu"
             anchorEl={solucionesAnchor}
@@ -80,7 +89,7 @@ export default function MainLayout({ children }) {
               Recruitment Process
             </MenuItem>
             <MenuItem onClick={() => handleSolucionesNavigate("/soluciones/learning_and_development")}>
-              Learning and Development
+              Capacitación y Desarrollo
             </MenuItem>
             <MenuItem onClick={() => handleSolucionesNavigate("/soluciones/branding")}>
               Employer Branding & Engagement
@@ -99,29 +108,31 @@ export default function MainLayout({ children }) {
           <Button
             variant="outlined"
             color="inherit"
-            onClick={() =>
-              (window.location.href = "https://fapmendoza.online/cv/upload")
-            }
+            onClick={() => (window.location.href = "https://fapmendoza.online/cv/upload")}
           >
             Subir CV
           </Button>
+          
+          {/* 3. Lógica de sesión centralizada en el Layout */}
+          {status === "loading" ? null : session ? (
+            <Button component={Link} href="/dashboard" color="inherit">
+              Dashboard
+            </Button>
+          ) : (
+            <Button component={Link} href="/login" color="inherit">
+              Ingresar
+            </Button>
+          )}
 
           <Box sx={{ ml: "auto", display: "flex", gap: 1 }}>
             <IconButton
-              onClick={() =>
-                window.open("https://www.instagram.com/faprrhh", "_blank")
-              }
+              onClick={() => window.open("https://www.instagram.com/faprrhh", "_blank")}
               color="inherit"
             >
               <InstagramIcon />
             </IconButton>
             <IconButton
-              onClick={() =>
-                window.open(
-                  "https://www.linkedin.com/in/florenciaalvarezfap",
-                  "_blank"
-                )
-              }
+              onClick={() => window.open("https://www.linkedin.com/in/florenciaalvarezfap", "_blank")}
               color="inherit"
             >
               <LinkedInIcon />
@@ -130,20 +141,22 @@ export default function MainLayout({ children }) {
         </Toolbar>
       </AppBar>
 
-      {/* Contenido principal */}
+      {/* Contenido principal de cada página */}
       <Box
+        component="main"
         sx={{
           flexGrow: 1,
-          pt: { xs: "80px", sm: "100px" },
+          // Añadimos padding superior para que el contenido no quede oculto por la AppBar fija
+          pt: { xs: "72px", sm: "80px" },
         }}
       >
         {children}
       </Box>
 
-      {/* Footer */}
+      {/* Footer se renderiza al final */}
       <Footer />
 
-      {/* Botón flotante WhatsApp */}
+      {/* Botón flotante de WhatsApp */}
       <Box sx={{ position: "fixed", bottom: 16, right: 16, zIndex: 1200 }}>
         <Fab
           color="success"

@@ -1,91 +1,63 @@
 // pages/index.js
-import { useSession } from "next-auth/react";
-import { useState } from "react";
-import { useRouter } from "next/router";
-import { Box, Button } from "@mui/material";
-import MainLayout from "../components/MainLayout";
+import { Box } from "@mui/material";
+import MainLayout from "../components/MainLayout"; // 1. Importamos el layout centralizado
 
 export default function Home() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
-  const [solucionesAnchor, setSolucionesAnchor] = useState(null);
-
-  // Estas funciones las provee MainLayout, solo las declaramos
-  const handleSolucionesOpen = (event) => setSolucionesAnchor(event.currentTarget);
-  const handleSolucionesClose = () => setSolucionesAnchor(null);
-  const handleSolucionesNavigate = (path) => {
-    handleSolucionesClose();
-    router.push(path);
-  };
-
   return (
+    // 2. Envolvemos el contenido de la página con MainLayout.
+    // MainLayout se encargará de renderizar el header, footer, etc.
     <MainLayout>
-      {/* VIDEO DE FONDO PARA ESCRITORIO */}
+      {/* Contenedor para los videos de fondo */}
       <Box
-        component="video"
-        src="/videos/nuevo-fondo.mp4"
-        autoPlay
-        muted
-        loop
-        playsInline
         sx={{
-          display: { xs: "none", sm: "block" },
-          position: "absolute",
+          position: 'fixed', // Fijo para que se mantenga en el fondo
           top: 0,
           left: 0,
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-          objectPosition: "center",
-          zIndex: -2,
-        }}
-      />
-
-      {/* VIDEO DE FONDO PARA MÓVILES */}
-      <Box
-        component="video"
-        src="/videos/video-movil.mp4"
-        autoPlay
-        muted
-        loop
-        playsInline
-        sx={{
-          display: { xs: "block", sm: "none" },
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100%",
-          objectFit: "contain",
-          objectPosition: "center",
-          zIndex: -2,
-        }}
-      />
-
-      {/* Aquí va el resto de tu contenido: */}
-      <Box
-        sx={{
-          flexGrow: 1,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          p: 2,
+          width: '100vw',
+          height: '100vh',
+          zIndex: -1, // Se posiciona detrás de todo el contenido del layout
+          overflow: 'hidden',
+          backgroundColor: '#103B40', // Color de fondo mientras carga el video
         }}
       >
-        {/* Ejemplo de botón que tenías antes */}
-        {status === "loading" ? null : session ? (
-          <Button
-            variant="contained"
-            onClick={() => router.push("/dashboard")}
-          >
-            Dashboard
-          </Button>
-        ) : (
-          <Button variant="outlined" onClick={() => router.push("/login")}>
-            Ingresar
-          </Button>
-        )}
+        {/* VIDEO DE FONDO PARA ESCRITORIO */}
+        <Box
+          component="video"
+          src="/videos/nuevo-fondo.mp4"
+          autoPlay
+          muted
+          loop
+          playsInline
+          sx={{
+            display: { xs: "none", sm: "block" },
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+          }}
+        />
+
+        {/* VIDEO DE FONDO PARA MÓVILES */}
+        <Box
+          component="video"
+          src="/videos/video-movil.mp4"
+          autoPlay
+          muted
+          loop
+          playsInline
+          sx={{
+            display: { xs: "block", sm: "none" },
+            width: "100%",
+            height: "100%",
+            objectFit: "cover", // 'cover' suele verse mejor que 'contain' en móviles
+          }}
+        />
       </Box>
+
+      {/* El contenido visible de la página de inicio iría aquí.
+        Si la página es solo el video de fondo, no necesitas añadir nada más.
+        El MainLayout ya tiene un flexGrow que empuja el footer hacia abajo,
+        creando un espacio flexible en el medio.
+      */}
     </MainLayout>
   );
 }
