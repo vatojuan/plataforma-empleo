@@ -2,16 +2,21 @@
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { useRouter } from "next/router";
-import MainLayout from "../components/MainLayout";
 import { Box, Button } from "@mui/material";
+import MainLayout from "../components/MainLayout";
 
 export default function Home() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [solucionesAnchor, setSolucionesAnchor] = useState(null);
 
-  // Estas funciones para el menú Soluciones las pasa MainLayout
-  // así que aquí solo deberías preocuparte de tu contenido...
+  // Estas funciones las provee MainLayout, solo las declaramos
+  const handleSolucionesOpen = (event) => setSolucionesAnchor(event.currentTarget);
+  const handleSolucionesClose = () => setSolucionesAnchor(null);
+  const handleSolucionesNavigate = (path) => {
+    handleSolucionesClose();
+    router.push(path);
+  };
 
   return (
     <MainLayout>
@@ -57,25 +62,23 @@ export default function Home() {
         }}
       />
 
-      {/* Contenido principal de la Home (espacio vacío o tu hero) */}
+      {/* Aquí va el resto de tu contenido: */}
       <Box
         sx={{
-          height: "100%",
+          flexGrow: 1,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          color: "#FFF",
-          textAlign: "center",
           p: 2,
         }}
       >
-        {/* Ejemplo: un botón de acceso al dashboard o login */}
+        {/* Ejemplo de botón que tenías antes */}
         {status === "loading" ? null : session ? (
           <Button
             variant="contained"
             onClick={() => router.push("/dashboard")}
           >
-            Ir al Dashboard
+            Dashboard
           </Button>
         ) : (
           <Button variant="outlined" onClick={() => router.push("/login")}>
