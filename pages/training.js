@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { Container, Typography, Grid, Snackbar, Alert, CircularProgress, Box } from "@mui/material";
-import DashboardLayout from "../components/DashboardLayout";
+import DashboardLayout from "../components/DashboardLayout"; // Usando tu layout existente
 import CourseCard from "../components/CourseCard";
-import { getCourses, enrollCourse } from "../services/api"; // Asume que tienes este servicio
+import { getCourses, enrollCourse } from "../services/api"; // Tus servicios de API
 
 export default function Training({ toggleDarkMode, currentMode }) {
   const [courses, setCourses] = useState([]);
@@ -10,9 +10,17 @@ export default function Training({ toggleDarkMode, currentMode }) {
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
   const fetchCourses = useCallback(async () => {
+    // Asumo que tienes un token de usuario normal, no de admin
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+        setLoading(false);
+        // Aquí podrías redirigir al login si es necesario
+        return;
+    }
     try {
       setLoading(true);
-      const coursesData = await getCourses(); // Llama a GET /training/courses
+      // Este endpoint ya devuelve si el usuario está inscrito y su progreso
+      const coursesData = await getCourses(token); 
       setCourses(coursesData);
     } catch (error) {
       setSnackbar({ open: true, message: error.message || "Error al cargar los cursos", severity: "error" });
@@ -26,22 +34,17 @@ export default function Training({ toggleDarkMode, currentMode }) {
   }, [fetchCourses]);
 
   const handleEnroll = useCallback(async (courseId) => {
+    const token = localStorage.getItem('authToken');
     try {
-      await enrollCourse(courseId); // Llama a POST /training/enroll/{courseId}
+      await enrollCourse(courseId, token);
       setSnackbar({ open: true, message: "Inscripción exitosa", severity: "success" });
-      // Actualiza el estado local para reflejar el cambio inmediatamente
-      setCourses(prevCourses =>
-        prevCourses.map(c =>
-          c.id === courseId ? { ...c, isEnrolled: true } : c
-        )
-      );
+      // Refrescar la lista para mostrar el botón "Ver Curso"
+      fetchCourses();
     } catch (error) {
       setSnackbar({ open: true, message: error.message || "Error en la inscripción", severity: "error" });
     }
-  }, []);
+  }, [fetchCourses]);
   
-  // La función de abandonar curso (handleUnenroll) necesitaría su propio endpoint en el backend.
-
   const handleCloseSnackbar = (event, reason) => {
     if (reason === 'clickaway') return;
     setSnackbar(prev => ({ ...prev, open: false }));
@@ -71,10 +74,8 @@ export default function Training({ toggleDarkMode, currentMode }) {
             <Grid item xs={12} sm={6} md={4} key={course.id}>
               <CourseCard
                 course={course}
-                // El backend ya nos dice si está inscrito y el progreso
                 isEnrolled={course.isEnrolled}
                 onEnroll={handleEnroll}
-                // onUnenroll={handleUnenroll} // Implementar después
               />
             </Grid>
           ))}
