@@ -6,8 +6,8 @@ import {
 } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
-import DashboardLayout from '../../components/DashboardLayout'; // RUTA CORREGIDA
-import useAuthUser from '../../hooks/useAuthUser'; // RUTA CORREGIDA
+import DashboardLayout from '../../components/DashboardLayout';
+import useAuthUser from '../../hooks/useAuthUser';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://api.fapmendoza.online";
 
@@ -89,6 +89,8 @@ export default function CursoDetallePage({ toggleDarkMode, currentMode }) {
                       controls
                       src={selectedLesson.videoUrl}
                       style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+                      // Añadir un onError para el video
+                      onError={(e) => { console.error("Error al cargar el video:", e); }}
                     />
                   </Box>
                   <Button 
@@ -102,7 +104,7 @@ export default function CursoDetallePage({ toggleDarkMode, currentMode }) {
                   </Button>
                 </Box>
               ) : (
-                <Typography>Selecciona una lección para comenzar.</Typography>
+                <Typography>Selecciona una lección para comenzar o el curso no tiene lecciones.</Typography>
               )}
             </Paper>
           </Grid>
