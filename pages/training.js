@@ -4,50 +4,18 @@ import {
   Container, Typography, Grid, Snackbar, Alert, CircularProgress, Box, Card,
   CardContent, CardActions, Button, CardMedia
 } from '@mui/material';
-import DashboardLayout from '../components/DashboardLayout'; // Usando tu layout principal
-import useAuthUser from '../hooks/useAuthUser'; // Usando tu hook de autenticación
+import DashboardLayout from '../components/DashboardLayout';
+import useAuthUser from '../hooks/useAuthUser';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://api.fapmendoza.online";
 
 // --- Componente de Tarjeta de Curso reutilizable ---
-// Este componente encapsula la lógica y presentación de cada curso.
-const CourseCard = ({ course }) => {
+// Se pasa la función onEnroll desde el componente padre para que tenga acceso al token correcto.
+const CourseCard = ({ course, onEnroll }) => {
     const router = useRouter();
 
-    /**
-     * Redirige al usuario a la página de detalle del curso.
-     * @param {string} courseId - El ID del curso.
-     */
     const handleSeeCourse = (courseId) => {
         router.push(`/cursos/${courseId}`);
-    };
-
-    /**
-     * Inscribe al usuario en un curso y recarga la página para reflejar el cambio.
-     * @param {string} courseId - El ID del curso a inscribirse.
-     */
-    const handleEnroll = async (courseId) => {
-        const token = localStorage.getItem('userToken');
-        if (!token) {
-            console.error("No hay token de autenticación para realizar la inscripción.");
-            // Opcional: Mostrar un snackbar de error.
-            return;
-        }
-        try {
-            const res = await fetch(`${API_BASE}/training/enroll/${courseId}`, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (!res.ok) {
-                const errorData = await res.json();
-                throw new Error(errorData.detail || 'Error en la inscripción.');
-            }
-            // Recargar la página es una forma simple de asegurar que el estado se actualice.
-            router.reload();
-        } catch (error) {
-            console.error("Error al inscribirse:", error);
-            // Opcional: Mostrar un snackbar con el mensaje de error.
-        }
     };
 
     return (
@@ -55,8 +23,12 @@ const CourseCard = ({ course }) => {
             <CardMedia
                 component="img"
                 height="140"
+                // Si course.imageUrl no existe (porque no se subió en el panel de admin),
+                // se usará una imagen de reemplazo.
                 image={course.imageUrl || 'https://placehold.co/600x400/4E342E/FFF?text=Curso'}
                 alt={`Portada de ${course.title}`}
+                // Este onError se activará si la URL de la imagen está rota.
+                onError={(e) => { e.target.onerror = null; e.target.src='https://placehold.co/600x400/4E342E/FFF?text=Error'; }}
             />
             <CardContent sx={{ flexGrow: 1 }}>
                 <Typography gutterBottom variant="h5" component="div">{course.title}</Typography>
@@ -66,7 +38,7 @@ const CourseCard = ({ course }) => {
                 {course.isEnrolled ? (
                     <Button variant="contained" onClick={() => handleSeeCourse(course.id)}>Ver Curso</Button>
                 ) : (
-                    <Button variant="outlined" onClick={() => handleEnroll(course.id)}>Inscribirme</Button>
+                    <Button variant="outlined" onClick={() => onEnroll(course.id)}>Inscribirme</Button>
                 )}
             </CardActions>
         </Card>
@@ -74,12 +46,7 @@ const CourseCard = ({ course }) => {
 };
 
 
-/**
- * Página principal de Formación para usuarios.
- * Muestra la lista de cursos disponibles y permite la inscripción.
- */
 export default function TrainingPage({ toggleDarkMode, currentMode }) {
-  // --- 1. Hooks y Estado ---
   const { user, ready: authReady, token } = useAuthUser();
   const router = useRouter();
   
@@ -87,7 +54,6 @@ export default function TrainingPage({ toggleDarkMode, currentMode }) {
   const [loading, setLoading] = useState(true);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
-  // --- 2. Lógica de Datos ---
   const fetchCourses = useCallback(async () => {
     if (!token) {
         setLoading(false);
@@ -107,28 +73,40 @@ export default function TrainingPage({ toggleDarkMode, currentMode }) {
     }
   }, [token]);
 
-  // --- 3. Efectos ---
   useEffect(() => {
-    // Este efecto maneja la autenticación y la carga inicial de datos.
     if (authReady) {
         if (user) {
             fetchCourses();
         } else {
-            // Si el usuario no está autenticado, se redirige al login.
             router.push('/login');
         }
     }
   }, [authReady, user, router, fetchCourses]);
 
-  // --- 4. Renderizado ---
+  // --- LÓGICA DE INSCRIPCIÓN CORREGIDA ---
+  // La función ahora vive en el componente principal, donde tiene acceso al 'token' del hook.
+  const handleEnroll = useCallback(async (courseId) => {
+    if (!token) {
+        setSnackbar({ open: true, message: 'Debes iniciar sesión para inscribirte.', severity: 'error' });
+        return;
+    }
+    try {
+        const res = await fetch(`${API_BASE}/training/enroll/${courseId}`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error((await res.json()).detail || 'Error en la inscripción.');
+        
+        setSnackbar({ open: true, message: '¡Inscripción exitosa!', severity: 'success' });
+        // Recargar los cursos para que el botón cambie a "Ver Curso".
+        fetchCourses();
+    } catch (error) {
+        setSnackbar({ open: true, message: error.message, severity: 'error' });
+    }
+  }, [token, fetchCourses]);
+
   if (!authReady || loading) {
-    return (
-        <DashboardLayout>
-            <Container sx={{ textAlign: 'center', mt: 5 }}>
-                <CircularProgress />
-            </Container>
-        </DashboardLayout>
-    );
+    return <DashboardLayout><Container sx={{ textAlign: 'center', mt: 5 }}><CircularProgress /></Container></DashboardLayout>;
   }
 
   return (
@@ -145,7 +123,7 @@ export default function TrainingPage({ toggleDarkMode, currentMode }) {
             <Grid container spacing={4}>
             {courses.map((course) => (
                 <Grid item key={course.id} xs={12} sm={6} md={4}>
-                <CourseCard course={course} />
+                    <CourseCard course={course} onEnroll={handleEnroll} />
                 </Grid>
             ))}
             </Grid>
