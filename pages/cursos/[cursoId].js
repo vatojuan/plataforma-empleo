@@ -6,8 +6,8 @@ import {
 } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
-import DashboardLayout from 'components/DashboardLayout'; // Usando tu layout principal
-import useAuthUser from 'hooks/useAuthUser'; // Usando tu hook de autenticación
+import DashboardLayout from '../../components/DashboardLayout'; // RUTA CORREGIDA
+import useAuthUser from '../../hooks/useAuthUser'; // RUTA CORREGIDA
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://api.fapmendoza.online";
 
@@ -58,7 +58,6 @@ export default function CursoDetallePage({ toggleDarkMode, currentMode }) {
         });
         if (!res.ok) throw new Error((await res.json()).detail || 'Error al marcar la lección');
         
-        // Refrescar los datos para asegurar consistencia
         fetchDetails();
         setSnackbar({ open: true, message: '¡Lección completada!', severity: 'success' });
     } catch (err) {
@@ -66,7 +65,7 @@ export default function CursoDetallePage({ toggleDarkMode, currentMode }) {
     }
   };
 
-  if (authReady || loading) {
+  if (!authReady || loading) {
     return <DashboardLayout><Container sx={{ textAlign: 'center', mt: 5 }}><CircularProgress /></Container></DashboardLayout>;
   }
 
