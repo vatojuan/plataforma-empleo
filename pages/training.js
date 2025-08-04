@@ -1,8 +1,10 @@
+// pages/training.js
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 import {
   Container, Typography, Grid, Snackbar, Alert, CircularProgress, Box, Card,
-  CardContent, CardActions, Button, CardMedia
+  CardContent, CardActions, Button, CardMedia, Paper, Divider
 } from '@mui/material';
 import DashboardLayout from '../components/DashboardLayout';
 import useAuthUser from '../hooks/useAuthUser';
@@ -10,7 +12,6 @@ import useAuthUser from '../hooks/useAuthUser';
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://api.fapmendoza.online";
 
 // --- Componente de Tarjeta de Curso reutilizable ---
-// Se pasa la función onEnroll desde el componente padre para que tenga acceso al token correcto.
 const CourseCard = ({ course, onEnroll }) => {
     const router = useRouter();
 
@@ -23,12 +24,9 @@ const CourseCard = ({ course, onEnroll }) => {
             <CardMedia
                 component="img"
                 height="140"
-                // Si course.imageUrl no existe (porque no se subió en el panel de admin),
-                // se usará una imagen de reemplazo.
                 image={course.imageUrl || 'https://placehold.co/600x400/4E342E/FFF?text=Curso'}
                 alt={`Portada de ${course.title}`}
-                // Este onError se activará si la URL de la imagen está rota.
-                onError={(e) => { e.target.onerror = null; e.target.src='https://placehold.co/600x400/4E342E/FFF?text=Error'; }}
+                onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/600x400/4E342E/FFF?text=Error'; }}
             />
             <CardContent sx={{ flexGrow: 1 }}>
                 <Typography gutterBottom variant="h5" component="div">{course.title}</Typography>
@@ -44,7 +42,6 @@ const CourseCard = ({ course, onEnroll }) => {
         </Card>
     );
 };
-
 
 export default function TrainingPage({ toggleDarkMode, currentMode }) {
   const { user, ready: authReady, token } = useAuthUser();
@@ -83,8 +80,6 @@ export default function TrainingPage({ toggleDarkMode, currentMode }) {
     }
   }, [authReady, user, router, fetchCourses]);
 
-  // --- LÓGICA DE INSCRIPCIÓN CORREGIDA ---
-  // La función ahora vive en el componente principal, donde tiene acceso al 'token' del hook.
   const handleEnroll = useCallback(async (courseId) => {
     if (!token) {
         setSnackbar({ open: true, message: 'Debes iniciar sesión para inscribirte.', severity: 'error' });
@@ -98,7 +93,6 @@ export default function TrainingPage({ toggleDarkMode, currentMode }) {
         if (!res.ok) throw new Error((await res.json()).detail || 'Error en la inscripción.');
         
         setSnackbar({ open: true, message: '¡Inscripción exitosa!', severity: 'success' });
-        // Recargar los cursos para que el botón cambie a "Ver Curso".
         fetchCourses();
     } catch (error) {
         setSnackbar({ open: true, message: error.message, severity: 'error' });
@@ -106,7 +100,13 @@ export default function TrainingPage({ toggleDarkMode, currentMode }) {
   }, [token, fetchCourses]);
 
   if (!authReady || loading) {
-    return <DashboardLayout><Container sx={{ textAlign: 'center', mt: 5 }}><CircularProgress /></Container></DashboardLayout>;
+    return (
+      <DashboardLayout>
+        <Container sx={{ textAlign: 'center', mt: 5 }}>
+          <CircularProgress />
+        </Container>
+      </DashboardLayout>
+    );
   }
 
   return (
@@ -120,29 +120,38 @@ export default function TrainingPage({ toggleDarkMode, currentMode }) {
         </Typography>
         
         {courses.length > 0 ? (
-            <Grid container spacing={4}>
+          <Grid container spacing={4}>
             {courses.map((course) => (
-                <Grid item key={course.id} xs={12} sm={6} md={4}>
-                    <CourseCard course={course} onEnroll={handleEnroll} />
-                </Grid>
+              <Grid item key={course.id} xs={12} sm={6} md={4}>
+                <CourseCard course={course} onEnroll={handleEnroll} />
+              </Grid>
             ))}
-            </Grid>
+          </Grid>
         ) : (
-            <Paper sx={{ p: 4, textAlign: 'center', mt: 4 }}>
-                <Typography variant="h6">No hay cursos disponibles</Typography>
-                <Typography color="text.secondary">Vuelve a consultar más tarde para ver nuevas oportunidades de formación.</Typography>
-            </Paper>
+          <Paper sx={{ p: 4, textAlign: 'center', mt: 4 }}>
+            <Typography variant="h6">No hay cursos disponibles</Typography>
+            <Typography color="text.secondary">Vuelve a consultar más tarde para ver nuevas oportunidades de formación.</Typography>
+          </Paper>
         )}
 
+        <Divider sx={{ my: 4 }} />
+        <Box sx={{ textAlign: 'center' }}>
+          <Link href="/dashboard" style={{ textDecoration: 'none' }}>
+            <Button variant="contained" color="primary">
+              Volver al Dashboard
+            </Button>
+          </Link>
+        </Box>
+
         <Snackbar 
-            open={snackbar.open} 
-            autoHideDuration={4000} 
-            onClose={() => setSnackbar(s => ({...s, open: false}))}
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+          open={snackbar.open} 
+          autoHideDuration={4000} 
+          onClose={() => setSnackbar(s => ({...s, open: false}))}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         >
-            <Alert onClose={() => setSnackbar(s => ({...s, open: false}))} severity={snackbar.severity} sx={{ width: '100%' }} variant="filled">
-                {snackbar.message}
-            </Alert>
+          <Alert onClose={() => setSnackbar(s => ({...s, open: false}))} severity={snackbar.severity} sx={{ width: '100%' }} variant="filled">
+            {snackbar.message}
+          </Alert>
         </Snackbar>
       </Container>
     </DashboardLayout>
