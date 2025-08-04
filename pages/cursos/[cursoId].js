@@ -1,33 +1,41 @@
 // pages/cursos/[cursoId].js
-import React, { useState, useEffect, useCallback, useRef } from "react";
-import Link from "next/link";                               // ← nuevo
-import { useRouter } from "next/router";
+import React, {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
 import {
+  Alert,
   Box,
+  Button,
   Container,
-  Typography,
   CircularProgress,
+  Divider,
+  Grid,
+  LinearProgress,
   List,
   ListItem,
   ListItemIcon,
   ListItemText,
   Paper,
-  Divider,
-  Button,
-  Grid,
   Snackbar,
-  Alert,
-} from "@mui/material";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import PlayCircleOutlineIcon from "@mui/icons-material/PlayCircleOutline";
-import DashboardLayout from "../../components/DashboardLayout";
-import useAuthUser from "../../hooks/useAuthUser";
+  Typography,
+} from '@mui/material';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
+import DashboardLayout from '../../components/DashboardLayout';
+import useAuthUser from '../../hooks/useAuthUser';
 
 const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL || "https://api.fapmendoza.online";
+  process.env.NEXT_PUBLIC_API_URL || 'https://api.fapmendoza.online';
 
+/* ------------------------------------------------------------ *
+ |                          Página                              |
+ * ------------------------------------------------------------ */
 export default function CursoDetallePage({ toggleDarkMode, currentMode }) {
-  // ────────────────────────────── Hooks y estado ───────────────────────────
   const { user, ready: authReady, token } = useAuthUser();
   const router = useRouter();
   const { cursoId } = router.query;
@@ -37,28 +45,31 @@ export default function CursoDetallePage({ toggleDarkMode, currentMode }) {
   const [loading, setLoading] = useState(true);
   const [snackbar, setSnackbar] = useState({
     open: false,
-    message: "",
-    severity: "success",
+    message: '',
+    severity: 'success',
   });
 
-  // Video: referencia y control anti-adelanto
   const videoRef = useRef(null);
   const [maxWatched, setMaxWatched] = useState(0);
 
-  // ────────────────────────── Helpers de UI ────────────────────────────────
-  const showMessage = (msg, severity = "success") =>
+  /* ---------------------- Helpers UI ----------------------- */
+  const showMessage = (msg, severity = 'success') =>
     setSnackbar({ open: true, message: msg, severity });
 
-  // ────────────────────────── Fetch de detalles ────────────────────────────
+  /* ----------------------- Fetch --------------------------- */
   const fetchDetails = useCallback(async () => {
     if (!cursoId || !token) return;
     try {
       setLoading(true);
-      const res = await fetch(`${API_BASE}/training/courses/${cursoId}/details`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch(
+        `${API_BASE}/training/courses/${cursoId}/details`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
       if (!res.ok)
-        throw new Error((await res.json()).detail || "Error al cargar detalles");
+        throw new Error(
+          (await res.json()).detail || 'Error al cargar detalles'
+        );
 
       const data = await res.json();
       setCourse(data);
@@ -67,63 +78,63 @@ export default function CursoDetallePage({ toggleDarkMode, currentMode }) {
       setSelectedLesson(firstUncompleted || data.lessons[0] || null);
       setMaxWatched(0);
     } catch (err) {
-      showMessage(err.message, "error");
+      showMessage(err.message, 'error');
     } finally {
       setLoading(false);
     }
   }, [cursoId, token]);
 
-  // ───────────────────────────── useEffect inicial ─────────────────────────
   useEffect(() => {
-    if (authReady) {
-      if (user) fetchDetails();
-      else router.push("/login");
-    }
+    if (!authReady) return;
+    user ? fetchDetails() : router.push('/login');
   }, [authReady, user, router, fetchDetails]);
 
-  // ─────────────────── Completar lección automáticamente ───────────────────
+  /* --------------- Completar lección auto ----------------- */
   const markLessonCompleted = useCallback(
     async (lessonId) => {
       if (!lessonId || !token) return;
       try {
         const res = await fetch(
           `${API_BASE}/training/lessons/${lessonId}/complete`,
-          {
-            method: "POST",
-            headers: { Authorization: `Bearer ${token}` },
-          }
+          { method: 'POST', headers: { Authorization: `Bearer ${token}` } }
         );
+
         if (!res.ok)
-          throw new Error((await res.json()).detail || "Error al marcar lección");
+          throw new Error(
+            (await res.json()).detail || 'Error al marcar lección'
+          );
 
         await fetchDetails();
-        showMessage("¡Lección completada!");
+        showMessage('¡Lección completada!');
       } catch (err) {
-        showMessage(err.message, "error");
+        showMessage(err.message, 'error');
       }
     },
     [token, fetchDetails]
   );
 
-  // ─────────────────────────── Abandonar curso ────────────────────────────
+  /* -------------------- Abandonar ------------------------- */
   const handleUnenroll = useCallback(async () => {
     if (!token) return;
     try {
-      const res = await fetch(`${API_BASE}/training/unenroll/${cursoId}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok)
-        throw new Error((await res.json()).detail || "Error al abandonar curso");
+      const res = await fetch(
+        `${API_BASE}/training/unenroll/${cursoId}`,
+        { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } }
+      );
 
-      showMessage("Curso abandonado", "info");
-      router.push("/training");
+      if (!res.ok)
+        throw new Error(
+          (await res.json()).detail || 'Error al abandonar curso'
+        );
+
+      showMessage('Curso abandonado', 'info');
+      router.push('/training');
     } catch (err) {
-      showMessage(err.message, "error");
+      showMessage(err.message, 'error');
     }
   }, [token, cursoId, router]);
 
-  // ──────────────────── Control de progreso de video ──────────────────────
+  /* ------------ Anti-adelanto de video -------------------- */
   const handleTimeUpdate = () => {
     const v = videoRef.current;
     if (v && v.currentTime > maxWatched) setMaxWatched(v.currentTime);
@@ -134,11 +145,11 @@ export default function CursoDetallePage({ toggleDarkMode, currentMode }) {
     if (v && v.currentTime > maxWatched + 0.1) v.currentTime = maxWatched;
   };
 
-  // ────────────────────────── Render condicional ───────────────────────────
+  /* ----------------------- Loaders ------------------------ */
   if (!authReady || loading) {
     return (
       <DashboardLayout>
-        <Container sx={{ textAlign: "center", mt: 5 }}>
+        <Container sx={{ textAlign: 'center', mt: 6 }}>
           <CircularProgress />
         </Container>
       </DashboardLayout>
@@ -148,34 +159,57 @@ export default function CursoDetallePage({ toggleDarkMode, currentMode }) {
   if (!course) {
     return (
       <DashboardLayout>
-        <Container>
-          <Typography sx={{ mt: 4 }}>Curso no encontrado.</Typography>
+        <Container sx={{ mt: 6 }}>
+          <Typography>Curso no encontrado.</Typography>
         </Container>
       </DashboardLayout>
     );
   }
 
-  // ────────────────────────────── JSX final ────────────────────────────────
+  /* ----------------------- JSX --------------------------- */
   return (
-    <DashboardLayout toggleDarkMode={toggleDarkMode} currentMode={currentMode}>
-      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-        {/* Encabezado con botón Abandonar */}
+    <DashboardLayout
+      toggleDarkMode={toggleDarkMode}
+      currentMode={currentMode}
+    >
+      <Container maxWidth="lg" sx={{ mt: 4, mb: 6 }}>
+        {/* Encabezado */}
         <Box
           sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
             mb: 2,
           }}
         >
           <Typography variant="h4">{course.title}</Typography>
-          <Button variant="outlined" color="error" onClick={handleUnenroll}>
+          <Button
+            variant="outlined"
+            color="error"
+            onClick={handleUnenroll}
+          >
             Abandonar curso
           </Button>
         </Box>
 
-        <Grid container spacing={4}>
-          {/* Panel de video */}
+        {/* Progreso */}
+        <LinearProgress
+          variant="determinate"
+          value={course.progress}
+          sx={{ height: 10, borderRadius: 2 }}
+        />
+        <Typography
+          variant="caption"
+          color={course.progress === 100 ? 'success.main' : 'text.secondary'}
+        >
+          {course.progress === 100
+            ? 'Curso completado'
+            : `${course.progress}% completado`}
+        </Typography>
+
+        {/* Contenido */}
+        <Grid container spacing={4} sx={{ mt: 2 }}>
+          {/* Video + detalles */}
           <Grid item xs={12} md={8}>
             <Paper sx={{ p: 2 }}>
               {selectedLesson ? (
@@ -186,9 +220,9 @@ export default function CursoDetallePage({ toggleDarkMode, currentMode }) {
 
                   <Box
                     sx={{
-                      position: "relative",
-                      paddingTop: "56.25%",
-                      bgcolor: "#000",
+                      position: 'relative',
+                      pt: '56.25%',
+                      bgcolor: '#000',
                     }}
                   >
                     <video
@@ -197,17 +231,16 @@ export default function CursoDetallePage({ toggleDarkMode, currentMode }) {
                       src={selectedLesson.videoUrl}
                       controls
                       style={{
-                        position: "absolute",
+                        position: 'absolute',
                         top: 0,
                         left: 0,
-                        width: "100%",
-                        height: "100%",
+                        width: '100%',
+                        height: '100%',
                       }}
                       onTimeUpdate={handleTimeUpdate}
                       onSeeking={handleSeeking}
-                      onEnded={() => markLessonCompleted(selectedLesson.id)}
-                      onError={(e) =>
-                        console.error("Error al cargar el video:", e)
+                      onEnded={() =>
+                        markLessonCompleted(selectedLesson.id)
                       }
                     />
                   </Box>
@@ -216,47 +249,45 @@ export default function CursoDetallePage({ toggleDarkMode, currentMode }) {
 
                   <Typography variant="body2" color="text.secondary">
                     {selectedLesson.isCompleted
-                      ? "Lección completada automáticamente."
-                      : "Visualiza el video completo para completar la lección."}
+                      ? 'Lección completada.'
+                      : 'Visualiza el video completo para avanzar.'}
                   </Typography>
                 </>
               ) : (
-                <Typography>
-                  Selecciona una lección para comenzar o el curso no tiene
-                  lecciones.
-                </Typography>
+                <Typography>Este curso no tiene lecciones.</Typography>
               )}
             </Paper>
           </Grid>
 
           {/* Lista de lecciones */}
           <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 2, maxHeight: "80vh", overflowY: "auto" }}>
+            <Paper sx={{ p: 2, maxHeight: '80vh', overflowY: 'auto' }}>
               <Typography variant="h6" gutterBottom>
                 Lecciones
               </Typography>
+
               <List>
-                {course.lessons.map((lesson) => (
+                {course.lessons.map((l) => (
                   <ListItem
-                    key={lesson.id}
+                    key={l.id}
                     button
+                    selected={selectedLesson?.id === l.id}
                     onClick={() => {
-                      setSelectedLesson(lesson);
+                      setSelectedLesson(l);
                       setMaxWatched(0);
                     }}
-                    selected={selectedLesson?.id === lesson.id}
-                    sx={{ mb: 1, border: "1px solid #ddd", borderRadius: 1 }}
+                    sx={{ mb: 1, border: '1px solid #ddd', borderRadius: 1 }}
                   >
                     <ListItemIcon>
-                      {lesson.isCompleted ? (
+                      {l.isCompleted ? (
                         <CheckCircleIcon color="success" />
                       ) : (
                         <PlayCircleOutlineIcon />
                       )}
                     </ListItemIcon>
                     <ListItemText
-                      primary={lesson.title}
-                      secondary={`Lección ${lesson.orderIndex + 1}`}
+                      primary={l.title}
+                      secondary={`Lección ${l.orderIndex + 1}`}
                     />
                   </ListItem>
                 ))}
@@ -265,11 +296,11 @@ export default function CursoDetallePage({ toggleDarkMode, currentMode }) {
           </Grid>
         </Grid>
 
-        {/* Botón Volver al Dashboard */}
-        <Divider sx={{ my: 3 }} />
-        <Box sx={{ textAlign: "center", mt: 2 }}>
-          <Link href="/dashboard" style={{ textDecoration: "none" }}>
-            <Button variant="contained" color="primary">
+        {/* Navegación */}
+        <Divider sx={{ my: 4 }} />
+        <Box sx={{ textAlign: 'center' }}>
+          <Link href="/dashboard" passHref legacyBehavior>
+            <Button variant="contained" component="a">
               Volver al Dashboard
             </Button>
           </Link>
@@ -284,8 +315,8 @@ export default function CursoDetallePage({ toggleDarkMode, currentMode }) {
           <Alert
             onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
             severity={snackbar.severity}
-            sx={{ width: "100%" }}
             variant="filled"
+            sx={{ width: '100%' }}
           >
             {snackbar.message}
           </Alert>
