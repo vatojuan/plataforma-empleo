@@ -1,3 +1,4 @@
+// pages/job-create.jsx
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
@@ -12,24 +13,26 @@ import {
   Select,
   MenuItem,
   InputLabel,
-  FormControl
+  FormControl,
 } from "@mui/material";
-import Link from "next/link";
 
 export default function JobCreate() {
   const { data: session, status } = useSession();
   const router = useRouter();
+
+  // ─────────────────────────  estados del formulario
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [requirements, setRequirements] = useState("");
-  
-  // Estado para la opción de expiración
-  const [expirationOption, setExpirationOption] = useState("");
-  // Estado para la fecha manual en caso de seleccionarla
-  const [manualExpirationDate, setManualExpirationDate] = useState("");
-  
-  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+  const [expirationOption, setExpirationOption] = useState("");      // 24h, 3d, …
+  const [manualExpirationDate, setManualExpirationDate] = useState(""); // ISO yyyy-mm-dd
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
 
+  // ─────────────────────────  redirecciones de seguridad
   useEffect(() => {
     if (status !== "loading" && !session) {
       router.push("/login");
@@ -38,7 +41,7 @@ export default function JobCreate() {
     }
   }, [session, status, router]);
 
-  // Función que calcula la fecha de expiración en función de la opción elegida
+  // ─────────────────────────  helpers
   const computeExpirationDate = () => {
     const now = new Date();
     switch (expirationOption) {
@@ -64,51 +67,77 @@ export default function JobCreate() {
     }
   };
 
+  // ─────────────────────────  submit
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!session.user.id) {
-      setSnackbar({ open: true, message: "No se encontró el id del usuario. Inicia sesión de nuevo.", severity: "error" });
+
+    if (!session?.user?.id) {
+      setSnackbar({
+        open: true,
+        message: "No se encontró tu sesión. Inicia sesión nuevamente.",
+        severity: "error",
+      });
       return;
     }
-    // Calculamos la fecha de expiración a enviar
+
     const expirationDate = expirationOption ? computeExpirationDate() : null;
+
     try {
-      const res = await fetch("/api/job/create", {
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
+      const res = await fetch(`${apiBase}/api/job/create`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title,
           description,
           requirements,
+          userId: Number(session.user.id),
           expirationDate: expirationDate ? expirationDate.toISOString() : null,
-          userId: session.user.id,
         }),
       });
+
       if (res.ok) {
-        setSnackbar({ open: true, message: "Oferta publicada", severity: "success" });
-        setTimeout(() => router.push("/job-list"), 2000);
+        setSnackbar({
+          open: true,
+          message: "Oferta publicada con éxito",
+          severity: "success",
+        });
+        setTimeout(() => router.push("/job-list"), 1800);
       } else {
-        const data = await res.json();
-        setSnackbar({ open: true, message: "Error al publicar oferta: " + data.message, severity: "error" });
+        const { detail, message } = await res.json();
+        setSnackbar({
+          open: true,
+          message: `Error al publicar: ${detail || message}`,
+          severity: "error",
+        });
       }
-    } catch (error) {
-      setSnackbar({ open: true, message: "Error al publicar oferta", severity: "error" });
+    } catch (err) {
+      console.error(err);
+      setSnackbar({
+        open: true,
+        message: "Error de red al publicar la oferta",
+        severity: "error",
+      });
     }
   };
 
-  const handleCancel = () => {
-    router.push("/dashboard");
-  };
+  const handleCancel = () => router.push("/dashboard");
 
   if (status === "loading" || !session) {
-    return <Typography align="center" sx={{ mt: 4 }}>Cargando...</Typography>;
+    return (
+      <Typography align="center" sx={{ mt: 4 }}>
+        Cargando…
+      </Typography>
+    );
   }
 
+  // ─────────────────────────  UI
   return (
-    <Container maxWidth="sm" sx={{ textAlign: "center", mt: 4 }}>
+    <Container maxWidth="sm" sx={{ mt: 4, textAlign: "center" }}>
       <Typography variant="h4" gutterBottom>
         Publicar Oferta de Empleo
       </Typography>
+
       <Box
         component="form"
         onSubmit={handleSubmit}
@@ -126,26 +155,26 @@ export default function JobCreate() {
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           required
+          fullWidth
           multiline
           rows={4}
-          fullWidth
         />
         <TextField
           label="Requisitos"
           value={requirements}
           onChange={(e) => setRequirements(e.target.value)}
           required
+          fullWidth
           multiline
           rows={3}
-          fullWidth
         />
-        {/* Desplegable para seleccionar opción de expiración */}
+
         <FormControl fullWidth>
-          <InputLabel id="expiration-option-label">Expiración</InputLabel>
+          <InputLabel id="exp-label">Expiración</InputLabel>
           <Select
-            labelId="expiration-option-label"
-            label="Expiración"
+            labelId="exp-label"
             value={expirationOption}
+            label="Expiración"
             onChange={(e) => setExpirationOption(e.target.value)}
           >
             <MenuItem value="24h">24 horas</MenuItem>
@@ -153,41 +182,39 @@ export default function JobCreate() {
             <MenuItem value="7d">7 días</MenuItem>
             <MenuItem value="15d">15 días</MenuItem>
             <MenuItem value="1m">1 mes</MenuItem>
-            <MenuItem value="manual">Poner fecha manualmente</MenuItem>
+            <MenuItem value="manual">Fecha manual</MenuItem>
           </Select>
         </FormControl>
-        {/* Si se elige "Poner fecha manualmente", se muestra un campo de fecha */}
+
         {expirationOption === "manual" && (
           <TextField
-            label="Fecha de Expiración"
+            label="Fecha de expiración"
             type="date"
             value={manualExpirationDate}
             onChange={(e) => setManualExpirationDate(e.target.value)}
-            fullWidth
             InputLabelProps={{ shrink: true }}
+            fullWidth
           />
         )}
+
         <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
-          <Button type="submit" variant="contained" color="primary">
+          <Button type="submit" variant="contained">
             Publicar Oferta
           </Button>
-          <Button
-            variant="outlined"
-            onClick={handleCancel}
-            sx={{ color: "text.primary", borderColor: "text.primary" }}
-          >
+          <Button variant="outlined" onClick={handleCancel}>
             Cancelar
           </Button>
         </Box>
       </Box>
+
       <Snackbar
         open={snackbar.open}
         autoHideDuration={4000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
         <Alert
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
           severity={snackbar.severity}
           variant="filled"
           sx={{ width: "100%" }}
