@@ -1,4 +1,6 @@
-// pages/job-create.jsx
+// pages/job-create.jsx  (ó /pages/job/create.jsx)
+// ------------------------------------------------
+
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
@@ -17,22 +19,24 @@ import {
 } from "@mui/material";
 
 export default function JobCreate() {
-  const { data: session, status } = useSession();
   const router = useRouter();
+  const { data: session, status } = useSession();
 
-  // ─────────────────────────  estados del formulario
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [requirements, setRequirements] = useState("");
-  const [expirationOption, setExpirationOption] = useState("");      // 24h, 3d, …
-  const [manualExpirationDate, setManualExpirationDate] = useState(""); // ISO yyyy-mm-dd
+
+  // Expiración
+  const [expirationOption, setExpirationOption] = useState("7d");
+  const [manualExpirationDate, setManualExpirationDate] = useState("");
+
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
     severity: "success",
   });
 
-  // ─────────────────────────  redirecciones de seguridad
+  /* ───────────────────────── redirecciones ───────────────────────── */
   useEffect(() => {
     if (status !== "loading" && !session) {
       router.push("/login");
@@ -41,7 +45,7 @@ export default function JobCreate() {
     }
   }, [session, status, router]);
 
-  // ─────────────────────────  helpers
+  /* ───────────────────── helpers de expiración ───────────────────── */
   const computeExpirationDate = () => {
     const now = new Date();
     switch (expirationOption) {
@@ -67,26 +71,38 @@ export default function JobCreate() {
     }
   };
 
-  // ─────────────────────────  submit
+  /* ────────────────────── submit ────────────────────── */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!session?.user?.id) {
+    // 1. Token JWT necesario para /api/job/create (FastAPI)
+    const jwt =
+      session?.accessToken ||
+      session?.token ||
+      (typeof window !== "undefined" && localStorage.getItem("userToken"));
+
+    if (!jwt) {
       setSnackbar({
         open: true,
-        message: "No se encontró tu sesión. Inicia sesión nuevamente.",
+        message: "No se encontró token de autenticación. Inicia sesión de nuevo.",
         severity: "error",
       });
       return;
     }
 
+    // 2. Calculamos expiración
     const expirationDate = expirationOption ? computeExpirationDate() : null;
 
+    // 3. URL del backend (usa variable de entorno en producción)
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
+
     try {
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
       const res = await fetch(`${apiBase}/api/job/create`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${jwt}`,
+        },
         body: JSON.stringify({
           title,
           description,
@@ -99,23 +115,22 @@ export default function JobCreate() {
       if (res.ok) {
         setSnackbar({
           open: true,
-          message: "Oferta publicada con éxito",
+          message: "Oferta publicada",
           severity: "success",
         });
-        setTimeout(() => router.push("/job-list"), 1800);
+        setTimeout(() => router.push("/job-list"), 2000);
       } else {
-        const { detail, message } = await res.json();
+        const data = await res.json();
         setSnackbar({
           open: true,
-          message: `Error al publicar: ${detail || message}`,
+          message: `Error al publicar oferta: ${data.detail || data.message}`,
           severity: "error",
         });
       }
     } catch (err) {
-      console.error(err);
       setSnackbar({
         open: true,
-        message: "Error de red al publicar la oferta",
+        message: "Error de red. Intenta nuevamente.",
         severity: "error",
       });
     }
@@ -126,12 +141,12 @@ export default function JobCreate() {
   if (status === "loading" || !session) {
     return (
       <Typography align="center" sx={{ mt: 4 }}>
-        Cargando…
+        Cargando...
       </Typography>
     );
   }
 
-  // ─────────────────────────  UI
+  /* ────────────────────────── UI ────────────────────────── */
   return (
     <Container maxWidth="sm" sx={{ mt: 4, textAlign: "center" }}>
       <Typography variant="h4" gutterBottom>
@@ -150,29 +165,31 @@ export default function JobCreate() {
           required
           fullWidth
         />
+
         <TextField
           label="Descripción"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           required
-          fullWidth
           multiline
           rows={4}
+          fullWidth
         />
+
         <TextField
           label="Requisitos"
           value={requirements}
           onChange={(e) => setRequirements(e.target.value)}
-          required
-          fullWidth
           multiline
           rows={3}
+          fullWidth
         />
 
+        {/* Expiración */}
         <FormControl fullWidth>
-          <InputLabel id="exp-label">Expiración</InputLabel>
+          <InputLabel id="expiration-label">Expiración</InputLabel>
           <Select
-            labelId="exp-label"
+            labelId="expiration-label"
             value={expirationOption}
             label="Expiración"
             onChange={(e) => setExpirationOption(e.target.value)}
@@ -188,7 +205,7 @@ export default function JobCreate() {
 
         {expirationOption === "manual" && (
           <TextField
-            label="Fecha de expiración"
+            label="Fecha de Expiración"
             type="date"
             value={manualExpirationDate}
             onChange={(e) => setManualExpirationDate(e.target.value)}
@@ -197,8 +214,9 @@ export default function JobCreate() {
           />
         )}
 
+        {/* Botones */}
         <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
-          <Button type="submit" variant="contained">
+          <Button type="submit" variant="contained" color="primary">
             Publicar Oferta
           </Button>
           <Button variant="outlined" onClick={handleCancel}>
@@ -207,6 +225,7 @@ export default function JobCreate() {
         </Box>
       </Box>
 
+      {/* Snackbar */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={4000}
@@ -214,10 +233,10 @@ export default function JobCreate() {
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
         <Alert
-          onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
           severity={snackbar.severity}
           variant="filled"
           sx={{ width: "100%" }}
+          onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
         >
           {snackbar.message}
         </Alert>
