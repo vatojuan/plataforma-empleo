@@ -226,8 +226,7 @@ export default function JobList() {
   /* ─── 8. Eliminar oferta (empleador) ─── */
   const confirmDelete = async () => {
     const id = dialogs.delete.jobId;
-    const adminToken = localStorage.getItem("adminToken");
-    if (!adminToken) {
+    if (!authToken) {
       setSnackbar({
         open: true,
         message: "No autorizado",
@@ -241,7 +240,7 @@ export default function JobList() {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${adminToken}`,
+          ...authHeader(), // ✅ Usa el token del usuario empleador
         },
         body: JSON.stringify({ jobId: id }),
       });
