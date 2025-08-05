@@ -236,13 +236,12 @@ export default function JobList() {
       return;
     }
     try {
-      const res = await fetch(`${API_BASE}/api/job/delete`, {
+      const res = await fetch(`${API_BASE}/api/job/delete/${id}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
           ...authHeader(), // ✅ Usa el token del usuario empleador
         },
-        body: JSON.stringify({ jobId: id }),
       });
       if (!res.ok) throw new Error(res.status);
       setJobs((prev) => prev.filter((j) => j.id !== id));
