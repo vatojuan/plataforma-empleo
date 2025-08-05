@@ -1,47 +1,48 @@
 // pages/api/job/create.js
-// ---------------------------------------------------------------------
-// Crea una oferta, genera embedding (OpenAI) y lo guarda en columna pgvector
-// ---------------------------------------------------------------------
+// -----------------------------------------------------------
+// Crea una oferta, genera embedding y lo guarda en pgvector.
+//
+//  ✅  No expone Typescript
+//  ✅  Evita que Prisma lea la columna vector
+//  ✅  Usa $executeRawUnsafe sólo para el UPDATE del vector
+// -----------------------------------------------------------
 
 import prisma from "../../../lib/prisma";
-import fetch from "node-fetch";            // npm i node-fetch@^3
+import fetch  from "node-fetch";           //  npm i node-fetch@^3
 
-/* ---------- Constantes --------------------------------------------- */
+/* ---------- Config ------------------------------------------------- */
 
 const OPENAI_URL   = "https://api.openai.com/v1/embeddings";
 const OPENAI_MODEL = "text-embedding-ada-002";
 
-/* ---------- Utilidades --------------------------------------------- */
+/* ---------- Helpers ------------------------------------------------ */
 
-/** Devuelve array<number> con 1536 floats o null si falla */
-async function getJobEmbedding(text) {
+/** [0.1,0.2] -> '[0.1,0.2]' (pgvector literal) */
+const toVector = (arr) => `'[${arr.join(",")}]'`;
+
+/** Devuelve array<float> ó null */
+async function getEmbedding(text) {
   try {
     const r = await fetch(OPENAI_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      method : "POST",
+      headers : {
+        "Content-Type" : "application/json",
+        Authorization  : `Bearer ${process.env.OPENAI_API_KEY}`,
       },
-      body: JSON.stringify({ model: OPENAI_MODEL, input: text }),
+      body : JSON.stringify({ model: OPENAI_MODEL, input: text }),
     });
     if (!r.ok) throw new Error(await r.text());
 
-    const data = await r.json();
-    const emb  = data?.data?.[0]?.embedding;
-    if (!Array.isArray(emb)) throw new Error("Respuesta inesperada");
+    const emb = (await r.json())?.data?.[0]?.embedding;
+    if (!Array.isArray(emb)) throw new Error("Respuesta inesperada de OpenAI");
     return emb;
-  } catch (err) {
-    console.error("⚠️  Embedding error:", err.message ?? err);
+  } catch (e) {
+    console.error("⚠️  Error embedding:", e.message || e);
     return null;
   }
 }
 
-/** Convierte [0.1,0.2] → `'[0.1,0.2]'` (literal requerido por pgvector) */
-function toVectorLiteral(arr) {
-  return `'[${arr.join(",")}]'`;
-}
-
-/* ---------- Handler ------------------------------------------------- */
+/* ---------- API Route ---------------------------------------------- */
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -50,23 +51,15 @@ export default async function handler(req, res) {
   }
 
   const { title, description, requirements, userId, expirationDate } = req.body;
-  console.log("➡️  /api/job/create payload:", {
-    title,
-    description,
-    requirements,
-    userId,
-    expirationDate,
-  });
 
   if (!title || !description || !userId) {
     return res.status(400).json({ message: "Faltan campos obligatorios" });
   }
 
-  /* 1️⃣  Embedding (no detiene la creación si falla) */
-  const embText   = `${title}\n\n${description}\n\n${requirements || ""}`;
-  const embedding = await getJobEmbedding(embText);
+  /* 1. Generamos embedding – no abortamos si falla */
+  const emb = await getEmbedding(`${title}\n\n${description}\n\n${requirements || ""}`);
 
-  /* 2️⃣  Inserción principal (sin la columna vector) */
+  /* 2. Insertamos la oferta SIN la columna vector */
   const created = await prisma.job.create({
     data: {
       title,
@@ -75,18 +68,26 @@ export default async function handler(req, res) {
       userId: Number(userId),
       expirationDate: expirationDate ? new Date(expirationDate) : null,
     },
+    // ⛔ NO devolvemos embedding ⇒ evitamos el P2023
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      requirements: true,
+      userId: true,
+      expirationDate: true,
+      createdAt: true,
+    },
   });
 
-  /* 3️⃣  Si hay embedding => UPDATE separado con SQL crudo */
-  if (embedding) {
-    const vectorLiteral = toVectorLiteral(embedding);
+  /* 3. Si hay embedding => UPDATE aparte */
+  if (emb) {
     await prisma.$executeRawUnsafe(`
       UPDATE "Job"
-         SET embedding = ${vectorLiteral}::vector
+         SET embedding = ${toVector(emb)}::vector
        WHERE id       = ${created.id};
     `);
   }
 
-  /* 4️⃣  Respuesta */
   return res.status(200).json({ message: "Oferta creada", job: created });
 }
