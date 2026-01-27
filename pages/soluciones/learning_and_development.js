@@ -21,58 +21,29 @@ export default function LearningAndDevelopment() {
 
   const bloques = [
     {
-      titulo: "Liderazgo y Gestión Humana para Nuevos Tiempos",
-      subtitulo: "Liderar para Conectar: Equipos que Transforman",
+      titulo: "Liderazgo y gestión de equipos",
       texto:
-        "Desarrollamos líderes capaces de generar conexión genuina, alinear valores y movilizar equipos desde la motivación y la claridad. Los equipos ya no siguen jerarquías: siguen a quienes los inspiran.",
+        "Desarrollá líderes capaces de inspirar, motivar y guiar a sus equipos hacia resultados sostenibles. Este programa promueve habilidades clave como la comunicación efectiva, la delegación, la toma de decisiones y la gestión emocional, fortaleciendo el liderazgo consciente y la cohesión grupal dentro de la organización.",
     },
     {
-      titulo: "Coaching y Mentoring Estratégico",
-      subtitulo: "Talento que se queda, aprende y se multiplica",
+      titulo: "IA aplicada al trabajo real: tecnología, personas y cultura",
       texto:
-        "Convertimos el potencial interno en resultados concretos. Implementamos sistemas de coaching y mentoring orientados a reducir la rotación, empoderar la toma de decisiones y acelerar el crecimiento sostenible.",
+        "Una capacitación práctica para comprender cómo la Inteligencia Artificial puede integrarse de manera efectiva en el trabajo cotidiano, potenciando la productividad, la toma de decisiones y la colaboración entre personas y tecnología. El enfoque pone en el uso responsable de la IA, el desarrollo de habilidades humanas clave y la adaptación cultural necesaria para acompañar la transformación digital en las organizaciones.",
     },
     {
-      titulo: "Desarrollo para el Alto Desempeño",
-      subtitulo: "Mentalidad de Excelencia",
+      titulo: "Comunicación y habilidades humanas avanzadas",
       texto:
-        "Instalamos una cultura de aprendizaje continuo, pensamiento estratégico e innovación práctica. El alto rendimiento se logra cuando el propósito cuenta con una dirección clara.",
+        "Potenciá las competencias interpersonales que marcan la diferencia en el entorno laboral actual. Este curso aborda la escucha activa, la empatía, la comunicación asertiva y la gestión emocional, claves para mejorar las relaciones laborales y fortalecer el trabajo en equipo.",
     },
     {
-      titulo: "Cultura Organizacional y Clima Laboral",
-      subtitulo: "Organizaciones con Identidad Resiliente",
+      titulo: "Cultura organizacional y lugar de trabajo atractivo",
       texto:
-        "Diseñamos culturas firmes, humanas y sostenibles que trascienden los cambios y fortalecen el compromiso emocional de las personas con su trabajo.",
+        "Impulsá una cultura interna sólida y coherente con los valores de tu empresa. Esta capacitación ayuda a construir entornos laborales más motivadores, inclusivos y sostenibles, mejorando la experiencia del empleado y el posicionamiento como empleador atractivo.",
     },
     {
-      titulo: "Ambientes Laborales Saludables y Atractivos",
-      subtitulo: "Del trabajo como carga al trabajo como motor",
+      titulo: "Nutrición en el trabajo: alimentación consciente para el bienestar laboral",
       texto:
-        "Creamos espacios que cuidan, inspiran y contienen: claves para atraer y fidelizar talento en una era en la que el bienestar dejó de ser opcional para convertirse en ventaja competitiva.",
-    },
-    {
-      titulo: "Comunicación y Habilidades Humanas Avanzadas",
-      subtitulo: "Comunicación Transformadora",
-      texto:
-        "Fomentamos escucha activa, feedback con propósito y conversaciones valientes. Los equipos que se comunican con inteligencia generan sinergias que otros solo imaginan.",
-    },
-    {
-      titulo: "Bienestar Integral y Mindfulness Corporativo",
-      subtitulo: "Talento cuidado, talento que rinde",
-      texto:
-        "Aplicamos estrategias prácticas de bienestar emocional, gestión del estrés y pausas conscientes para reducir el ausentismo y potenciar un rendimiento sostenible.",
-    },
-    {
-      titulo: "Nutrición Inteligente en el Trabajo",
-      subtitulo: "Alimentación con impacto",
-      texto:
-        "La productividad, el foco y la energía sostenida empiezan en lo que comemos. Diseñamos programas alimentarios simples y eficaces para contextos laborales reales.",
-    },
-    {
-      titulo: "Innovación y Digitalización Humana",
-      subtitulo: "Personas preparadas para el futuro digital",
-      texto:
-        "Integramos habilidades digitales, mentalidad ágil y herramientas listas para usar desde el primer día. La tecnología al servicio de las personas y de los resultados.",
+        "Promové el bienestar y la productividad de tu equipo a través de hábitos alimentarios saludables. Este espacio combina conceptos de nutrición práctica y bienestar integral, ayudando a los colaboradores a mantener energía, concentración y equilibrio durante la jornada laboral.",
     },
   ];
 
@@ -96,7 +67,7 @@ export default function LearningAndDevelopment() {
           }}
         >
           <Box>
-            <Typography variant="h5">Learning and Development</Typography>
+            <Typography variant="h5">Capacitaciones para tu equipo</Typography>
             <Typography
               variant="h2"
               sx={{ fontWeight: 700, mt: 1, lineHeight: 1.2 }}
@@ -155,22 +126,7 @@ export default function LearningAndDevelopment() {
                     <Typography variant="h6" gutterBottom>
                       {b.titulo}
                     </Typography>
-                    <Typography
-                      variant="subtitle1"
-                      sx={{
-                        fontWeight: 600,
-                        mb: 1,
-                        "&::before": {
-                          content: '"•"',
-                          display: "inline-block",
-                          color: "#D96236",
-                          fontWeight: 900,
-                          mr: 1,
-                        },
-                      }}
-                    >
-                      {b.subtitulo}
-                    </Typography>
+                    {/* Se eliminó la sección de subtítulo ya que los nuevos datos no la utilizan */}
                     <Typography variant="body2">{b.texto}</Typography>
                   </CardContent>
                 </Card>

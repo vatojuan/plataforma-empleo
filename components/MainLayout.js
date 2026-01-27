@@ -77,7 +77,7 @@ export default function MainLayout({ children }) {
             Soluciones
           </Button>
 
-          {/* Menú Soluciones UNIFICADO */}
+          {/* Menú Soluciones UNIFICADO (Textos actualizados al español) */}
           <Menu
             id="soluciones-menu"
             anchorEl={solucionesAnchor}
@@ -86,19 +86,19 @@ export default function MainLayout({ children }) {
             MenuListProps={{ "aria-labelledby": "soluciones-button" }}
           >
             <MenuItem onClick={() => handleSolucionesNavigate("/soluciones/recruitment")}>
-              Recruitment Process
+              Reclutamiento y Selección de Personal
             </MenuItem>
             <MenuItem onClick={() => handleSolucionesNavigate("/soluciones/learning_and_development")}>
-              Learning And Development
+              Capacitaciones para tu equipo
             </MenuItem>
             <MenuItem onClick={() => handleSolucionesNavigate("/soluciones/branding")}>
-              Employer Branding & Engagement
+              Marca Empleadora
             </MenuItem>
             <MenuItem onClick={() => handleSolucionesNavigate("/soluciones/outsourcing")}>
-              Outsourcing
+              Subcontratación
             </MenuItem>
             <MenuItem onClick={() => handleSolucionesNavigate("/soluciones/talent_management")}>
-              Talent Management
+              Administración del talento humano
             </MenuItem>
           </Menu>
 
