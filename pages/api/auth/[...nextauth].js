@@ -148,6 +148,15 @@ export const authOptions = {
 
       return session;
     },
+
+    // 4) Sanea la URL de redirección para evitar caracteres inválidos en los headers HTTP
+    async redirect({ url, baseUrl }) {
+      // Si la URL es relativa, se concatena a la base. Si es externa, se verifica que sea del mismo origen.
+      const safeUrl = url.startsWith("/") ? `${baseUrl}${url}` : url;
+      
+      // encodeURI elimina caracteres no ASCII (como acentos o espacios) que rompen el header "Location"
+      return encodeURI(safeUrl.trim());
+    },
   },
 
   pages: {

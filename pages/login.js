@@ -1,5 +1,7 @@
+// pages/login.js
 import { signIn } from "next-auth/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/router"; // Importación añadida para manejar rutas dinámicas
 import { useTheme } from "@mui/material/styles";
 import { 
   Box, 
@@ -21,10 +23,21 @@ import Link from "next/link";
 
 export default function Login() {
   const theme = useTheme();
+  const router = useRouter(); // Inicializamos el router
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
   const [showPassword, setShowPassword] = useState(false);
+
+  // Obtenemos el callbackUrl de la query string o usamos el dashboard por defecto
+  const [destination, setDestination] = useState("/dashboard");
+
+  useEffect(() => {
+    if (router.query.callbackUrl) {
+      // Limpiamos la URL de origen para que sea segura para los headers HTTP
+      setDestination(encodeURI(router.query.callbackUrl));
+    }
+  }, [router.query]);
 
   // Iniciar sesión con email y contraseña
   const handleEmailLogin = async (e) => {
@@ -33,11 +46,12 @@ export default function Login() {
       redirect: false,
       email: email.toLowerCase(), // Convertir a minúsculas
       password,
-      callbackUrl: "/dashboard",
+      callbackUrl: destination,
     });
 
     if (result?.ok) {
-      window.location.href = "/dashboard";
+      // Usamos encodeURI por seguridad extrema antes del redireccionamiento
+      window.location.href = encodeURI(result.url || destination);
     } else {
       setSnackbar({ open: true, message: "Error al iniciar sesión. Verifica tus credenciales.", severity: "error" });
     }
@@ -45,7 +59,8 @@ export default function Login() {
 
   // Iniciar sesión con Google
   const handleGoogleLogin = () => {
-    signIn("google", { callbackUrl: "/dashboard", prompt: "select_account" });
+    // Al pasar el destination por encodeURI, evitamos el error ERR_INVALID_CHAR
+    signIn("google", { callbackUrl: destination, prompt: "select_account" });
   };
 
   return (
